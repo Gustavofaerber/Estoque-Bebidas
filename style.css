@@ -1,101 +1,36 @@
-:root {
-    --bg: #f4f6f8;
-    --card: #ffffff;
-    --primary: #2c3e50;
-    --secondary: #7f8c8d;
-    --accent: #d4af37; /* Dourado */
-    --danger: #e74c3c;
-    --success: #27ae60;
-    --border: #dfe6e9;
-    --text: #2d3436;
-}
-
-body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: var(--bg);
-    color: var(--text);
-    margin: 0;
-    padding: 10px;
-}
-
-h1, h2, h3, h4 { margin-top: 0; color: var(--primary); }
-
-.tela { display: none; animation: fadeIn 0.3s; }
-.tela.ativa { display: block; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-
-.card {
-    background: var(--card);
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-    border: 1px solid var(--border);
-    margin-bottom: 15px;
-}
-
-.header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: var(--primary);
-    color: white;
-    padding: 15px;
-    border-radius: 12px;
-    margin-bottom: 15px;
-}
-.header h3 { margin: 0; color: white; }
-
-.btn {
-    padding: 12px 15px;
-    border: none;
-    border-radius: 8px;
-    font-weight: bold;
-    cursor: pointer;
-    font-size: 14px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-}
-.btn-primary { background: var(--accent); color: var(--primary); }
-.btn-secondary { background: var(--secondary); color: white; }
-.btn-danger { background: var(--danger); color: white; }
-.btn-success { background: var(--success); color: white; }
-
-.form-group { margin-bottom: 15px; }
-.form-group label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 13px; }
-input[type="text"], input[type="number"], input[type="password"], select {
-    width: 100%;
-    padding: 12px;
-    border: 1.5px solid var(--border);
-    border-radius: 8px;
-    box-sizing: border-box;
-    font-size: 16px; /* Evita zoom automático no iOS */
-    background: #fafafa;
-}
-
-.msg-erro { display: none; background: var(--danger); color: white; padding: 10px; border-radius: 6px; text-align: center; margin-bottom: 15px; }
-
-/* Tabela em formato de Cards (Mobile First) */
-.item-contagem {
-    border: 1px solid var(--border);
-    padding: 10px;
-    border-radius: 8px;
-    margin-bottom: 10px;
-    background: #fdfdfd;
-}
-.item-contagem-header {
-    font-weight: bold;
-    margin-bottom: 8px;
-    color: var(--primary);
-    border-bottom: 1px solid var(--border);
-    padding-bottom: 5px;
-}
+/* Atualização do Grid para comportar "Avaria" */
 .grid-inputs {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
+    grid-template-columns: repeat(3, 1fr); /* 3 colunas para mobile */
+    gap: 10px;
 }
-.grid-inputs label { font-size: 11px; color: var(--secondary); margin-bottom: 2px;}
-.grid-inputs input { padding: 8px; text-align: center; font-weight: bold;}
+.grid-inputs div { display: flex; flex-direction: column; }
+.grid-inputs label { font-size: 11px; color: var(--secondary); margin-bottom: 4px;}
+.grid-inputs input { padding: 10px; text-align: center; font-weight: bold;}
 .destaque-input { border-color: var(--accent) !important; background: #fffdf5 !important;}
+
+.input-avaria { border-color: var(--danger) !important; color: var(--danger); }
+.input-pax { background: #e8f8f5 !important; color: var(--success); }
+
+/* Tabela de Conferência Final (Imitando o Papel) */
+.tabela-relatorio {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-top: 10px;
+}
+.tabela-relatorio th, .tabela-relatorio td {
+    border: 1px solid var(--border);
+    padding: 8px 4px;
+    text-align: center;
+}
+.tabela-relatorio th {
+    background-color: var(--primary);
+    color: white;
+    font-size: 11px;
+}
+.tabela-relatorio td:first-child {
+    text-align: left;
+    font-weight: bold;
+    color: var(--primary);
+}
