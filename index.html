@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Estoque Bebidas - Trem</title>
+    <meta name="theme-color" content="#2c3e50">
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+</head>
+<body>
+
+    <!-- TELA DE LOGIN -->
+    <div id="tela-login" class="tela ativa">
+        <div class="card">
+            <h2 style="text-align: center; color: var(--primary);">Controle de Bebidas</h2>
+            <p style="text-align: center; font-size: 14px;">Operação e Logística</p>
+            <div id="msgLogin" class="msg-erro"></div>
+            
+            <div class="form-group">
+                <label>Usuário:</label>
+                <input type="text" id="loginUser" placeholder="admin ou apoio">
+            </div>
+            <div class="form-group">
+                <label>Senha:</label>
+                <input type="password" id="loginSenha" placeholder="Digite 1234">
+            </div>
+            <button class="btn btn-primary" onclick="fazerLogin()" style="width: 100%; margin-top: 10px;">Entrar</button>
+        </div>
+    </div>
+
+    <!-- PAINEL CHEFE DO TREM (ADMIN) -->
+    <div id="tela-admin" class="tela">
+        <div class="header">
+            <div>
+                <h3>Painel Chefia</h3>
+                <small id="dataOperacaoAdmin"></small>
+            </div>
+            <button class="btn btn-danger" onclick="logout()"><i class="ph ph-sign-out"></i> Sair</button>
+        </div>
+        <div class="card">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <button class="btn btn-secondary" onclick="mostrarTela('tela-cadastro-produtos')"><i class="ph ph-package"></i> Produtos</button>
+                <button class="btn btn-secondary" onclick="alert('Na V2: Sistema de distribuição Container x Bagageiro')"><i class="ph ph-truck"></i> Carga do Dia</button>
+                <button class="btn btn-primary" style="grid-column: span 2;" onclick="alert('Na V2: Relatórios consolidados')"><i class="ph ph-chart-bar"></i> Relatório Consolidado</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TELA CADASTRO DE PRODUTOS (ADMIN) -->
+    <div id="tela-cadastro-produtos" class="tela">
+        <div class="header">
+            <h3><i class="ph ph-package"></i> Bebidas e Kits</h3>
+            <button class="btn btn-secondary" onclick="mostrarTela('tela-admin')">Voltar</button>
+        </div>
+        <div class="card">
+            <div style="display: flex; gap: 5px;">
+                <input type="text" id="novoProdSigla" placeholder="Sigla (Ex: C)" style="flex: 1;">
+                <input type="text" id="novoProdNome" placeholder="Nome (Ex: Coca Lata)" style="flex: 2;">
+                <button class="btn btn-primary" onclick="adicionarProduto()"><i class="ph ph-plus"></i></button>
+            </div>
+            <hr>
+            <div id="listaProdutosAdmin"></div>
+        </div>
+    </div>
+
+    <!-- PAINEL APOIO (CONTAGEM) -->
+    <div id="tela-apoio" class="tela">
+        <div class="header">
+            <div>
+                <h3>Painel Apoio</h3>
+                <small id="lblNomeApoio"></small>
+            </div>
+            <button class="btn btn-danger" onclick="logout()"><i class="ph ph-sign-out"></i> Sair</button>
+        </div>
+        
+        <div class="card">
+            <h4><i class="ph ph-clipboard-text"></i> Contagem de Vagão</h4>
+            <p style="font-size: 13px; color: #7f8c8d;">Registre as sobras e consumos.</p>
+            <div class="form-group">
+                <label>Selecione o Vagão:</label>
+                <select id="selectVagaoApoio">
+                    <option value="11">Turístico 11</option>
+                    <option value="12">Turístico 12</option>
+                    <option value="B1">Boutique 1</option>
+                    <option value="L1">Litorina 1</option>
+                </select>
+            </div>
+            <button class="btn btn-primary" style="width: 100%;" onclick="iniciarContagemVagao()">Iniciar Contagem</button>
+        </div>
+
+        <div class="card">
+            <h4><i class="ph ph-shopping-cart"></i> Carrinho de Vendas</h4>
+            <p style="font-size: 13px; color: #7f8c8d;">Acerto de Águas e Cervejas.</p>
+            <button class="btn btn-secondary" style="width: 100%;" onclick="iniciarAcertoCarrinho()">Fazer Acerto</button>
+        </div>
+    </div>
+
+    <!-- FORMULÁRIO DE CONTAGEM DO VAGÃO -->
+    <div id="tela-contagem-vagao" class="tela">
+        <div class="header">
+            <h3>Contagem: <span id="lblVagaoContagem"></span></h3>
+            <button class="btn btn-danger" onclick="mostrarTela('tela-apoio')">Cancelar</button>
+        </div>
+        <div class="card" style="padding: 10px;">
+            <p style="font-size: 12px; font-style: italic; margin-bottom: 15px;">Dica: Digite a carga e o saldo (sobra). O sistema calcula o Consumo Pax automaticamente.</p>
+            <div id="listaItensContagem"></div>
+            
+            <div class="form-group" style="margin-top: 20px;">
+                <label>Observações / Avarias (Opcional):</label>
+                <input type="text" id="obsContagemVagao" placeholder="Ex: 1 coca estourada">
+            </div>
+            
+            <button class="btn btn-primary" style="width: 100%; padding: 15px; font-size: 16px;" onclick="salvarContagemVagao()">Salvar Contagem</button>
+        </div>
+    </div>
+
+    <!-- FORMULÁRIO DE ACERTO DO CARRINHO -->
+    <div id="tela-acerto-carrinho" class="tela">
+        <div class="header">
+            <h3>Acerto do Carrinho</h3>
+            <button class="btn btn-danger" onclick="mostrarTela('tela-apoio')">Cancelar</button>
+        </div>
+        <div class="card">
+            <div id="listaItensCarrinho"></div>
+            <hr>
+            <div class="form-group">
+                <label>Troco Inicial Pego (R$):</label>
+                <input type="number" id="carrinhoTroco" value="0">
+            </div>
+            <div style="background: #ecf0f1; padding: 15px; border-radius: 8px; margin-bottom: 15px; text-align: center;">
+                <p style="margin: 0;">Valor Total Calculado de Vendas:</p>
+                <h2 style="margin: 5px 0; color: #27ae60;">R$ <span id="lblTotalVendasCarrinho">0,00</span></h2>
+                <small style="color: #7f8c8d;">Entregar à chefia: <strong id="lblTotalEntregar">R$ 0,00</strong> (Vendas + Troco)</small>
+            </div>
+            <button class="btn btn-primary" style="width: 100%; padding: 15px; font-size: 16px;" onclick="salvarAcertoCarrinho()">Finalizar Acerto</button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
