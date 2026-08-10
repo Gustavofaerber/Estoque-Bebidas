@@ -55,7 +55,7 @@
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                 <button class="btn btn-secondary" onclick="mostrarTela('tela-usuarios')"><i class="ph ph-users"></i> Equipe (Apoios)</button>
                 <button class="btn btn-secondary" onclick="mostrarTela('tela-cadastro-produtos')"><i class="ph ph-package"></i> Produtos</button>
-                <button class="btn btn-secondary" onclick="alert('Na V3: Sistema Container x Bagageiro')"><i class="ph ph-truck"></i> Carga</button>
+                <button class="btn btn-secondary" onclick="alert('Na V4: Sistema Container x Bagageiro')"><i class="ph ph-truck"></i> Carga</button>
                 <button class="btn btn-primary" onclick="abrirRelatoriosAdmin()"><i class="ph ph-chart-bar"></i> Relatórios</button>
             </div>
         </div>
@@ -101,7 +101,18 @@
             <h3><i class="ph ph-chart-bar"></i> Relatórios</h3>
             <button class="btn btn-secondary btn-pequeno" onclick="mostrarTela('tela-admin')">Voltar</button>
         </div>
-        <div id="listaRelatoriosAdmin"></div>
+        <div class="card">
+            <div class="form-group">
+                <label>Data do Relatório:</label>
+                <input type="date" id="filtroDataRelatorio" onclick="this.showPicker && this.showPicker()" onchange="renderizarRelatoriosAdmin()">
+            </div>
+            <div style="display:flex; gap:5px; margin-bottom:15px; overflow-x: auto; padding-bottom:5px;">
+                <button class="btn btn-secondary btn-pequeno" id="btnRelVagao" onclick="setModoRelatorio('vagao')">Por Vagão</button>
+                <button class="btn btn-secondary btn-pequeno" id="btnRelTur" onclick="setModoRelatorio('turisticos')">Total Turísticos</button>
+                <button class="btn btn-secondary btn-pequeno" id="btnRelGeral" onclick="setModoRelatorio('geral')">Total (Ambos Estoques)</button>
+            </div>
+            <div id="listaRelatoriosAdmin"></div>
+        </div>
     </div>
 
     <!-- SETUP DE CONTAGEM (APOIO) -->
@@ -117,7 +128,6 @@
             </div>
             <div class="form-group">
                 <label>Data:</label>
-                <!-- onclick para abrir o calendário em qualquer clique no mobile -->
                 <input type="date" id="dataContagemApoio" onclick="this.showPicker && this.showPicker()">
             </div>
             <div class="form-group">
@@ -178,6 +188,18 @@
                 <strong>Data:</strong> <span id="resumoData"></span>
             </div>
             
+            <!-- Cards de Totalizadores Rápidos -->
+            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                <div style="flex:1; background:#e8f8f5; border:1px solid var(--success); text-align:center; padding:10px; border-radius:8px;">
+                    <span style="font-size:11px; color:var(--success); font-weight:bold;">LANCHES (PAX)</span><br>
+                    <span style="font-size:24px; color:var(--primary); font-weight:bold;" id="resumoTotalLanches">0</span>
+                </div>
+                <div style="flex:1; background:#e8f8f5; border:1px solid var(--success); text-align:center; padding:10px; border-radius:8px;">
+                    <span style="font-size:11px; color:var(--success); font-weight:bold;">BEBIDAS (PAX)</span><br>
+                    <span style="font-size:24px; color:var(--primary); font-weight:bold;" id="resumoTotalBebidas">0</span>
+                </div>
+            </div>
+            
             <div style="overflow-x: auto;">
                 <table class="tabela-relatorio">
                     <thead>
@@ -214,7 +236,7 @@
             <hr>
             <div class="form-group">
                 <label>Troco Inicial Pego (R$):</label>
-                <input type="number" id="carrinhoTroco" value="0" oninput="calcularVendas()">
+                <input type="number" id="carrinhoTroco" value="0" onfocus="this.select()" oninput="calcularVendas()">
             </div>
             <div style="background: #ecf0f1; padding: 15px; border-radius: 8px; margin-bottom: 15px; text-align: center;">
                 <p style="margin: 0;">Valor Total de Vendas:</p>

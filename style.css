@@ -85,6 +85,7 @@ h1, h2, h3, h4 {
     justify-content: center;
     gap: 8px;
     transition: all 0.2s ease;
+    white-space: nowrap;
 }
 .btn:active { transform: scale(0.98); }
 .btn-primary { background: var(--primary); color: white; }
@@ -126,7 +127,6 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     position: absolute; top: 0; left: 0; right: 0; bottom: 0; width: auto; height: auto; color: transparent; background: transparent; cursor: pointer;
 }
 input[type="date"] { position: relative; cursor: pointer; }
-
 
 .msg-erro { 
     display: none; 
@@ -175,7 +175,7 @@ input[type="date"] { position: relative; cursor: pointer; }
     width: 100%;
     border-collapse: collapse;
     font-size: 13px;
-    margin-top: 15px;
+    margin-top: 5px;
     background: var(--card);
 }
 .tabela-relatorio th, .tabela-relatorio td {
@@ -194,4 +194,21 @@ input[type="date"] { position: relative; cursor: pointer; }
     font-weight: bold;
     color: var(--primary);
     padding-left: 8px;
+}
+
+/* CAIXA DE RELATÓRIO ADMIN */
+.box-relatorio-admin {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 15px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+.box-relatorio-header {
+    background: var(--primary);
+    color: white;
+    padding: 10px 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }

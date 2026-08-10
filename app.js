@@ -1,10 +1,10 @@
-// Banco de Dados da V2
+// Banco de Dados da V3
 let db = {
     produtos: [
         { id: 'C', nome: 'Coca Lata', precoVenda: 0 },
-        { id: 'Z', nome: 'Coca Zero (Pq)', precoVenda: 0 },
+        { id: 'Z', nome: 'Coca Zero', precoVenda: 0 },
         { id: 'G', nome: 'Guaraná Kuat', precoVenda: 0 },
-        { id: 'AgCp', nome: 'Água Copo', precoVenda: 0 },
+        { id: 'Ac', nome: 'Água Copo', precoVenda: 0 }, // Alterado para 'Ac'
         { id: 'KL', nome: 'Kit Lanche', precoVenda: 0 },
         { id: 'AgGr', nome: 'Água c/ Gás (Venda)', precoVenda: 5 },
         { id: 'AgSr', nome: 'Água s/ Gás (Venda)', precoVenda: 5 },
@@ -18,34 +18,29 @@ let db = {
 };
 
 let contagemTemp = {};
+let modoRelatorioAdmin = 'vagao'; // 'vagao', 'turisticos', 'geral'
 
-// Função auxiliar simples para prevenir quebra de layout no HTML
+// ORDEM FIXA EXIGIDA PELO USUÁRIO (O que não estiver aqui, vai pro final)
+const ORDEM_FIXA = ['C', 'G', 'Z', 'Ac', 'KL'];
+
 function escapeHTML(str) {
     if (!str) return "";
     return str.replace(/[&<>'"]/g, 
-        tag => ({
-            '&': '&amp;',
-            '<': '&lt;',
-            '>': '&gt;',
-            "'": '&#39;',
-            '"': '&quot;'
-        }[tag] || tag)
+        tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
     );
 }
 
 window.onload = () => {
-    const localDB = localStorage.getItem('tremBebidasDB_V2');
+    const localDB = localStorage.getItem('tremBebidasDB_V3');
     if (localDB) db = JSON.parse(localDB);
 
-    // Forçar ordenação alfabética no primeiro carregamento
-    ordenarTudo();
-
-    const hj = new Date().toLocaleDateString('pt-BR');
-    if(document.getElementById('dataOperacaoAdmin')) document.getElementById('dataOperacaoAdmin').innerText = hj;
+    const hj = new Date().toISOString().split('T')[0];
+    if(document.getElementById('dataOperacaoAdmin')) document.getElementById('dataOperacaoAdmin').innerText = hj.split('-').reverse().join('/');
+    if(document.getElementById('filtroDataRelatorio')) document.getElementById('filtroDataRelatorio').value = hj;
 };
 
 function salvarDB() {
-    localStorage.setItem('tremBebidasDB_V2', JSON.stringify(db));
+    localStorage.setItem('tremBebidasDB_V3', JSON.stringify(db));
 }
 
 function mostrarTela(id) {
@@ -54,9 +49,23 @@ function mostrarTela(id) {
     window.scrollTo(0,0);
 }
 
-// Ordenação Alfabética Universal
-function ordenarTudo() {
-    db.produtos.sort((a, b) => a.nome.localeCompare(b.nome));
+// === ORDENAÇÃO INTELIGENTE ===
+// Essa função garante que a ordem sempre será: C, G, Z, Ac, KL. 
+function ordenarPorRegra(lista) {
+    return lista.sort((a, b) => {
+        let idxA = ORDEM_FIXA.indexOf(a.id);
+        let idxB = ORDEM_FIXA.indexOf(b.id);
+
+        if (idxA !== -1 && idxB !== -1) return idxA - idxB; // Ambos na lista fixa
+        if (idxA !== -1) return -1; // Só A na lista fixa (A sobe)
+        if (idxB !== -1) return 1;  // Só B na lista fixa (B sobe)
+        
+        // Se nenhum estiver na lista fixa, ordem alfabética pelo nome
+        return a.nome.localeCompare(b.nome);
+    });
+}
+
+function ordenarUsuarios() {
     db.usuarios.sort((a, b) => a.nome.localeCompare(b.nome));
 }
 
@@ -69,7 +78,7 @@ function fazerLogin() {
         msg.style.display = 'block';
         return;
     }
-    document.getElementById('loginSenha').value = ""; // limpa a senha
+    document.getElementById('loginSenha').value = "";
     document.getElementById('msgLogin').style.display = 'none';
     mostrarTela('tela-admin');
 }
@@ -80,7 +89,7 @@ function logout() {
 
 // ==== ADMIN: USUÁRIOS ====
 function renderizarUsuarios() {
-    ordenarTudo();
+    ordenarUsuarios();
     const div = document.getElementById('listaUsuariosAdmin');
     div.innerHTML = "";
     db.usuarios.forEach((u, index) => {
@@ -97,7 +106,6 @@ function adicionarUsuario() {
     const nome = document.getElementById('novoUsuarioNome').value.trim();
     if(!nome) return;
     db.usuarios.push({ nome });
-    ordenarTudo();
     salvarDB();
     renderizarUsuarios();
     document.getElementById('novoUsuarioNome').value = "";
@@ -112,10 +120,9 @@ function removerUsuario(index) {
 }
 document.querySelector('[onclick="mostrarTela(\'tela-usuarios\')"]').addEventListener('click', renderizarUsuarios);
 
-
 // ==== ADMIN: PRODUTOS ====
 function renderizarProdutosAdmin() {
-    ordenarTudo();
+    ordenarPorRegra(db.produtos);
     const div = document.getElementById('listaProdutosAdmin');
     div.innerHTML = "";
     db.produtos.forEach((p, index) => {
@@ -146,7 +153,6 @@ function salvarProduto() {
         db.produtos.push({ id, nome, precoVenda: 0 });
     }
     
-    ordenarTudo();
     salvarDB();
     renderizarProdutosAdmin();
     
@@ -172,54 +178,139 @@ function removerProduto(index) {
     }
 }
 
-// ==== ADMIN: RELATÓRIOS SALVOS ====
+// ==== ADMIN: RELATÓRIOS SALVOS (AGORA EM TABELA) ====
 function abrirRelatoriosAdmin() {
+    // Seta a data de hoje ao abrir
+    const hj = new Date().toISOString().split('T')[0];
+    if(!document.getElementById('filtroDataRelatorio').value) {
+        document.getElementById('filtroDataRelatorio').value = hj;
+    }
+    setModoRelatorio('vagao');
+    mostrarTela('tela-relatorios');
+}
+
+function setModoRelatorio(modo) {
+    modoRelatorioAdmin = modo;
+    // Estilo dos botões
+    ['btnRelVagao', 'btnRelTur', 'btnRelGeral'].forEach(id => {
+        document.getElementById(id).style.background = 'var(--secondary)';
+    });
+    if(modo === 'vagao') document.getElementById('btnRelVagao').style.background = 'var(--primary)';
+    if(modo === 'turisticos') document.getElementById('btnRelTur').style.background = 'var(--primary)';
+    if(modo === 'geral') document.getElementById('btnRelGeral').style.background = 'var(--primary)';
+    
+    renderizarRelatoriosAdmin();
+}
+
+function renderizarRelatoriosAdmin() {
     const div = document.getElementById('listaRelatoriosAdmin');
     div.innerHTML = "";
     
-    // Organiza do mais novo pro mais velho
-    const contagensOrdenadas = [...db.contagens].sort((a, b) => b.timestamp - a.timestamp);
+    const dataFiltro = document.getElementById('filtroDataRelatorio').value;
+    const filtrados = db.contagens.filter(c => c.data === dataFiltro);
 
-    if(contagensOrdenadas.length === 0) {
-        div.innerHTML = '<p style="text-align:center; color:var(--secondary);">Nenhum relatório salvo ainda.</p>';
-    } else {
-        contagensOrdenadas.forEach(c => {
-            let htmlItens = "";
-            for(let key in c.itens) {
-                let i = c.itens[key];
-                if(i.carga > 0 || i.saldo > 0 || i.pax > 0 || i.ava > 0) {
-                    htmlItens += `<li style="padding: 3px 0; border-bottom: 1px dashed #eee;"><strong>${i.nome}</strong>: Carga ${i.carga} | Sobrou <b style="color:var(--primary);">${i.saldo}</b> | Pax <span style="color:var(--success);">${i.pax}</span></li>`;
-                }
-            }
-            
+    if(filtrados.length === 0) {
+        div.innerHTML = '<p style="text-align:center; color:var(--secondary);">Nenhum relatório para esta data.</p>';
+        return;
+    }
+
+    if (modoRelatorioAdmin === 'vagao') {
+        // Mostra uma tabela para cada vagão
+        filtrados.sort((a, b) => b.timestamp - a.timestamp).forEach(c => {
+            let linhasTabela = gerarLinhasTabelaAdmin(c.itens);
             div.innerHTML += `
-                <div class="card" style="border-left: 5px solid var(--accent); padding: 15px;">
-                    <div style="display:flex; justify-content:space-between; margin-bottom: 5px;">
+                <div class="box-relatorio-admin">
+                    <div class="box-relatorio-header">
                         <strong>${c.vagao} (${c.sentido})</strong>
-                        <span style="color:var(--secondary); font-size:12px;">${c.data.split('-').reverse().join('/')}</span>
+                        <span style="font-size:12px;">${c.apoio} | Guia: ${c.guia || '-'}</span>
                     </div>
-                    <div style="font-size:12px; color:var(--secondary); margin-bottom: 10px;">
-                        Apoio: <strong>${c.apoio}</strong> | Guia: <strong>${c.guia || 'N/I'}</strong>
+                    <div style="overflow-x:auto;">
+                        <table class="tabela-relatorio" style="margin-top:0; border:none;">
+                            <thead><tr><th>Produto</th><th>Carga</th><th>Pax</th><th>Trip.</th><th>Avaria</th><th>Sobra</th></tr></thead>
+                            <tbody>${linhasTabela}</tbody>
+                        </table>
                     </div>
-                    <ul style="font-size:13px; padding:0; list-style:none; margin:0;">${htmlItens}</ul>
-                    ${c.obs ? `<div style="font-size:12px; color:var(--danger); margin-top:8px;"><i>Obs: ${c.obs}</i></div>` : ''}
+                    ${c.obs ? `<div style="padding:8px; font-size:12px; color:var(--danger); background:#fdfdfd;"><i>Obs: ${c.obs}</i></div>` : ''}
                 </div>
             `;
         });
+
+    } else {
+        // MODO CONSOLIDADO (Turísticos ou Geral)
+        let consolidados = {};
+        
+        filtrados.forEach(c => {
+            if(modoRelatorioAdmin === 'turisticos' && !c.vagao.toLowerCase().includes('turístico')) return;
+            
+            for(let key in c.itens) {
+                let item = c.itens[key];
+                if(!consolidados[key]) {
+                    consolidados[key] = { id: key, nome: item.nome, carga: 0, pax: 0, trip: 0, ava: 0, saldo: 0 };
+                }
+                consolidados[key].carga += item.carga;
+                consolidados[key].pax += item.pax;
+                consolidados[key].trip += item.trip;
+                consolidados[key].ava += item.ava;
+                consolidados[key].saldo += item.saldo;
+            }
+        });
+
+        const titulo = modoRelatorioAdmin === 'turisticos' ? 'Soma Total: Apenas Turísticos' : 'Soma Total: Todos os Estoques (Geral)';
+        let linhasTabela = gerarLinhasTabelaAdmin(consolidados);
+
+        if(linhasTabela === "") {
+            div.innerHTML = '<p style="text-align:center; color:var(--secondary);">Nenhum dado encontrado para este filtro.</p>';
+        } else {
+            div.innerHTML = `
+                <div class="box-relatorio-admin">
+                    <div class="box-relatorio-header" style="background:var(--accent); color:var(--primary);">
+                        <strong>${titulo}</strong>
+                    </div>
+                    <div style="overflow-x:auto;">
+                        <table class="tabela-relatorio" style="margin-top:0; border:none;">
+                            <thead><tr><th>Produto</th><th>Carga</th><th>Pax</th><th>Trip.</th><th>Avaria</th><th>Sobra</th></tr></thead>
+                            <tbody>${linhasTabela}</tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
     }
-    mostrarTela('tela-relatorios');
+}
+
+// Função auxiliar para gerar o HTML das linhas da tabela ordenadas
+function gerarLinhasTabelaAdmin(itensObjeto) {
+    let arrayItens = Object.values(itensObjeto);
+    ordenarPorRegra(arrayItens);
+    let html = "";
+    
+    arrayItens.forEach(obj => {
+        if(obj.carga > 0 || obj.saldo > 0 || obj.pax > 0 || obj.ava > 0) {
+            html += `
+                <tr>
+                    <td>${obj.nome}</td>
+                    <td>${obj.carga}</td>
+                    <td style="color:var(--success); font-weight:bold;">${obj.pax}</td>
+                    <td>${obj.trip > 0 ? obj.trip : '-'}</td>
+                    <td style="color:var(--danger);">${obj.ava > 0 ? obj.ava : '-'}</td>
+                    <td style="font-weight:bold; color:var(--primary);">${obj.saldo}</td>
+                </tr>
+            `;
+        }
+    });
+    return html;
 }
 
 // ==== APOIO: SETUP DE CONTAGEM ====
 function abrirSetupContagem() {
-    ordenarTudo();
+    ordenarUsuarios();
     const selUser = document.getElementById('selectNomeApoio');
     selUser.innerHTML = "";
     db.usuarios.forEach(u => selUser.innerHTML += `<option value="${u.nome}">${u.nome}</option>`);
     
     const hj = new Date().toISOString().split('T')[0];
     document.getElementById('dataContagemApoio').value = hj;
-    document.getElementById('nomeGuiaApoio').value = ""; // Reseta o guia
+    document.getElementById('nomeGuiaApoio').value = ""; 
     
     mostrarTela('tela-setup-contagem');
 }
@@ -241,11 +332,11 @@ function iniciarContagemVagao() {
     const div = document.getElementById('listaItensContagem');
     div.innerHTML = "";
 
-    ordenarTudo(); // Garante ordem alfabética na hora de contar
+    ordenarPorRegra(db.produtos);
     const produtosVagao = db.produtos.filter(p => p.precoVenda === 0);
 
     produtosVagao.forEach(p => {
-        let cargaPadrao = p.id === 'KL' ? 49 : (p.id === 'AgCp' || p.id === 'C' ? 24 : 0);
+        let cargaPadrao = p.id === 'KL' ? 49 : (p.id === 'Ac' || p.id === 'C' ? 24 : 0);
 
         div.innerHTML += `
             <div class="item-contagem">
@@ -289,14 +380,19 @@ function calcularConsumo(id) {
     document.getElementById(`pax_${id}`).value = pax < 0 ? 0 : pax;
 }
 
-// ==== APOIO: RESUMO DA CONTAGEM (RELATÓRIO) ====
+// ==== APOIO: RESUMO DA CONTAGEM ====
 function gerarResumoContagem() {
     contagemTemp.itens = {};
     const tbody = document.getElementById('tabelaResumoCorpo');
     tbody.innerHTML = "";
 
+    let totalLanches = 0;
+    let totalBebidas = 0;
+
+    ordenarPorRegra(db.produtos);
     db.produtos.filter(p => p.precoVenda === 0).forEach(p => {
         let obj = {
+            id: p.id,
             nome: p.nome,
             carga: parseInt(document.getElementById(`carga_${p.id}`).value) || 0,
             saldo: parseInt(document.getElementById(`saldo_${p.id}`).value) || 0,
@@ -318,8 +414,18 @@ function gerarResumoContagem() {
                     <td style="font-weight:bold; color:var(--primary);">${obj.saldo}</td>
                 </tr>
             `;
+
+            // Cálculo dos totalizadores (apenas o que foi para o PAX)
+            if(p.id === 'KL') {
+                totalLanches += obj.pax;
+            } else {
+                totalBebidas += obj.pax;
+            }
         }
     });
+
+    document.getElementById('resumoTotalLanches').innerText = totalLanches;
+    document.getElementById('resumoTotalBebidas').innerText = totalBebidas;
 
     document.getElementById('resumoApoio').innerText = contagemTemp.apoio;
     document.getElementById('resumoGuia').innerText = contagemTemp.guia;
@@ -396,5 +502,5 @@ function calcularVendas() {
 function salvarAcertoCarrinho() {
     const totalVendaText = document.getElementById('lblTotalVendasCarrinho').innerText;
     alert(`Acerto salvo!\nTotal de vendas registrado: R$ ${totalVendaText}`);
-    mostrarTela('tela-setup-contagem'); // Volta para o setup
+    mostrarTela('tela-setup-contagem'); 
 }
