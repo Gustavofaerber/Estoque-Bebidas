@@ -4,14 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Estoque Bebidas - Trem</title>
-    <meta name="theme-color" content="#2c3e50">
+    <meta name="theme-color" content="#0e3d23">
     <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="style.css">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
 </head>
 <body>
 
-    <!-- TELA INICIAL (SEM SENHA) -->
+    <!-- TELA INICIAL -->
     <div id="tela-inicial" class="tela ativa">
         <div class="card" style="text-align: center; margin-top: 10vh;">
             <h2 style="color: var(--primary);">Lojinha & Logística</h2>
@@ -20,17 +20,17 @@
             <button class="btn btn-primary" style="width: 100%; padding: 20px; font-size: 18px; margin-bottom: 15px;" onclick="abrirSetupContagem()">
                 <i class="ph ph-clipboard-text" style="font-size: 24px;"></i> Contagem (Apoios)
             </button>
-            <button class="btn btn-secondary" style="width: 100%; padding: 15px; font-size: 16px; background: #34495e;" onclick="mostrarTela('tela-login')">
+            <button class="btn btn-secondary" style="width: 100%; padding: 15px; font-size: 16px; background: #2f3640;" onclick="mostrarTela('tela-login')">
                 <i class="ph ph-lock-key"></i> Gerenciamento (Chefe)
             </button>
         </div>
     </div>
 
-    <!-- TELA DE LOGIN (APENAS ADMIN) -->
+    <!-- TELA DE LOGIN (ADMIN) -->
     <div id="tela-login" class="tela">
         <div class="header">
             <h3>Acesso Restrito</h3>
-            <button class="btn btn-danger" onclick="mostrarTela('tela-inicial')">Voltar</button>
+            <button class="btn btn-danger btn-pequeno" onclick="mostrarTela('tela-inicial')">Voltar</button>
         </div>
         <div class="card">
             <div id="msgLogin" class="msg-erro"></div>
@@ -42,30 +42,30 @@
         </div>
     </div>
 
-    <!-- PAINEL CHEFE DO TREM (ADMIN) -->
+    <!-- PAINEL CHEFE DO TREM -->
     <div id="tela-admin" class="tela">
         <div class="header">
             <div>
                 <h3>Painel Chefia</h3>
                 <small id="dataOperacaoAdmin"></small>
             </div>
-            <button class="btn btn-danger" onclick="logout()"><i class="ph ph-sign-out"></i> Sair</button>
+            <button class="btn btn-danger btn-pequeno" onclick="logout()"><i class="ph ph-sign-out"></i> Sair</button>
         </div>
         <div class="card">
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                 <button class="btn btn-secondary" onclick="mostrarTela('tela-usuarios')"><i class="ph ph-users"></i> Equipe (Apoios)</button>
                 <button class="btn btn-secondary" onclick="mostrarTela('tela-cadastro-produtos')"><i class="ph ph-package"></i> Produtos</button>
-                <button class="btn btn-secondary" onclick="alert('Na V2: Sistema Container x Bagageiro')"><i class="ph ph-truck"></i> Carga do Dia</button>
-                <button class="btn btn-primary" onclick="alert('Na V2: Relatórios')"><i class="ph ph-chart-bar"></i> Relatórios</button>
+                <button class="btn btn-secondary" onclick="alert('Na V3: Sistema Container x Bagageiro')"><i class="ph ph-truck"></i> Carga</button>
+                <button class="btn btn-primary" onclick="abrirRelatoriosAdmin()"><i class="ph ph-chart-bar"></i> Relatórios</button>
             </div>
         </div>
     </div>
 
-    <!-- TELA GESTÃO DE USUÁRIOS (ADMIN) -->
+    <!-- TELA GESTÃO DE USUÁRIOS -->
     <div id="tela-usuarios" class="tela">
         <div class="header">
             <h3><i class="ph ph-users"></i> Equipe de Apoio</h3>
-            <button class="btn btn-secondary" onclick="mostrarTela('tela-admin')">Voltar</button>
+            <button class="btn btn-secondary btn-pequeno" onclick="mostrarTela('tela-admin')">Voltar</button>
         </div>
         <div class="card">
             <div style="display: flex; gap: 5px;">
@@ -77,11 +77,11 @@
         </div>
     </div>
 
-    <!-- TELA CADASTRO DE PRODUTOS (ADMIN) -->
+    <!-- TELA CADASTRO DE PRODUTOS -->
     <div id="tela-cadastro-produtos" class="tela">
         <div class="header">
             <h3><i class="ph ph-package"></i> Bebidas e Kits</h3>
-            <button class="btn btn-secondary" onclick="mostrarTela('tela-admin')">Voltar</button>
+            <button class="btn btn-secondary btn-pequeno" onclick="mostrarTela('tela-admin')">Voltar</button>
         </div>
         <div class="card">
             <input type="hidden" id="editProdIndex">
@@ -95,11 +95,20 @@
         </div>
     </div>
 
+    <!-- TELA RELATÓRIOS SALVOS -->
+    <div id="tela-relatorios" class="tela">
+        <div class="header">
+            <h3><i class="ph ph-chart-bar"></i> Relatórios</h3>
+            <button class="btn btn-secondary btn-pequeno" onclick="mostrarTela('tela-admin')">Voltar</button>
+        </div>
+        <div id="listaRelatoriosAdmin"></div>
+    </div>
+
     <!-- SETUP DE CONTAGEM (APOIO) -->
     <div id="tela-setup-contagem" class="tela">
         <div class="header">
             <h3>Nova Contagem</h3>
-            <button class="btn btn-danger" onclick="mostrarTela('tela-inicial')">Voltar</button>
+            <button class="btn btn-danger btn-pequeno" onclick="mostrarTela('tela-inicial')">Sair</button>
         </div>
         <div class="card">
             <div class="form-group">
@@ -108,7 +117,8 @@
             </div>
             <div class="form-group">
                 <label>Data:</label>
-                <input type="date" id="dataContagemApoio">
+                <!-- onclick para abrir o calendário em qualquer clique no mobile -->
+                <input type="date" id="dataContagemApoio" onclick="this.showPicker && this.showPicker()">
             </div>
             <div class="form-group">
                 <label>Sentido:</label>
@@ -122,17 +132,22 @@
                 <select id="selectVagaoApoio">
                     <option value="Turístico 11">Turístico 11</option>
                     <option value="Turístico 12">Turístico 12</option>
-                    <option value="Econômico">Econômico</option>
+                    <option value="Turístico 13">Turístico 13</option>
+                    <option value="Econômico 1">Econômico 1</option>
                     <option value="Boutique 1">Boutique 1</option>
+                    <option value="Boutique 2">Boutique 2</option>
                     <option value="Litorina 1">Litorina 1</option>
                 </select>
+            </div>
+            <div class="form-group">
+                <label>Nome do Guia:</label>
+                <input type="text" id="nomeGuiaApoio" placeholder="Ex: Gustavo">
             </div>
             <button class="btn btn-primary" style="width: 100%; padding: 15px; font-size: 16px;" onclick="iniciarContagemVagao()">Próximo <i class="ph ph-arrow-right"></i></button>
         </div>
         
-        <!-- Carrinho de Vendas pode ser acessado direto daqui também -->
         <div class="card" style="margin-top: 15px;">
-            <button class="btn btn-secondary" style="width: 100%;" onclick="mostrarTela('tela-acerto-carrinho')"><i class="ph ph-shopping-cart"></i> Fazer Acerto de Vendas (Carrinho)</button>
+            <button class="btn btn-secondary" style="width: 100%;" onclick="iniciarAcertoCarrinho()"><i class="ph ph-shopping-cart"></i> Acerto de Vendas (Carrinho)</button>
         </div>
     </div>
 
@@ -140,7 +155,7 @@
     <div id="tela-contagem-vagao" class="tela">
         <div class="header">
             <h3><span id="lblVagaoContagem"></span> (<span id="lblSentidoContagem"></span>)</h3>
-            <button class="btn btn-danger" onclick="mostrarTela('tela-setup-contagem')">Cancelar</button>
+            <button class="btn btn-danger btn-pequeno" onclick="mostrarTela('tela-setup-contagem')">Cancelar</button>
         </div>
         <div class="card" style="padding: 10px; background: transparent; border: none; box-shadow: none;">
             <p style="font-size: 12px; font-style: italic; margin-bottom: 15px;">Dica: O "Consumo PAX" calcula sozinho.</p>
@@ -150,29 +165,29 @@
         </div>
     </div>
 
-    <!-- RESUMO DA CONTAGEM (ESPELHO DO PAPEL) -->
+    <!-- RESUMO DA CONTAGEM (ESPELHO) -->
     <div id="tela-resumo-contagem" class="tela">
         <div class="header">
             <h3>Conferência Final</h3>
-            <button class="btn btn-danger" onclick="mostrarTela('tela-contagem-vagao')">Voltar e Corrigir</button>
+            <button class="btn btn-danger btn-pequeno" onclick="mostrarTela('tela-contagem-vagao')">Corrigir</button>
         </div>
         <div class="card">
-            <div style="font-size: 13px; margin-bottom: 15px; border-bottom: 1px solid var(--border); padding-bottom: 10px;">
-                <strong>Apoio:</strong> <span id="resumoApoio"></span> | <strong>Data:</strong> <span id="resumoData"></span><br>
-                <strong>Vagão:</strong> <span id="resumoVagao"></span> (<span id="resumoSentido"></span>)
+            <div style="font-size: 13px; margin-bottom: 15px; border-bottom: 1px dashed var(--border); padding-bottom: 10px;">
+                <strong>Vagão:</strong> <span id="resumoVagao"></span> (<span id="resumoSentido"></span>)<br>
+                <strong>Apoio:</strong> <span id="resumoApoio"></span> | <strong>Guia:</strong> <span id="resumoGuia"></span><br>
+                <strong>Data:</strong> <span id="resumoData"></span>
             </div>
             
-            <!-- Tabela Estilo Relatório Físico -->
             <div style="overflow-x: auto;">
                 <table class="tabela-relatorio">
                     <thead>
                         <tr>
                             <th>Produto</th>
                             <th>Carga</th>
-                            <th>Cons. Pax</th>
+                            <th>Pax</th>
                             <th>Trip.</th>
                             <th>Avaria</th>
-                            <th>Saldo (Sobra)</th>
+                            <th>Sobra</th>
                         </tr>
                     </thead>
                     <tbody id="tabelaResumoCorpo"></tbody>
@@ -184,19 +199,29 @@
                 <input type="text" id="obsFinalContagem" placeholder="Ex: Faltou gelo">
             </div>
             
-            <button class="btn btn-success" style="width: 100%; padding: 15px; font-size: 16px; margin-top: 10px;" onclick="salvarContagemDefinitiva()">Confirmar e Enviar Relatório</button>
+            <button class="btn btn-success" style="width: 100%; padding: 15px; font-size: 16px; margin-top: 10px;" onclick="salvarContagemDefinitiva()"><i class="ph ph-paper-plane-right"></i> Confirmar e Enviar</button>
         </div>
     </div>
 
-    <!-- ACERTO DO CARRINHO (MANTIDO DO V1) -->
+    <!-- ACERTO DO CARRINHO DE VENDAS -->
     <div id="tela-acerto-carrinho" class="tela">
-        <!-- (Mesmo código HTML da V1 para o carrinho) -->
         <div class="header">
             <h3>Acerto do Carrinho</h3>
-            <button class="btn btn-danger" onclick="mostrarTela('tela-inicial')">Sair</button>
+            <button class="btn btn-danger btn-pequeno" onclick="mostrarTela('tela-setup-contagem')">Cancelar</button>
         </div>
         <div class="card">
-            <p>Em breve integrado ao sistema unificado.</p>
+            <div id="listaItensCarrinho"></div>
+            <hr>
+            <div class="form-group">
+                <label>Troco Inicial Pego (R$):</label>
+                <input type="number" id="carrinhoTroco" value="0" oninput="calcularVendas()">
+            </div>
+            <div style="background: #ecf0f1; padding: 15px; border-radius: 8px; margin-bottom: 15px; text-align: center;">
+                <p style="margin: 0;">Valor Total de Vendas:</p>
+                <h2 style="margin: 5px 0; color: #27ae60;">R$ <span id="lblTotalVendasCarrinho">0,00</span></h2>
+                <small style="color: #7f8c8d;">Dinheiro a entregar à chefia: <strong id="lblTotalEntregar">R$ 0,00</strong></small>
+            </div>
+            <button class="btn btn-primary" style="width: 100%; padding: 15px; font-size: 16px;" onclick="salvarAcertoCarrinho()">Finalizar Acerto</button>
         </div>
     </div>
 

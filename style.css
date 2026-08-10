@@ -92,6 +92,12 @@ h1, h2, h3, h4 {
 .btn-danger { background: var(--danger); color: white; }
 .btn-success { background: var(--success); color: white; }
 
+.btn-pequeno {
+    padding: 8px 12px;
+    font-size: 13px;
+    border-radius: 6px;
+}
+
 /* INPUTS E FORMULÁRIOS */
 .form-group { margin-bottom: 15px; }
 .form-group label { 
@@ -106,7 +112,7 @@ input[type="text"], input[type="number"], input[type="password"], input[type="da
     padding: 12px;
     border: 1.5px solid var(--border);
     border-radius: 10px;
-    font-size: 16px; /* Evita zoom automático no iPhone */
+    font-size: 16px; 
     background: #fdfdfd;
     color: var(--text);
     outline: none;
@@ -115,6 +121,12 @@ input[type="text"], input[type="number"], input[type="password"], input[type="da
 input:focus, select:focus {
     border-color: var(--accent);
 }
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0; width: auto; height: auto; color: transparent; background: transparent; cursor: pointer;
+}
+input[type="date"] { position: relative; cursor: pointer; }
+
 
 .msg-erro { 
     display: none; 
