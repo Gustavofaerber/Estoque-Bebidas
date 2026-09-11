@@ -34,7 +34,7 @@ window.contagemTemp = {};
 window.itensExtrasCarrinhoTemp = [];
 window.modoRelatorioAdmin = 'vagao';
 
-// Ordem prioritária de bebidas
+// Ordem prioritária de produtos
 const ORDEM_FIXA = ['C', 'G', 'Z', 'Ac', 'KL', 'Cp', 'Zp', 'Gg', 'Gp', 'Fgp', 'Am', 'Acp', 'Agsp', 'Aggp', 'Chn', 'Chz', 'Su', 'Sp', 'Esp', 'Gelo'];
 
 function formatarEstoqueFardos(totalUnidades, unPorFardo) {
@@ -80,6 +80,17 @@ function ordenarPorRegra(lista) {
     });
 }
 
+// ================= MODAIS (JANELAS POP-UP) =================
+window.abrirModal = function(id) {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'flex';
+};
+
+window.fecharModal = function(id) {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+};
+
 // ================= CONTROLE DE TELAS & SESSÃO PERSISTENTE =================
 window.mostrarTela = function(id) {
     document.querySelectorAll('.tela').forEach(t => t.classList.remove('ativa'));
@@ -87,7 +98,6 @@ window.mostrarTela = function(id) {
     if (tela) tela.classList.add('ativa');
     window.scrollTo(0, 0);
 
-    // Salva a tela atual para restaurar no F5
     localStorage.setItem('trem_tela_ativa', id);
 };
 
@@ -110,7 +120,6 @@ window.fazerLogin = function() {
     document.getElementById('loginSenha').value = "";
     document.getElementById('msgLogin').style.display = 'none';
 
-    // Salva sessão do Chefe
     localStorage.setItem('trem_chefe_sessao', 'ativo');
     window.mostrarTela('tela-admin');
     atualizarDashboardKPIs();
@@ -122,11 +131,9 @@ window.logout = function() {
     window.mostrarTela('tela-inicial');
 };
 
-// ================= RESTAURAÇÃO NO F5 =================
 function restaurarSessaoOuTela() {
     const telaSalva = localStorage.getItem('trem_tela_ativa');
     const chefeLogado = localStorage.getItem('trem_chefe_sessao') === 'ativo';
-
     const telasAdmin = ['tela-admin', 'tela-carga-dia', 'tela-estoques', 'tela-usuarios', 'tela-cadastro-produtos', 'tela-relatorios'];
 
     if (telaSalva && telasAdmin.includes(telaSalva)) {
@@ -144,37 +151,31 @@ function restaurarSessaoOuTela() {
 
 // ================= SINCRONIZAÇÃO EM NUVEM (FIRESTORE) =================
 function iniciarSincronizacaoNuvem() {
-    // Sincroniza produtos
     onSnapshot(collection(db, "produtos"), (snapshot) => {
         window.produtosDB = snapshot.docs.map(d => d.data());
         atualizarDashboardKPIs();
         
-        // Se a tela atual estiver aberta, re-renderiza imediatamente
         if (document.getElementById('tela-cadastro-produtos').classList.contains('ativa')) renderizarProdutosAdmin();
         if (document.getElementById('tela-estoques').classList.contains('ativa')) abrirTelaEstoques();
         if (document.getElementById('tela-carga-dia').classList.contains('ativa')) abrirCargaDoDia();
     });
 
-    // Sincroniza usuários
     onSnapshot(collection(db, "usuarios"), (snapshot) => {
         window.usuariosDB = snapshot.docs.map(d => d.data());
         if (document.getElementById('tela-usuarios').classList.contains('ativa')) renderizarUsuarios();
         if (document.getElementById('tela-setup-contagem').classList.contains('ativa')) abrirSetupContagem();
     });
 
-    // Sincroniza contagens de vagões
     onSnapshot(collection(db, "contagens"), (snapshot) => {
         window.contagensDB = snapshot.docs.map(d => d.data());
         if (document.getElementById('tela-relatorios').classList.contains('ativa')) renderizarRelatoriosAdmin();
     });
 
-    // Sincroniza cargas do dia
     onSnapshot(collection(db, "cargas_dia"), (snapshot) => {
         window.cargasDiaDB = snapshot.docs.map(d => d.data());
         if (document.getElementById('tela-ver-carga').classList.contains('ativa')) carregarManifestoPublico();
     });
 
-    // Sincroniza vendas de carrinho
     onSnapshot(collection(db, "vendas_carrinho"), (snapshot) => {
         window.vendasCarrinhoDB = snapshot.docs.map(d => d.data());
         if (document.getElementById('tela-relatorios').classList.contains('ativa')) renderizarRelatoriosAdmin();
@@ -330,7 +331,6 @@ window.salvarCargaDoDia = async function() {
         if (total > 0) {
             itensSalvos[p.id] = { total, baga, cont, destino };
 
-            // Abate das unidades nos estoques da nuvem
             const pRef = doc(db, "produtos", p.id);
             await updateDoc(pRef, {
                 estoqueContainerUnidades: increment(-(cont * unFardo)),
@@ -339,7 +339,7 @@ window.salvarCargaDoDia = async function() {
         }
     }
 
-    const cargaId = data; // Indexa pela própria data para sobrepor se for o mesmo dia
+    const cargaId = data;
     await setDoc(doc(db, "cargas_dia", cargaId), {
         id: cargaId,
         data,
@@ -348,11 +348,11 @@ window.salvarCargaDoDia = async function() {
         timestamp: Date.now()
     });
 
-    alert("Carga do trem cadastrada e publicada com sucesso no banco de dados!");
+    alert("Carga do trem cadastrada e publicada no banco de dados com sucesso!");
     window.mostrarTela('tela-admin');
 };
 
-// ================= SITUAÇÃO DOS ESTOQUES (RESUMO & AJUSTE) =================
+// ================= SITUAÇÃO DOS ESTOQUES (COM LABELS CLAROS) =================
 window.abrirTelaEstoques = function() {
     ordenarPorRegra(window.produtosDB);
 
@@ -380,7 +380,7 @@ window.abrirTelaEstoques = function() {
         `;
     });
 
-    // 3. Ajuste Manual
+    // 3. Ajuste Manual com caixas visuais e identificadores claros
     const divManual = document.getElementById('listaEstoqueGeral');
     divManual.innerHTML = "";
     window.produtosDB.forEach(p => {
@@ -394,21 +394,36 @@ window.abrirTelaEstoques = function() {
             <div class="item-contagem">
                 <div class="item-contagem-header">
                     <span>${p.nome} (${p.id})</span>
-                    <small style="color:var(--secondary); font-size:13px;">Fardo: ${unFardo} un</small>
+                    <small style="color:var(--secondary); font-size:13px; font-weight:700;">1 Fardo = ${unFardo} un</small>
                 </div>
                 <div class="grid-inputs" style="grid-template-columns: 1fr 1fr; gap:12px;">
-                    <div>
+                    <!-- COLUNA CONTÊINER -->
+                    <div class="box-ajuste-col box-ajuste-cont">
                         <label style="color:var(--container-color);"><i class="ph ph-archive"></i> Contêiner:</label>
-                        <div style="display:flex; gap:4px;">
-                            <input type="number" id="est_cont_fd_${p.id}" value="${contFardos}" placeholder="Fardos" onkeydown="if(event.key==='Enter') salvarAjustesEstoqueManual()">
-                            <input type="number" id="est_cont_un_${p.id}" value="${contUnidades}" placeholder="Unidades" onkeydown="if(event.key==='Enter') salvarAjustesEstoqueManual()">
+                        <div class="input-unidade-group">
+                            <div>
+                                <span>Fardos:</span>
+                                <input type="number" id="est_cont_fd_${p.id}" value="${contFardos}" min="0">
+                            </div>
+                            <div>
+                                <span>+ Unidades:</span>
+                                <input type="number" id="est_cont_un_${p.id}" value="${contUnidades}" min="0">
+                            </div>
                         </div>
                     </div>
-                    <div>
+                    
+                    <!-- COLUNA BAGAGEIRO -->
+                    <div class="box-ajuste-col box-ajuste-baga">
                         <label style="color:var(--bagageiro-color);"><i class="ph ph-bag"></i> Bagageiro:</label>
-                        <div style="display:flex; gap:4px;">
-                            <input type="number" id="est_baga_fd_${p.id}" value="${bagaFardos}" placeholder="Fardos" onkeydown="if(event.key==='Enter') salvarAjustesEstoqueManual()">
-                            <input type="number" id="est_baga_un_${p.id}" value="${bagaUnidades}" placeholder="Unidades" onkeydown="if(event.key==='Enter') salvarAjustesEstoqueManual()">
+                        <div class="input-unidade-group">
+                            <div>
+                                <span>Fardos:</span>
+                                <input type="number" id="est_baga_fd_${p.id}" value="${bagaFardos}" min="0">
+                            </div>
+                            <div>
+                                <span>+ Unidades:</span>
+                                <input type="number" id="est_baga_un_${p.id}" value="${bagaUnidades}" min="0">
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -419,7 +434,14 @@ window.abrirTelaEstoques = function() {
     window.mostrarTela('tela-estoques');
 };
 
-window.salvarAjustesEstoqueManual = async function() {
+window.abrirModalConfirmaEstoque = function() {
+    document.getElementById('modalObsAjusteEstoque').value = "";
+    window.abrirModal('modal-confirma-estoque');
+};
+
+window.confirmarAjustesEstoqueComObs = async function() {
+    const obs = document.getElementById('modalObsAjusteEstoque').value.trim();
+
     for (let p of window.produtosDB) {
         const unFardo = p.unidadesPorFardo || 1;
         
@@ -437,33 +459,66 @@ window.salvarAjustesEstoqueManual = async function() {
             estoqueBagageiroUnidades: totalBaga
         });
     }
+
+    // Registra o log da alteração manual no banco de dados
+    const logId = Date.now().toString();
+    await setDoc(doc(db, "logs_ajuste_estoque", logId), {
+        id: logId,
+        timestamp: Date.now(),
+        data: new Date().toLocaleDateString('pt-BR'),
+        observacao: window.escapeHTML(obs) || "Ajuste manual padrão"
+    });
+
+    window.fecharModal('modal-confirma-estoque');
     alert("Estoques atualizados no banco de dados com sucesso!");
+    window.abrirTelaEstoques();
 };
 
-// ================= PRODUTOS, FARDOS & PREÇOS =================
-window.salvarProduto = async function() {
-    const id = document.getElementById('novoProdSigla').value.trim();
-    const nome = document.getElementById('novoProdNome').value.trim();
-    const unFardo = parseInt(document.getElementById('novoProdUnFardo').value) || 12;
-    const preco = parseFloat(document.getElementById('novoProdPreco').value) || 0;
-    const indexEdit = document.getElementById('editProdIndex').value;
+// ================= PRODUTOS EM MODAL POP-UP =================
+window.abrirModalProduto = function(id = null) {
+    if (id) {
+        const p = window.produtosDB.find(x => x.id === id);
+        if (!p) return;
+        document.getElementById('modalProdutoTitulo').innerHTML = '<i class="ph ph-pencil-simple"></i> Editar Produto';
+        document.getElementById('modalProdIdOriginal').value = p.id;
+        document.getElementById('modalProdSigla').value = p.id;
+        document.getElementById('modalProdSigla').disabled = true; // Não altera ID de produto existente
+        document.getElementById('modalProdNome').value = p.nome;
+        document.getElementById('modalProdUnFardo').value = p.unidadesPorFardo || 12;
+        document.getElementById('modalProdPreco').value = p.precoVenda || 0;
+    } else {
+        document.getElementById('modalProdutoTitulo').innerHTML = '<i class="ph ph-plus-circle"></i> Novo Produto';
+        document.getElementById('modalProdIdOriginal').value = "";
+        document.getElementById('modalProdSigla').value = "";
+        document.getElementById('modalProdSigla').disabled = false;
+        document.getElementById('modalProdNome').value = "";
+        document.getElementById('modalProdUnFardo').value = "12";
+        document.getElementById('modalProdPreco').value = "";
+    }
 
-    if (!id || !nome) return alert("Preencha Sigla e Nome!");
+    window.abrirModal('modal-produto');
+    setTimeout(() => window.focarProximo(id ? 'modalProdNome' : 'modalProdSigla'), 100);
+};
 
-    const dados = { id, nome: window.escapeHTML(nome), unidadesPorFardo: unFardo, precoVenda: preco };
+window.salvarProdutoModal = async function() {
+    const idOriginal = document.getElementById('modalProdIdOriginal').value;
+    const sigla = document.getElementById('modalProdSigla').value.trim();
+    const nome = document.getElementById('modalProdNome').value.trim();
+    const unFardo = parseInt(document.getElementById('modalProdUnFardo').value) || 12;
+    const preco = parseFloat(document.getElementById('modalProdPreco').value) || 0;
 
-    if (!indexEdit) {
+    if (!sigla || !nome) return alert("Preencha Sigla e Nome!");
+
+    const idFinal = idOriginal || sigla;
+    const dados = { id: idFinal, nome: window.escapeHTML(nome), unidadesPorFardo: unFardo, precoVenda: preco };
+
+    if (!idOriginal) {
         dados.estoqueContainerUnidades = 0;
         dados.estoqueBagageiroUnidades = 0;
     }
 
-    await setDoc(doc(db, "produtos", id), dados, { merge: true });
-
-    document.getElementById('novoProdSigla').value = "";
-    document.getElementById('novoProdNome').value = "";
-    document.getElementById('novoProdUnFardo').value = "12";
-    document.getElementById('novoProdPreco').value = "";
-    document.getElementById('editProdIndex').value = "";
+    await setDoc(doc(db, "produtos", idFinal), dados, { merge: true });
+    window.fecharModal('modal-produto');
     alert("Produto salvo no banco de dados com sucesso!");
 };
 
@@ -476,26 +531,15 @@ window.renderizarProdutosAdmin = function() {
             <div style="display:flex; justify-content:space-between; align-items:center; padding: 12px 0; border-bottom: 1px solid var(--border);">
                 <div>
                     <strong style="font-size:16px;">${p.id}</strong> - ${p.nome} 
-                    <br><small style="color:var(--secondary); font-size:13px;">${p.unidadesPorFardo} un/fardo | Preço de Venda: <strong>R$ ${window.formatarMoeda(p.precoVenda)}</strong></small>
+                    <br><small style="color:var(--secondary); font-size:13px;">${p.unidadesPorFardo} un/fardo &bull; Preço de Venda: <strong>R$ ${window.formatarMoeda(p.precoVenda)}</strong></small>
                 </div>
                 <div style="display:flex; gap:6px;">
-                    <button class="btn btn-secondary btn-pequeno" onclick="editarProduto('${p.id}')"><i class="ph ph-pencil-simple"></i></button>
+                    <button class="btn btn-secondary btn-pequeno" onclick="abrirModalProduto('${p.id}')"><i class="ph ph-pencil-simple"></i> Editar</button>
                     <button class="btn btn-danger btn-pequeno" onclick="removerProduto('${p.id}')"><i class="ph ph-trash"></i></button>
                 </div>
             </div>
         `;
     });
-};
-
-window.editarProduto = function(id) {
-    const p = window.produtosDB.find(x => x.id === id);
-    if (!p) return;
-    document.getElementById('novoProdSigla').value = p.id;
-    document.getElementById('novoProdNome').value = p.nome;
-    document.getElementById('novoProdUnFardo').value = p.unidadesPorFardo;
-    document.getElementById('novoProdPreco').value = p.precoVenda || 0;
-    document.getElementById('editProdIndex').value = p.id;
-    window.focarProximo('novoProdNome');
 };
 
 window.removerProduto = async function(id) {
@@ -665,7 +709,6 @@ window.salvarContagemDefinitiva = async function() {
     window.contagemTemp.id = contagemId;
     window.contagemTemp.timestamp = Date.now();
 
-    // Incrementa as sobras diretamente no Bagageiro no Firestore
     for (let id in window.contagemTemp.itens) {
         const item = window.contagemTemp.itens[id];
         if (item.saldo > 0) {
