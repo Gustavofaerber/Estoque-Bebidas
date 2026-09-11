@@ -1,15 +1,15 @@
-/* VARIÁVEIS DE DESIGN SYSTEM FERROVIÁRIO */
+/* DESIGN SYSTEM FERROVIÁRIO - LOJA & BEBIDAS DO TREM */
 :root {
     --bg: #f4f6f8;
     --card: #ffffff;
-    --primary: #0a2f1d;
-    --primary-light: #124d31;
+    --primary: #0c3823;
+    --primary-light: #165335;
     --secondary: #64748b;
     --accent: #c5a059;
     --accent-hover: #b08d4b;
     --danger: #dc2626;
     --success: #16a34a;
-    --border: #e2e8f0;
+    --border: #cbd5e1;
     --text: #1e293b;
     --font: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
 }
@@ -52,7 +52,7 @@ body {
     padding: 14px 18px;
     border-radius: 12px;
     margin-bottom: 12px;
-    box-shadow: 0 4px 10px rgba(10, 47, 29, 0.15);
+    box-shadow: 0 4px 12px rgba(12, 56, 35, 0.18);
 }
 .header h3 { 
     font-size: 16px; 
@@ -79,18 +79,20 @@ body {
 
 .card-hero {
     text-align: center;
-    padding: 40px 20px;
+    padding: 35px 20px;
     margin-top: 5vh;
 }
 .badge-status {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
     background: #e8f5e9;
     color: var(--primary);
-    font-size: 11px;
+    font-size: 12px;
     font-weight: bold;
-    padding: 4px 10px;
+    padding: 5px 12px;
     border-radius: 20px;
-    margin-bottom: 12px;
+    margin-bottom: 14px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
@@ -100,7 +102,7 @@ body {
     margin-bottom: 25px;
 }
 
-/* KPI CARDS (DASHBOARD) */
+/* DASHBOARD KPIS */
 .kpi-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -114,8 +116,9 @@ body {
     padding: 12px;
     text-align: center;
     cursor: pointer;
-    transition: transform 0.15s ease;
+    transition: transform 0.15s ease, border-color 0.2s;
 }
+.kpi-card:hover { border-color: var(--accent); }
 .kpi-card:active { transform: scale(0.98); }
 .kpi-label {
     font-size: 11px;
@@ -163,7 +166,7 @@ body {
 .btn-danger { background: var(--danger); color: white; }
 .btn-success { background: var(--success); color: white; }
 .btn-dark { background: #1e293b; color: white; }
-.btn-lg { padding: 16px; font-size: 16px; }
+.btn-lg { padding: 15px; font-size: 16px; }
 .btn-pequeno { padding: 6px 12px; font-size: 12px; width: auto; border-radius: 6px;}
 
 .grid-menu-admin {
@@ -200,6 +203,8 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 input[type="date"] { position: relative; cursor: pointer; }
 
+.divisor { border: 0; border-top: 1px dashed var(--border); margin: 15px 0;}
+
 /* GRID DE CONTAGEM */
 .item-contagem {
     border: 1px solid var(--border);
@@ -220,7 +225,6 @@ input[type="date"] { position: relative; cursor: pointer; }
 }
 .grid-inputs {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
     gap: 8px;
 }
 .grid-inputs div { display: flex; flex-direction: column; }
@@ -260,7 +264,7 @@ input[type="date"] { position: relative; cursor: pointer; }
     padding-left: 6px;
 }
 
-/* RESUMO E ALERTAS */
+/* RESUMO E BOXES */
 .info-resumo-topo {
     font-size: 12px;
     color: var(--secondary);
@@ -288,7 +292,7 @@ input[type="date"] { position: relative; cursor: pointer; }
 }
 .box-total-vendas {
     background: #ecfdf5;
-    border: 1px solid #a7f3d0;
+    border: 1.5px solid #a7f3d0;
     padding: 15px;
     border-radius: 10px;
     margin-bottom: 15px;
@@ -302,3 +306,13 @@ input[type="date"] { position: relative; cursor: pointer; }
     overflow-x: auto;
     padding-bottom: 4px;
 }
+.msg-alerta {
+    display: none;
+    padding: 10px;
+    border-radius: 6px;
+    text-align: center;
+    font-size: 13px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+.msg-erro { background: var(--danger); color: white; }
