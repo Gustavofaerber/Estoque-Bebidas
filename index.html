@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Estoque Bebidas - Trem</title>
-    <meta name="theme-color" content="#0e3d23">
+    <title>Estoque & Logística de Bebidas - Trem</title>
+    <meta name="theme-color" content="#0a2f1d">
     <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="style.css">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
@@ -13,15 +13,16 @@
 
     <!-- TELA INICIAL -->
     <div id="tela-inicial" class="tela ativa">
-        <div class="card" style="text-align: center; margin-top: 10vh;">
-            <h2 style="color: var(--primary);">Lojinha & Logística</h2>
-            <p style="color: var(--secondary); font-size: 14px; margin-bottom: 30px;">Selecione o seu módulo de trabalho</p>
+        <div class="card card-hero">
+            <div class="badge-status">Sistema Operacional Ferroviário</div>
+            <h2>Logística de Bebidas</h2>
+            <p class="subtitulo">Controle de Estoque, Cargas & Bordo</p>
             
-            <button class="btn btn-primary" style="width: 100%; padding: 20px; font-size: 18px; margin-bottom: 15px;" onclick="abrirSetupContagem()">
-                <i class="ph ph-clipboard-text" style="font-size: 24px;"></i> Contagem (Apoios)
+            <button class="btn btn-primary btn-lg" onclick="abrirSetupContagem()">
+                <i class="ph ph-clipboard-text"></i> Contagem de Vagão (Apoios)
             </button>
-            <button class="btn btn-secondary" style="width: 100%; padding: 15px; font-size: 16px; background: #2f3640;" onclick="mostrarTela('tela-login')">
-                <i class="ph ph-lock-key"></i> Gerenciamento (Chefe)
+            <button class="btn btn-dark" onclick="mostrarTela('tela-login')">
+                <i class="ph ph-shield-check"></i> Gestão & Chefia de Trem
             </button>
         </div>
     </div>
@@ -29,46 +30,108 @@
     <!-- TELA DE LOGIN (ADMIN) -->
     <div id="tela-login" class="tela">
         <div class="header">
-            <h3>Acesso Restrito</h3>
+            <h3><i class="ph ph-lock-key"></i> Acesso Chefia</h3>
             <button class="btn btn-danger btn-pequeno" onclick="mostrarTela('tela-inicial')">Voltar</button>
         </div>
         <div class="card">
-            <div id="msgLogin" class="msg-erro"></div>
+            <div id="msgLogin" class="msg-alerta msg-erro"></div>
             <div class="form-group">
-                <label>Senha do Chefe do Trem:</label>
+                <label>Senha de Segurança:</label>
                 <input type="password" id="loginSenha" placeholder="Digite 1234">
             </div>
-            <button class="btn btn-primary" onclick="fazerLogin()" style="width: 100%; margin-top: 10px;">Entrar no Painel</button>
+            <button class="btn btn-primary" onclick="fazerLogin()">Acessar Painel</button>
         </div>
     </div>
 
-    <!-- PAINEL CHEFE DO TREM -->
+    <!-- PAINEL CHEFE DO TREM (ADMIN) -->
     <div id="tela-admin" class="tela">
         <div class="header">
             <div>
-                <h3>Painel Chefia</h3>
+                <h3>Painel Geral da Chefia</h3>
                 <small id="dataOperacaoAdmin"></small>
             </div>
             <button class="btn btn-danger btn-pequeno" onclick="logout()"><i class="ph ph-sign-out"></i> Sair</button>
         </div>
-        <div class="card">
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                <button class="btn btn-secondary" onclick="mostrarTela('tela-usuarios')"><i class="ph ph-users"></i> Equipe (Apoios)</button>
-                <button class="btn btn-secondary" onclick="mostrarTela('tela-cadastro-produtos')"><i class="ph ph-package"></i> Produtos</button>
-                <button class="btn btn-secondary" onclick="alert('Na V4: Sistema Container x Bagageiro')"><i class="ph ph-truck"></i> Carga</button>
-                <button class="btn btn-primary" onclick="abrirRelatoriosAdmin()"><i class="ph ph-chart-bar"></i> Relatórios</button>
+
+        <div class="kpi-grid">
+            <div class="kpi-card" onclick="abrirTelaEstoques()">
+                <span class="kpi-label">Estoque Bagageiro</span>
+                <span class="kpi-valor" id="kpiBagageiroTotal">0 un</span>
+                <small class="kpi-sub">Ver Detalhes &raquo;</small>
             </div>
+            <div class="kpi-card" onclick="abrirTelaEstoques()">
+                <span class="kpi-label">Estoque Contêiner</span>
+                <span class="kpi-valor" id="kpiContainerTotal">0 fd</span>
+                <small class="kpi-sub">Fardos Totais &raquo;</small>
+            </div>
+        </div>
+
+        <div class="card">
+            <h4 style="margin-bottom: 15px;"><i class="ph ph-squares-four"></i> Operações do Dia</h4>
+            <div class="grid-menu-admin">
+                <button class="btn btn-secondary" onclick="abrirCargaDoDia()"><i class="ph ph-truck"></i> Montar Carga do Dia</button>
+                <button class="btn btn-secondary" onclick="abrirTelaEstoques()"><i class="ph ph-warehouse"></i> Inventário dos Estoques</button>
+                <button class="btn btn-secondary" onclick="abrirRelatoriosAdmin()"><i class="ph ph-chart-bar"></i> Relatórios & Balanço</button>
+                <button class="btn btn-secondary" onclick="mostrarTela('tela-cadastro-produtos')"><i class="ph ph-package"></i> Produtos & Fardos</button>
+                <button class="btn btn-secondary" onclick="mostrarTela('tela-usuarios')"><i class="ph ph-users"></i> Equipe de Apoios</button>
+                <button class="btn btn-dark" onclick="resetarDadosTeste()"><i class="ph ph-arrow-counter-clockwise"></i> Resetar Dados</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TELA CARGA DO DIA (FÓRMULA DO CHEFE) -->
+    <div id="tela-carga-dia" class="tela">
+        <div class="header">
+            <h3><i class="ph ph-truck"></i> Carga do Dia (Fórmula)</h3>
+            <button class="btn btn-secondary btn-pequeno" onclick="mostrarTela('tela-admin')">Voltar</button>
+        </div>
+        <div class="card">
+            <div class="form-group">
+                <label>Data da Viagem:</label>
+                <input type="date" id="dataCargaDia" onclick="this.showPicker && this.showPicker()">
+            </div>
+            <p style="font-size:12px; color:var(--secondary); margin-bottom:15px;">
+                Digite a quantidade total de fardos necessários. O sistema compara com o Bagageiro e calcula a retirada do Contêiner: <strong>Total - Bagageiro = Contêiner</strong>.
+            </p>
+            <div id="listaItensCargaDia"></div>
+            
+            <div class="form-group" style="margin-top:15px;">
+                <label>Distribuição / Anotações de Vagões:</label>
+                <input type="text" id="obsCargaDia" placeholder="Ex: 1 eco, pls 11 e 12, 2 tur">
+            </div>
+
+            <button class="btn btn-primary" onclick="salvarCargaDoDia()"><i class="ph ph-floppy-disk"></i> Confirmar & Baixar Estoque</button>
+
+            <div id="boxFormulaGerada" class="box-formula" style="display:none; margin-top:20px;">
+                <h4 style="margin-top:0; color:var(--primary);"><i class="ph ph-clipboard"></i> Resumo para a Equipe:</h4>
+                <div id="conteudoFormulaGerada" style="font-family:monospace; font-size:14px; line-height:1.6;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TELA INVENTÁRIO DOS ESTOQUES (CONTAINER & BAGAGEIRO) -->
+    <div id="tela-estoques" class="tela">
+        <div class="header">
+            <h3><i class="ph ph-warehouse"></i> Situação dos Estoques</h3>
+            <button class="btn btn-secondary btn-pequeno" onclick="mostrarTela('tela-admin')">Voltar</button>
+        </div>
+        <div class="card">
+            <p style="font-size:13px; color:var(--secondary); margin-bottom:15px;">
+                O estoque do Bagageiro acumula automaticamente as sobras retornadas dos vagões.
+            </p>
+            <div id="listaEstoqueGeral"></div>
+            <button class="btn btn-primary" style="margin-top:15px;" onclick="salvarAjustesEstoqueManual()"><i class="ph ph-check"></i> Salvar Ajustes Manuais</button>
         </div>
     </div>
 
     <!-- TELA GESTÃO DE USUÁRIOS -->
     <div id="tela-usuarios" class="tela">
         <div class="header">
-            <h3><i class="ph ph-users"></i> Equipe de Apoio</h3>
+            <h3><i class="ph ph-users"></i> Equipe de Apoios</h3>
             <button class="btn btn-secondary btn-pequeno" onclick="mostrarTela('tela-admin')">Voltar</button>
         </div>
         <div class="card">
-            <div style="display: flex; gap: 5px;">
+            <div style="display: flex; gap: 8px;">
                 <input type="text" id="novoUsuarioNome" placeholder="Nome do Apoio" style="flex: 2;">
                 <button class="btn btn-primary" onclick="adicionarUsuario()"><i class="ph ph-plus"></i></button>
             </div>
@@ -77,19 +140,29 @@
         </div>
     </div>
 
-    <!-- TELA CADASTRO DE PRODUTOS -->
+    <!-- TELA CADASTRO DE PRODUTOS & FARDOS -->
     <div id="tela-cadastro-produtos" class="tela">
         <div class="header">
-            <h3><i class="ph ph-package"></i> Bebidas e Kits</h3>
+            <h3><i class="ph ph-package"></i> Configurar Produtos & Fardos</h3>
             <button class="btn btn-secondary btn-pequeno" onclick="mostrarTela('tela-admin')">Voltar</button>
         </div>
         <div class="card">
             <input type="hidden" id="editProdIndex">
-            <div style="display: flex; gap: 5px;">
-                <input type="text" id="novoProdSigla" placeholder="Sigla (C)" style="flex: 1;">
-                <input type="text" id="novoProdNome" placeholder="Nome (Coca)" style="flex: 2;">
-                <button class="btn btn-primary" id="btnSalvarProd" onclick="salvarProduto()"><i class="ph ph-plus"></i></button>
+            <div class="grid-inputs" style="grid-template-columns: 1fr 2fr 1fr; margin-bottom:10px;">
+                <div>
+                    <label>Sigla:</label>
+                    <input type="text" id="novoProdSigla" placeholder="Ex: C">
+                </div>
+                <div>
+                    <label>Nome:</label>
+                    <input type="text" id="novoProdNome" placeholder="Ex: Coca Lata">
+                </div>
+                <div>
+                    <label>Un/Fardo:</label>
+                    <input type="number" id="novoProdUnFardo" value="12">
+                </div>
             </div>
+            <button class="btn btn-primary" id="btnSalvarProd" onclick="salvarProduto()"><i class="ph ph-plus"></i> Salvar Produto</button>
             <hr>
             <div id="listaProdutosAdmin"></div>
         </div>
@@ -98,18 +171,18 @@
     <!-- TELA RELATÓRIOS SALVOS -->
     <div id="tela-relatorios" class="tela">
         <div class="header">
-            <h3><i class="ph ph-chart-bar"></i> Relatórios</h3>
+            <h3><i class="ph ph-chart-bar"></i> Relatórios Operacionais</h3>
             <button class="btn btn-secondary btn-pequeno" onclick="mostrarTela('tela-admin')">Voltar</button>
         </div>
         <div class="card">
             <div class="form-group">
-                <label>Data do Relatório:</label>
+                <label>Data de Consulta:</label>
                 <input type="date" id="filtroDataRelatorio" onclick="this.showPicker && this.showPicker()" onchange="renderizarRelatoriosAdmin()">
             </div>
-            <div style="display:flex; gap:5px; margin-bottom:15px; overflow-x: auto; padding-bottom:5px;">
+            <div class="filtros-relatorio">
                 <button class="btn btn-secondary btn-pequeno" id="btnRelVagao" onclick="setModoRelatorio('vagao')">Por Vagão</button>
-                <button class="btn btn-secondary btn-pequeno" id="btnRelTur" onclick="setModoRelatorio('turisticos')">Total Turísticos</button>
-                <button class="btn btn-secondary btn-pequeno" id="btnRelGeral" onclick="setModoRelatorio('geral')">Total (Ambos Estoques)</button>
+                <button class="btn btn-secondary btn-pequeno" id="btnRelTur" onclick="setModoRelatorio('turisticos')">Soma Turísticos</button>
+                <button class="btn btn-secondary btn-pequeno" id="btnRelGeral" onclick="setModoRelatorio('geral')">Balanço do Dia</button>
             </div>
             <div id="listaRelatoriosAdmin"></div>
         </div>
@@ -151,13 +224,17 @@
             </div>
             <div class="form-group">
                 <label>Nome do Guia:</label>
-                <input type="text" id="nomeGuiaApoio" placeholder="Ex: Gustavo">
+                <input type="text" id="nomeGuiaApoio" placeholder="Ex: Joel">
             </div>
-            <button class="btn btn-primary" style="width: 100%; padding: 15px; font-size: 16px;" onclick="iniciarContagemVagao()">Próximo <i class="ph ph-arrow-right"></i></button>
+            <button class="btn btn-primary" onclick="iniciarContagemVagao()">
+                Iniciar Contagem <i class="ph ph-arrow-right"></i>
+            </button>
         </div>
         
         <div class="card" style="margin-top: 15px;">
-            <button class="btn btn-secondary" style="width: 100%;" onclick="iniciarAcertoCarrinho()"><i class="ph ph-shopping-cart"></i> Acerto de Vendas (Carrinho)</button>
+            <button class="btn btn-secondary" onclick="iniciarAcertoCarrinho()">
+                <i class="ph ph-shopping-cart"></i> Acerto de Vendas do Carrinho
+            </button>
         </div>
     </div>
 
@@ -167,11 +244,15 @@
             <h3><span id="lblVagaoContagem"></span> (<span id="lblSentidoContagem"></span>)</h3>
             <button class="btn btn-danger btn-pequeno" onclick="mostrarTela('tela-setup-contagem')">Cancelar</button>
         </div>
-        <div class="card" style="padding: 10px; background: transparent; border: none; box-shadow: none;">
-            <p style="font-size: 12px; font-style: italic; margin-bottom: 15px;">Dica: O "Consumo PAX" calcula sozinho.</p>
+        <div class="card card-limpo">
+            <p style="font-size: 12px; color: var(--secondary); margin-bottom: 15px;">
+                Preencha a <strong>Carga</strong> e o <strong>Saldo (Sobra)</strong>. O Pax calcula sozinho.
+            </p>
             <div id="listaItensContagem"></div>
             
-            <button class="btn btn-primary" style="width: 100%; padding: 15px; font-size: 16px;" onclick="gerarResumoContagem()">Verificar Resumo <i class="ph ph-check-square-offset"></i></button>
+            <button class="btn btn-primary btn-lg" onclick="gerarResumoContagem()">
+                Conferir Resumo <i class="ph ph-check-circle"></i>
+            </button>
         </div>
     </div>
 
@@ -182,25 +263,24 @@
             <button class="btn btn-danger btn-pequeno" onclick="mostrarTela('tela-contagem-vagao')">Corrigir</button>
         </div>
         <div class="card">
-            <div style="font-size: 13px; margin-bottom: 15px; border-bottom: 1px dashed var(--border); padding-bottom: 10px;">
-                <strong>Vagão:</strong> <span id="resumoVagao"></span> (<span id="resumoSentido"></span>)<br>
-                <strong>Apoio:</strong> <span id="resumoApoio"></span> | <strong>Guia:</strong> <span id="resumoGuia"></span><br>
-                <strong>Data:</strong> <span id="resumoData"></span>
+            <div class="info-resumo-topo">
+                <div><strong>Vagão:</strong> <span id="resumoVagao"></span> (<span id="resumoSentido"></span>)</div>
+                <div><strong>Apoio:</strong> <span id="resumoApoio"></span> | <strong>Guia:</strong> <span id="resumoGuia"></span></div>
+                <div><strong>Data:</strong> <span id="resumoData"></span></div>
             </div>
             
-            <!-- Cards de Totalizadores Rápidos -->
-            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                <div style="flex:1; background:#e8f8f5; border:1px solid var(--success); text-align:center; padding:10px; border-radius:8px;">
-                    <span style="font-size:11px; color:var(--success); font-weight:bold;">LANCHES (PAX)</span><br>
-                    <span style="font-size:24px; color:var(--primary); font-weight:bold;" id="resumoTotalLanches">0</span>
+            <div class="kpi-grid" style="margin-bottom: 15px;">
+                <div class="kpi-card kpi-destaque">
+                    <span class="kpi-label">LANCHES (PAX)</span>
+                    <span class="kpi-valor" id="resumoTotalLanches">0</span>
                 </div>
-                <div style="flex:1; background:#e8f8f5; border:1px solid var(--success); text-align:center; padding:10px; border-radius:8px;">
-                    <span style="font-size:11px; color:var(--success); font-weight:bold;">BEBIDAS (PAX)</span><br>
-                    <span style="font-size:24px; color:var(--primary); font-weight:bold;" id="resumoTotalBebidas">0</span>
+                <div class="kpi-card kpi-destaque">
+                    <span class="kpi-label">BEBIDAS (PAX)</span>
+                    <span class="kpi-valor" id="resumoTotalBebidas">0</span>
                 </div>
             </div>
             
-            <div style="overflow-x: auto;">
+            <div class="tabela-container">
                 <table class="tabela-relatorio">
                     <thead>
                         <tr>
@@ -216,12 +296,18 @@
                 </table>
             </div>
 
-            <div class="form-group" style="margin-top: 20px;">
+            <div class="box-aviso-baga">
+                <i class="ph ph-arrow-down-left"></i> As sobras desta contagem serão creditadas no <strong>Estoque do Bagageiro</strong>.
+            </div>
+
+            <div class="form-group" style="margin-top: 15px;">
                 <label>Observações Extras:</label>
-                <input type="text" id="obsFinalContagem" placeholder="Ex: Faltou gelo">
+                <input type="text" id="obsFinalContagem" placeholder="Ex: 1 lata de coca estourada">
             </div>
             
-            <button class="btn btn-success" style="width: 100%; padding: 15px; font-size: 16px; margin-top: 10px;" onclick="salvarContagemDefinitiva()"><i class="ph ph-paper-plane-right"></i> Confirmar e Enviar</button>
+            <button class="btn btn-success btn-lg" onclick="salvarContagemDefinitiva()">
+                <i class="ph ph-paper-plane-right"></i> Confirmar e Enviar para o Bagageiro
+            </button>
         </div>
     </div>
 
@@ -238,12 +324,12 @@
                 <label>Troco Inicial Pego (R$):</label>
                 <input type="number" id="carrinhoTroco" value="0" onfocus="this.select()" oninput="calcularVendas()">
             </div>
-            <div style="background: #ecf0f1; padding: 15px; border-radius: 8px; margin-bottom: 15px; text-align: center;">
-                <p style="margin: 0;">Valor Total de Vendas:</p>
-                <h2 style="margin: 5px 0; color: #27ae60;">R$ <span id="lblTotalVendasCarrinho">0,00</span></h2>
-                <small style="color: #7f8c8d;">Dinheiro a entregar à chefia: <strong id="lblTotalEntregar">R$ 0,00</strong></small>
+            <div class="box-total-vendas">
+                <p style="margin: 0; font-size:13px;">Valor de Vendas Apurado:</p>
+                <h2>R$ <span id="lblTotalVendasCarrinho">0,00</span></h2>
+                <small>Total em dinheiro a entregar à chefia: <strong id="lblTotalEntregar">R$ 0,00</strong></small>
             </div>
-            <button class="btn btn-primary" style="width: 100%; padding: 15px; font-size: 16px;" onclick="salvarAcertoCarrinho()">Finalizar Acerto</button>
+            <button class="btn btn-primary" onclick="salvarAcertoCarrinho()">Finalizar Acerto de Vendas</button>
         </div>
     </div>
 
