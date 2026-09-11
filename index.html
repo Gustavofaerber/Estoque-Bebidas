@@ -18,17 +18,35 @@
             <div class="card card-hero">
                 <div class="badge-status"><i class="ph ph-train-regional"></i> Operação Ferroviária</div>
                 <h2>Logística de Bebidas</h2>
-                <p class="subtitulo">Controle de Bordo, Estoques & Vendas</p>
+                <p class="subtitulo">Controle de Bordo, Estoques & Escala</p>
                 
-                <button class="btn btn-primary btn-lg" onclick="abrirSetupContagem()">
+                <button class="btn btn-manifesto btn-lg" onclick="abrirVerCargaPublico()">
+                    <i class="ph ph-notepad"></i> Ver Carga do Trem (Escala de Bordo)
+                </button>
+                <button class="btn btn-primary btn-lg" style="margin-top: 12px;" onclick="abrirSetupContagem()">
                     <i class="ph ph-clipboard-text"></i> Contagem de Vagão (Apoios)
                 </button>
                 <button class="btn btn-carrinho btn-lg" style="margin-top: 12px;" onclick="abrirSetupCarrinho()">
                     <i class="ph ph-shopping-cart"></i> Venda de Bebidas (Carrinho)
                 </button>
-                <button class="btn btn-dark" style="margin-top: 25px;" onclick="mostrarTela('tela-login')">
+                <button class="btn btn-dark" style="margin-top: 25px;" onclick="irParaPainelChefe()">
                     <i class="ph ph-shield-check"></i> Painel do Chefe
                 </button>
+            </div>
+        </div>
+
+        <!-- TELA PÚBLICA: VER CARGA DO TREM -->
+        <div id="tela-ver-carga" class="tela">
+            <div class="header">
+                <h3><i class="ph ph-notepad"></i> Carga do Trem</h3>
+                <button class="btn btn-secondary btn-pequeno" onclick="mostrarTela('tela-inicial')">Voltar</button>
+            </div>
+            <div class="card">
+                <div class="form-group">
+                    <label>Data da Viagem:</label>
+                    <input type="date" id="filtroDataManifesto" onclick="this.showPicker && this.showPicker()" onchange="carregarManifestoPublico()">
+                </div>
+                <div id="conteudoManifestoPublico"></div>
             </div>
         </div>
 
@@ -60,14 +78,14 @@
 
             <div class="kpi-grid">
                 <div class="kpi-card kpi-container" onclick="abrirTelaEstoques()">
-                    <span class="kpi-label"><i class="ph ph-package"></i> Contêiner Geral</span>
+                    <span class="kpi-label"><i class="ph ph-archive"></i> Contêiner Geral</span>
                     <span class="kpi-valor" id="kpiContainerTotal">0 fd</span>
-                    <small class="kpi-sub">Ver Estoque Detalhado &raquo;</small>
+                    <small class="kpi-sub">Ver Detalhes &raquo;</small>
                 </div>
                 <div class="kpi-card kpi-bagageiro" onclick="abrirTelaEstoques()">
                     <span class="kpi-label"><i class="ph ph-bag"></i> Bagageiro (Pulmão)</span>
                     <span class="kpi-valor" id="kpiBagageiroTotal">0 fd</span>
-                    <small class="kpi-sub">Ver Estoque Detalhado &raquo;</small>
+                    <small class="kpi-sub">Ver Detalhes &raquo;</small>
                 </div>
             </div>
 
@@ -84,14 +102,40 @@
             </div>
         </div>
 
-        <!-- TELA SITUAÇÃO DOS ESTOQUES (RESUMO + AJUSTE MANUAL) -->
+        <!-- TELA CARGA DO DIA (FÓRMULA & DISTRIBUIÇÃO) -->
+        <div id="tela-carga-dia" class="tela">
+            <div class="header">
+                <h3><i class="ph ph-truck"></i> Montar Carga do Trem</h3>
+                <button class="btn btn-secondary btn-pequeno" onclick="mostrarTela('tela-admin')">Voltar</button>
+            </div>
+            <div class="card">
+                <div class="form-group">
+                    <label>Data da Operação:</label>
+                    <input type="date" id="dataCargaDia" onclick="this.showPicker && this.showPicker()">
+                </div>
+                <p style="font-size:13px; color:var(--secondary); margin-bottom:15px;">
+                    Preencha o total de fardos e a distribuição em cada vagão. O sistema calcula a dedução do Bagageiro e Contêiner.
+                </p>
+                <div id="listaItensCargaDia"></div>
+
+                <div class="form-group" style="margin-top:20px;">
+                    <label style="color:var(--bagageiro-color); font-size:15px;">
+                        <i class="ph ph-star"></i> Observações Especiais / Freezer / Extras:
+                    </label>
+                    <textarea id="obsEspeciaisCarga" rows="3" placeholder="Ex: *2 Agg Arruda&#10;Gelo = 9 (1 Litos, 2 Cam, Car e Bar)" style="width:100%; padding:12px; border:1.5px solid var(--border); border-radius:10px; font-size:15px; font-family:inherit;"></textarea>
+                </div>
+
+                <button class="btn btn-primary btn-lg" onclick="salvarCargaDoDia()"><i class="ph ph-check-circle"></i> Salvar e Publicar Carga</button>
+            </div>
+        </div>
+
+        <!-- TELA SITUAÇÃO DOS ESTOQUES -->
         <div id="tela-estoques" class="tela">
             <div class="header">
                 <h3><i class="ph ph-warehouse"></i> Situação dos Estoques</h3>
                 <button class="btn btn-secondary btn-pequeno" onclick="mostrarTela('tela-admin')">Voltar</button>
             </div>
 
-            <!-- RESUMO RÁPIDO: DUAS TABELAS -->
             <div class="resumo-estoques-grid">
                 <div class="card card-estoque-cont">
                     <div class="card-estoque-header">
@@ -122,46 +166,15 @@
                 </div>
             </div>
 
-            <!-- AJUSTE MANUAL -->
             <div class="card">
                 <h4 style="margin-bottom: 10px; font-size:16px;"><i class="ph ph-pencil-simple"></i> Ajuste Manual de Saldos</h4>
                 <p style="font-size:13px; color:var(--secondary); margin-bottom:15px;">
-                    Altere os fardos ou unidades soltas diretamente caso haja contagem física na base:
+                    Altere os fardos ou unidades soltas diretamente caso haja divergência física:
                 </p>
                 <div id="listaEstoqueGeral"></div>
                 <button class="btn btn-primary btn-lg" style="margin-top:15px;" onclick="salvarAjustesEstoqueManual()">
                     <i class="ph ph-floppy-disk"></i> Salvar Ajustes nos Estoques
                 </button>
-            </div>
-        </div>
-
-        <!-- TELA CARGA DO DIA (FÓRMULA DO CHEFE) -->
-        <div id="tela-carga-dia" class="tela">
-            <div class="header">
-                <h3><i class="ph ph-truck"></i> Carga do Dia (Fórmula)</h3>
-                <button class="btn btn-secondary btn-pequeno" onclick="mostrarTela('tela-admin')">Voltar</button>
-            </div>
-            <div class="card">
-                <div class="form-group">
-                    <label>Data da Operação:</label>
-                    <input type="date" id="dataCargaDia" onclick="this.showPicker && this.showPicker()">
-                </div>
-                <p style="font-size:13px; color:var(--secondary); margin-bottom:15px;">
-                    Digite o total de fardos necessários. O sistema abate do Bagageiro e calcula a retirada do Contêiner: <strong>Total - Bagageiro = Contêiner</strong>.
-                </p>
-                <div id="listaItensCargaDia"></div>
-                
-                <div class="form-group" style="margin-top:15px;">
-                    <label>Distribuição / Anotações de Vagões:</label>
-                    <input type="text" id="obsCargaDia" placeholder="Ex: 1 eco, pls 11 e 12, 2 tur" onkeydown="if(event.key==='Enter') salvarCargaDoDia()">
-                </div>
-
-                <button class="btn btn-primary btn-lg" onclick="salvarCargaDoDia()"><i class="ph ph-check-circle"></i> Confirmar & Baixar dos Estoques</button>
-
-                <div id="boxFormulaGerada" class="box-formula" style="display:none; margin-top:20px;">
-                    <h4 style="margin-top:0; color:var(--primary);"><i class="ph ph-clipboard"></i> Resumo para a Equipe:</h4>
-                    <div id="conteudoFormulaGerada" style="font-family:monospace; font-size:15px; line-height:1.6;"></div>
-                </div>
             </div>
         </div>
 
@@ -392,7 +405,7 @@
             </div>
             <div class="card">
                 <p style="font-size:13px; color:var(--secondary); margin-bottom:15px;">
-                    Informe com quantas unidades saiu e sobrou dos itens principais:
+                    Informe as unidades com que saiu e sobrou dos itens principais:
                 </p>
                 <div id="listaItensCarrinho"></div>
                 
@@ -427,7 +440,6 @@
 
     </div>
 
-    <!-- SCRIPT COM FIREBASE FIRESTORE -->
     <script type="module" src="app.js"></script>
 </body>
 </html>
