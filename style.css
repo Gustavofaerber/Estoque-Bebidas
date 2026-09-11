@@ -1,19 +1,16 @@
-/* DESIGN SYSTEM FERROVIÁRIO - LOJA & BEBIDAS DO TREM */
+/* DESIGN SYSTEM FERROVIÁRIO - LOGÍSTICA DE BEBIDAS */
 :root {
-    --bg: #eaf0ec; /* Fundo sálvia suave para eliminar o branco excessivo */
+    --bg: #e8eee9;
     --card: #ffffff;
     --primary: #0a3821;
     --primary-light: #165335;
-    --primary-hover: #1f6b45;
     --container-color: #0b4f32;
     --bagageiro-color: #9a3412;
     --secondary: #475569;
     --accent: #b45309;
-    --accent-gold: #c5a059;
     --danger: #b91c1c;
     --success: #15803d;
-    --border: #c6d6cd;
-    --border-strong: #94a3b8;
+    --border: #c2d4c9;
     --text: #0f172a;
     --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
 }
@@ -28,7 +25,7 @@ body {
     font-family: var(--font);
     background-color: var(--bg);
     color: var(--text);
-    padding: 18px 10px;
+    padding: 16px 10px;
     -webkit-font-smoothing: antialiased;
     font-size: 15px;
 }
@@ -92,8 +89,8 @@ body {
 
 .card-hero {
     text-align: center;
-    padding: 50px 25px;
-    margin-top: 4vh;
+    padding: 45px 25px;
+    margin-top: 3vh;
 }
 .badge-status {
     display: inline-flex;
@@ -112,7 +109,7 @@ body {
 .subtitulo {
     color: var(--secondary);
     font-size: 15px;
-    margin-bottom: 30px;
+    margin-bottom: 25px;
 }
 
 /* DASHBOARD KPIS */
@@ -135,12 +132,8 @@ body {
     transform: translateY(-2px);
     box-shadow: 0 6px 18px rgba(0,0,0,0.08);
 }
-.kpi-container {
-    border-left: 6px solid var(--container-color);
-}
-.kpi-bagageiro {
-    border-left: 6px solid var(--bagageiro-color);
-}
+.kpi-container { border-left: 6px solid var(--container-color); }
+.kpi-bagageiro { border-left: 6px solid var(--bagageiro-color); }
 .kpi-label {
     font-size: 12px;
     color: var(--secondary);
@@ -168,7 +161,7 @@ body {
     border-color: #86efac;
 }
 
-/* DUAS TABELAS DE RESUMO DE ESTOQUE */
+/* TABELAS DE RESUMO DE ESTOQUE */
 .resumo-estoques-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -179,17 +172,9 @@ body {
     .resumo-estoques-grid { grid-template-columns: 1fr; }
 }
 
-.card-estoque-cont {
-    border-top: 5px solid var(--container-color);
-    padding: 16px;
-}
-.card-estoque-baga {
-    border-top: 5px solid var(--bagageiro-color);
-    padding: 16px;
-}
-.card-estoque-header {
-    margin-bottom: 12px;
-}
+.card-estoque-cont { border-top: 5px solid var(--container-color); padding: 16px; }
+.card-estoque-baga { border-top: 5px solid var(--bagageiro-color); padding: 16px; }
+.card-estoque-header { margin-bottom: 12px; }
 .card-estoque-header h4 {
     font-size: 16px;
     color: var(--primary);
@@ -218,6 +203,13 @@ body {
 .btn-primary:hover { background: var(--primary-light); }
 .btn-carrinho { background: #0f766e; color: white; }
 .btn-carrinho:hover { background: #115e59; }
+.btn-manifesto { 
+    background: #1e293b; 
+    color: #ffffff; 
+    border: 2px solid var(--accent);
+    box-shadow: 0 4px 12px rgba(180, 83, 9, 0.2);
+}
+.btn-manifesto:hover { background: #0f172a; }
 .btn-secondary { background: #e2e8f0; color: #1e293b; border: 1px solid var(--border); }
 .btn-danger { background: var(--danger); color: white; }
 .btn-success { background: var(--success); color: white; }
@@ -233,7 +225,7 @@ body {
     background: #e2e8f0;
     border-color: var(--primary);
 }
-.btn-lg { padding: 18px; font-size: 17px; border-radius: 12px;}
+.btn-lg { padding: 18px; font-size: 16px; border-radius: 12px;}
 .btn-pequeno { padding: 8px 14px; font-size: 13px; width: auto; border-radius: 8px;}
 
 .grid-menu-admin {
@@ -254,18 +246,18 @@ body {
     font-size: 14px; 
     color: var(--primary);
 }
-input[type="text"], input[type="number"], input[type="password"], input[type="date"], select {
+input[type="text"], input[type="number"], input[type="password"], input[type="date"], select, textarea {
     width: 100%;
     padding: 14px;
     border: 1.5px solid var(--border);
     border-radius: 10px;
-    font-size: 16px; 
+    font-size: 15px; 
     background: #ffffff;
     color: var(--text);
     outline: none;
     transition: all 0.2s;
 }
-input:focus, select:focus {
+input:focus, select:focus, textarea:focus {
     border-color: var(--primary);
     box-shadow: 0 0 0 3px rgba(10, 56, 33, 0.18);
 }
@@ -276,7 +268,7 @@ input[type="date"] { position: relative; cursor: pointer; }
 
 .divisor { border: 0; border-top: 1px dashed var(--border); margin: 18px 0;}
 
-/* GRID DE CONTAGEM */
+/* ITENS DE CONTAGEM & FORMULÁRIOS */
 .item-contagem {
     border: 1.5px solid var(--border);
     padding: 16px;
@@ -306,6 +298,46 @@ input[type="date"] { position: relative; cursor: pointer; }
 .destaque-input { border-color: var(--accent) !important; background: #fffdf5 !important;}
 .input-avaria { border-color: var(--danger) !important; color: var(--danger) !important; }
 .input-pax { background: #e8f8f5 !important; color: var(--success) !important; border-color: #86efac !important;}
+
+/* MANIFESTO VISUAL (CARGA DO TREM) */
+.manifesto-card {
+    background: #ffffff;
+    border: 2px solid var(--primary);
+    border-radius: 14px;
+    padding: 18px;
+    margin-bottom: 15px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+}
+.manifesto-linha {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 10px 0;
+    border-bottom: 1px dashed var(--border);
+    font-size: 15px;
+}
+.manifesto-formula {
+    font-weight: 800;
+    color: var(--primary);
+    font-size: 16px;
+}
+.manifesto-destino {
+    font-size: 13px;
+    color: var(--secondary);
+    font-style: italic;
+    text-align: right;
+}
+.manifesto-obs-box {
+    margin-top: 15px;
+    background: #fffbeb;
+    border: 1.5px solid #fde68a;
+    padding: 14px;
+    border-radius: 10px;
+    color: #92400e;
+    font-weight: 700;
+    font-size: 14px;
+    white-space: pre-line;
+}
 
 /* TABELA DE RELATÓRIO */
 .tabela-container {
@@ -338,7 +370,7 @@ input[type="date"] { position: relative; cursor: pointer; }
     padding-left: 10px;
 }
 
-/* BOTÕES DE ABA (RELATÓRIO OPERACIONAL - CONTRASTE CORRIGIDO) */
+/* BOTÕES DE ABA */
 .filtros-relatorio {
     display: flex;
     gap: 8px;
