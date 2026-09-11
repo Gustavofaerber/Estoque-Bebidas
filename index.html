@@ -102,33 +102,6 @@
             </div>
         </div>
 
-        <!-- TELA CARGA DO DIA (FÓRMULA & DISTRIBUIÇÃO) -->
-        <div id="tela-carga-dia" class="tela">
-            <div class="header">
-                <h3><i class="ph ph-truck"></i> Montar Carga do Trem</h3>
-                <button class="btn btn-secondary btn-pequeno" onclick="mostrarTela('tela-admin')">Voltar</button>
-            </div>
-            <div class="card">
-                <div class="form-group">
-                    <label>Data da Operação:</label>
-                    <input type="date" id="dataCargaDia" onclick="this.showPicker && this.showPicker()">
-                </div>
-                <p style="font-size:13px; color:var(--secondary); margin-bottom:15px;">
-                    Preencha o total de fardos e a distribuição em cada vagão. O sistema calcula a dedução do Bagageiro e Contêiner.
-                </p>
-                <div id="listaItensCargaDia"></div>
-
-                <div class="form-group" style="margin-top:20px;">
-                    <label style="color:var(--bagageiro-color); font-size:15px;">
-                        <i class="ph ph-star"></i> Observações Especiais / Freezer / Extras:
-                    </label>
-                    <textarea id="obsEspeciaisCarga" rows="3" placeholder="Ex: *2 Agg Arruda&#10;Gelo = 9 (1 Litos, 2 Cam, Car e Bar)" style="width:100%; padding:12px; border:1.5px solid var(--border); border-radius:10px; font-size:15px; font-family:inherit;"></textarea>
-                </div>
-
-                <button class="btn btn-primary btn-lg" onclick="salvarCargaDoDia()"><i class="ph ph-check-circle"></i> Salvar e Publicar Carga</button>
-            </div>
-        </div>
-
         <!-- TELA SITUAÇÃO DOS ESTOQUES -->
         <div id="tela-estoques" class="tela">
             <div class="header">
@@ -167,14 +140,41 @@
             </div>
 
             <div class="card">
-                <h4 style="margin-bottom: 10px; font-size:16px;"><i class="ph ph-pencil-simple"></i> Ajuste Manual de Saldos</h4>
+                <h4 style="margin-bottom: 8px; font-size:16px;"><i class="ph ph-pencil-simple"></i> Ajuste Manual de Saldos</h4>
                 <p style="font-size:13px; color:var(--secondary); margin-bottom:15px;">
-                    Altere os fardos ou unidades soltas diretamente caso haja divergência física:
+                    Altere os fardos e unidades soltas diretamente caso haja divergência física identificada:
                 </p>
                 <div id="listaEstoqueGeral"></div>
-                <button class="btn btn-primary btn-lg" style="margin-top:15px;" onclick="salvarAjustesEstoqueManual()">
+                <button class="btn btn-primary btn-lg" style="margin-top:15px;" onclick="abrirModalConfirmaEstoque()">
                     <i class="ph ph-floppy-disk"></i> Salvar Ajustes nos Estoques
                 </button>
+            </div>
+        </div>
+
+        <!-- TELA CARGA DO DIA -->
+        <div id="tela-carga-dia" class="tela">
+            <div class="header">
+                <h3><i class="ph ph-truck"></i> Montar Carga do Trem</h3>
+                <button class="btn btn-secondary btn-pequeno" onclick="mostrarTela('tela-admin')">Voltar</button>
+            </div>
+            <div class="card">
+                <div class="form-group">
+                    <label>Data da Operação:</label>
+                    <input type="date" id="dataCargaDia" onclick="this.showPicker && this.showPicker()">
+                </div>
+                <p style="font-size:13px; color:var(--secondary); margin-bottom:15px;">
+                    Preencha o total de fardos e a distribuição. O sistema calcula a dedução do Bagageiro e Contêiner: <strong>Total - Bagageiro = Contêiner</strong>.
+                </p>
+                <div id="listaItensCargaDia"></div>
+
+                <div class="form-group" style="margin-top:20px;">
+                    <label style="color:var(--bagageiro-color); font-size:15px;">
+                        <i class="ph ph-star"></i> Observações Especiais / Freezer / Extras:
+                    </label>
+                    <textarea id="obsEspeciaisCarga" rows="3" placeholder="Ex: *2 Agg Arruda&#10;Gelo = 9 (1 Litos, 2 Cam, Car e Bar)"></textarea>
+                </div>
+
+                <button class="btn btn-primary btn-lg" onclick="salvarCargaDoDia()"><i class="ph ph-check-circle"></i> Salvar e Publicar Carga</button>
             </div>
         </div>
 
@@ -194,36 +194,19 @@
             </div>
         </div>
 
-        <!-- TELA CADASTRO DE PRODUTOS & PREÇOS -->
+        <!-- TELA PRODUTOS & PREÇOS (SEM FORMULÁRIO FEIO EM CIMA) -->
         <div id="tela-cadastro-produtos" class="tela">
             <div class="header">
                 <h3><i class="ph ph-package"></i> Produtos, Fardos & Preços</h3>
                 <button class="btn btn-secondary btn-pequeno" onclick="mostrarTela('tela-admin')">Voltar</button>
             </div>
             <div class="card">
-                <input type="hidden" id="editProdIndex">
-                <div class="grid-inputs" style="grid-template-columns: 1fr 2fr; margin-bottom:10px;">
-                    <div>
-                        <label>Sigla:</label>
-                        <input type="text" id="novoProdSigla" placeholder="Ex: C" onkeydown="if(event.key==='Enter') focarProximo('novoProdNome')">
-                    </div>
-                    <div>
-                        <label>Nome:</label>
-                        <input type="text" id="novoProdNome" placeholder="Ex: Coca Lata" onkeydown="if(event.key==='Enter') focarProximo('novoProdUnFardo')">
-                    </div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                    <span style="font-size:14px; color:var(--secondary); font-weight:600;">Catálogo de Bebidas e Itens de Bordo</span>
+                    <button class="btn btn-primary btn-pequeno" onclick="abrirModalProduto()">
+                        <i class="ph ph-plus-circle"></i> Novo Produto
+                    </button>
                 </div>
-                <div class="grid-inputs" style="grid-template-columns: 1fr 1fr; margin-bottom:12px;">
-                    <div>
-                        <label>Unidades por Fardo:</label>
-                        <input type="number" id="novoProdUnFardo" value="12" onkeydown="if(event.key==='Enter') focarProximo('novoProdPreco')">
-                    </div>
-                    <div>
-                        <label>Preço de Venda (R$):</label>
-                        <input type="number" step="0.50" id="novoProdPreco" placeholder="0.00" onkeydown="if(event.key==='Enter') salvarProduto()">
-                    </div>
-                </div>
-                <button class="btn btn-primary" id="btnSalvarProd" onclick="salvarProduto()"><i class="ph ph-plus"></i> Salvar Produto</button>
-                <hr class="divisor">
                 <div id="listaProdutosAdmin"></div>
             </div>
         </div>
@@ -405,7 +388,7 @@
             </div>
             <div class="card">
                 <p style="font-size:13px; color:var(--secondary); margin-bottom:15px;">
-                    Informe as unidades com que saiu e sobrou dos itens principais:
+                    Informe com quantas unidades saiu e sobrou dos itens principais:
                 </p>
                 <div id="listaItensCarrinho"></div>
                 
@@ -438,6 +421,56 @@
             </div>
         </div>
 
+    </div>
+
+    <!-- MODAL POP-UP: PRODUTO (NOVO / EDITAR) -->
+    <div id="modal-produto" class="modal-overlay">
+        <div class="modal-content">
+            <h3 id="modalProdutoTitulo" style="margin-top:0; color:var(--primary);"><i class="ph ph-package"></i> Produto</h3>
+            <input type="hidden" id="modalProdIdOriginal">
+            
+            <div class="form-group">
+                <label>Sigla do Produto:</label>
+                <input type="text" id="modalProdSigla" placeholder="Ex: C" onkeydown="if(event.key==='Enter') focarProximo('modalProdNome')">
+            </div>
+            <div class="form-group">
+                <label>Nome Completo:</label>
+                <input type="text" id="modalProdNome" placeholder="Ex: Coca Lata" onkeydown="if(event.key==='Enter') focarProximo('modalProdUnFardo')">
+            </div>
+            <div class="grid-inputs" style="grid-template-columns: 1fr 1fr; margin-bottom:15px;">
+                <div>
+                    <label>Unidades/Fardo:</label>
+                    <input type="number" id="modalProdUnFardo" value="12" onkeydown="if(event.key==='Enter') focarProximo('modalProdPreco')">
+                </div>
+                <div>
+                    <label>Preço Venda (R$):</label>
+                    <input type="number" step="0.50" id="modalProdPreco" placeholder="0.00" onkeydown="if(event.key==='Enter') salvarProdutoModal()">
+                </div>
+            </div>
+            
+            <div style="display:flex; gap:10px; margin-top:20px;">
+                <button class="btn btn-primary" style="flex:2;" onclick="salvarProdutoModal()"><i class="ph ph-check"></i> Salvar Produto</button>
+                <button class="btn btn-secondary" style="flex:1;" onclick="fecharModal('modal-produto')">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL POP-UP: CONFIRMAÇÃO DO AJUSTE DE ESTOQUE COM MOTIVO -->
+    <div id="modal-confirma-estoque" class="modal-overlay">
+        <div class="modal-content">
+            <h3 style="margin-top:0; color:var(--primary);"><i class="ph ph-warning-circle"></i> Confirmar Ajustes de Estoque</h3>
+            <p style="font-size:14px; color:var(--secondary); margin-bottom:15px;">
+                Você está alterando manualmente as quantidades físicas do <strong>Contêiner</strong> e do <strong>Bagageiro</strong>.
+            </p>
+            <div class="form-group">
+                <label>Motivo da Alteração Manual (Opcional):</label>
+                <textarea id="modalObsAjusteEstoque" rows="3" placeholder="Ex: Contagem de conferência física / fardo danificado na base"></textarea>
+            </div>
+            <div style="display:flex; gap:10px; margin-top:20px;">
+                <button class="btn btn-primary" style="flex:2;" onclick="confirmarAjustesEstoqueComObs()"><i class="ph ph-check"></i> Confirmar & Salvar</button>
+                <button class="btn btn-secondary" style="flex:1;" onclick="fecharModal('modal-confirma-estoque')">Cancelar</button>
+            </div>
+        </div>
     </div>
 
     <script type="module" src="app.js"></script>
