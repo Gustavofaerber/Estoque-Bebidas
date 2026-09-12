@@ -109,6 +109,7 @@
                 <button class="btn btn-secondary btn-pequeno" onclick="mostrarTela('tela-admin')">Voltar</button>
             </div>
 
+            <!-- RESUMO RÁPIDO: DUAS TABELAS -->
             <div class="resumo-estoques-grid">
                 <div class="card card-estoque-cont">
                     <div class="card-estoque-header">
@@ -139,14 +140,18 @@
                 </div>
             </div>
 
+            <!-- FORMULÁRIO DE AJUSTE MANUAL -->
             <div class="card">
-                <h4 style="margin-bottom: 8px; font-size:16px;"><i class="ph ph-pencil-simple"></i> Ajuste Manual de Saldos</h4>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;">
+                    <h4 style="font-size:16px; margin:0;"><i class="ph ph-pencil-simple"></i> Ajuste Manual de Saldos</h4>
+                    <button class="btn btn-danger btn-pequeno" onclick="limparDraftEstoque()"><i class="ph ph-arrow-counter-clockwise"></i> Descartar Rascunho</button>
+                </div>
                 <p style="font-size:13px; color:var(--secondary); margin-bottom:15px;">
-                    Altere os fardos e unidades soltas diretamente caso haja divergência física identificada:
+                    Altere os fardos e unidades soltas diretamente. O rascunho fica salvo enquanto você digita:
                 </p>
                 <div id="listaEstoqueGeral"></div>
                 <button class="btn btn-primary btn-lg" style="margin-top:15px;" onclick="abrirModalConfirmaEstoque()">
-                    <i class="ph ph-floppy-disk"></i> Salvar Ajustes nos Estoques
+                    <i class="ph ph-floppy-disk"></i> Salvar Todos os Ajustes de Estoque
                 </button>
             </div>
         </div>
@@ -158,20 +163,21 @@
                 <button class="btn btn-secondary btn-pequeno" onclick="mostrarTela('tela-admin')">Voltar</button>
             </div>
             <div class="card">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                    <span style="font-size:13px; color:var(--secondary);">Os valores digitados ficam salvos em rascunho automaticamente.</span>
+                    <button class="btn btn-danger btn-pequeno" onclick="limparDraftCarga()"><i class="ph ph-trash"></i> Limpar Rascunho</button>
+                </div>
                 <div class="form-group">
                     <label>Data da Operação:</label>
-                    <input type="date" id="dataCargaDia" onclick="this.showPicker && this.showPicker()">
+                    <input type="date" id="dataCargaDia" onclick="this.showPicker && this.showPicker()" onchange="salvarDraftCarga()">
                 </div>
-                <p style="font-size:13px; color:var(--secondary); margin-bottom:15px;">
-                    Preencha o total de fardos e a distribuição. O sistema calcula a dedução do Bagageiro e Contêiner: <strong>Total - Bagageiro = Contêiner</strong>.
-                </p>
                 <div id="listaItensCargaDia"></div>
 
                 <div class="form-group" style="margin-top:20px;">
                     <label style="color:var(--bagageiro-color); font-size:15px;">
                         <i class="ph ph-star"></i> Observações Especiais / Freezer / Extras:
                     </label>
-                    <textarea id="obsEspeciaisCarga" rows="3" placeholder="Ex: *2 Agg Arruda&#10;Gelo = 9 (1 Litos, 2 Cam, Car e Bar)"></textarea>
+                    <textarea id="obsEspeciaisCarga" rows="3" placeholder="Ex: *2 Agg Arruda&#10;Gelo = 9 (1 Litos, 2 Cam, Car e Bar)" oninput="salvarDraftCarga()"></textarea>
                 </div>
 
                 <button class="btn btn-primary btn-lg" onclick="salvarCargaDoDia()"><i class="ph ph-check-circle"></i> Salvar e Publicar Carga</button>
@@ -194,7 +200,7 @@
             </div>
         </div>
 
-        <!-- TELA PRODUTOS & PREÇOS (SEM FORMULÁRIO FEIO EM CIMA) -->
+        <!-- TELA CADASTRO DE PRODUTOS -->
         <div id="tela-cadastro-produtos" class="tela">
             <div class="header">
                 <h3><i class="ph ph-package"></i> Produtos, Fardos & Preços</h3>
@@ -388,7 +394,7 @@
             </div>
             <div class="card">
                 <p style="font-size:13px; color:var(--secondary); margin-bottom:15px;">
-                    Informe com quantas unidades saiu e sobrou dos itens principais:
+                    Informe as quantidades de saída e retorno dos itens de venda:
                 </p>
                 <div id="listaItensCarrinho"></div>
                 
@@ -396,7 +402,7 @@
                 
                 <h4 style="color:var(--primary); margin-bottom:10px;"><i class="ph ph-plus-circle"></i> Vendeu mais alguma coisa?</h4>
                 <p style="font-size:12px; color:var(--secondary); margin-bottom:10px;">
-                    Adicione refrigerantes, kit lanches ou outras bebidas vendidas avulsas:
+                    Adicione refrigerantes, kit lanches ou bebidas vendidas avulsas:
                 </p>
                 <div style="display:flex; gap:8px; margin-bottom:10px;">
                     <select id="selectItemExtraCarrinho" style="flex:2;"></select>
@@ -409,7 +415,7 @@
 
                 <div class="form-group">
                     <label>Troco Inicial Pego no Bagageiro (R$):</label>
-                    <input type="number" id="carrinhoTroco" value="0" onfocus="this.select()" oninput="calcularVendas()">
+                    <input type="number" id="carrinhoTroco" value="0" onfocus="this.select()" oninput="calcularVendas(); salvarDraftCarrinho();">
                 </div>
                 
                 <div class="box-total-vendas">
@@ -423,7 +429,7 @@
 
     </div>
 
-    <!-- MODAL POP-UP: PRODUTO (NOVO / EDITAR) -->
+    <!-- MODAL POP-UP: PRODUTO -->
     <div id="modal-produto" class="modal-overlay">
         <div class="modal-content">
             <h3 id="modalProdutoTitulo" style="margin-top:0; color:var(--primary);"><i class="ph ph-package"></i> Produto</h3>
@@ -460,14 +466,14 @@
         <div class="modal-content">
             <h3 style="margin-top:0; color:var(--primary);"><i class="ph ph-warning-circle"></i> Confirmar Ajustes de Estoque</h3>
             <p style="font-size:14px; color:var(--secondary); margin-bottom:15px;">
-                Você está alterando manualmente as quantidades físicas do <strong>Contêiner</strong> e do <strong>Bagageiro</strong>.
+                Você está alterando todas as linhas preenchidas nos estoques do <strong>Contêiner</strong> e do <strong>Bagageiro</strong>.
             </p>
             <div class="form-group">
                 <label>Motivo da Alteração Manual (Opcional):</label>
-                <textarea id="modalObsAjusteEstoque" rows="3" placeholder="Ex: Contagem de conferência física / fardo danificado na base"></textarea>
+                <textarea id="modalObsAjusteEstoque" rows="3" placeholder="Ex: Contagem física geral / quebra de fardo na base"></textarea>
             </div>
             <div style="display:flex; gap:10px; margin-top:20px;">
-                <button class="btn btn-primary" style="flex:2;" onclick="confirmarAjustesEstoqueComObs()"><i class="ph ph-check"></i> Confirmar & Salvar</button>
+                <button class="btn btn-primary" style="flex:2;" onclick="confirmarAjustesEstoqueComObs()"><i class="ph ph-check"></i> Confirmar & Salvar Tudo</button>
                 <button class="btn btn-secondary" style="flex:1;" onclick="fecharModal('modal-confirma-estoque')">Cancelar</button>
             </div>
         </div>
