@@ -26,6 +26,7 @@ try {
 // ================= ESTADO GLOBAL =================
 window.produtosDB = [];
 window.usuariosDB = [];
+window.vagoesDB = [];
 window.contagensDB = [];
 window.cargasDiaDB = [];
 window.vendasCarrinhoDB = [];
@@ -33,6 +34,20 @@ window.vendasCarrinhoDB = [];
 window.contagemTemp = {};
 window.itensExtrasCarrinhoTemp = [];
 window.modoRelatorioAdmin = 'vagao';
+
+// Frota inicial padrão caso o banco esteja vazio
+const frotaInicialPadrao = [
+    { id: '11', numero: '11', nome: 'Turístico 11', tipo: 'turistico' },
+    { id: '12', numero: '12', nome: 'Turístico 12', tipo: 'turistico' },
+    { id: '13', numero: '13', nome: 'Turístico 13', tipo: 'turistico' },
+    { id: '14', numero: '14', nome: 'Turístico 14', tipo: 'turistico' },
+    { id: '15', numero: '15', nome: 'Turístico 15', tipo: 'turistico' },
+    { id: '16', numero: '16', nome: 'Turístico 16', tipo: 'turistico' },
+    { id: '01', numero: '01', nome: 'Econômico 1', tipo: 'economico' },
+    { id: '18', numero: '18', nome: 'Foz do Iguaçu', tipo: 'boutique' },
+    { id: '20', numero: '20', nome: 'Curitiba', tipo: 'boutique' },
+    { id: '7000', numero: '7000', nome: 'Litorina Luxo', tipo: 'litorina' }
+];
 
 // Ordem padrão tradicional do bloco de notas do chefe
 const ORDEM_PADRAO_CHEFE = [
@@ -112,9 +127,10 @@ window.mostrarTela = function(id) {
 
     if (id === 'tela-cadastro-produtos') renderizarProdutosAdmin();
     if (id === 'tela-usuarios') renderizarUsuarios();
+    if (id === 'tela-vagoes') renderizarVagoesAdmin();
     if (id === 'tela-estoques') abrirTelaEstoques();
     if (id === 'tela-carga-dia') abrirCargaDoDia();
-    if (id === 'tela-ver-carga') carregarManifestoPublico(true); // Força carregar a última lançada
+    if (id === 'tela-ver-carga') carregarManifestoPublico(true);
     if (id === 'tela-relatorios') renderizarRelatoriosAdmin();
     if (id === 'tela-setup-contagem') abrirSetupContagem();
     if (id === 'tela-setup-carrinho') abrirSetupCarrinho();
@@ -153,7 +169,7 @@ window.logout = function() {
 function restaurarSessaoOuTela() {
     const telaSalva = localStorage.getItem('trem_tela_ativa');
     const chefeLogado = localStorage.getItem('trem_chefe_sessao') === 'ativo';
-    const telasAdmin = ['tela-admin', 'tela-carga-dia', 'tela-estoques', 'tela-usuarios', 'tela-cadastro-produtos', 'tela-relatorios'];
+    const telasAdmin = ['tela-admin', 'tela-carga-dia', 'tela-estoques', 'tela-vagoes', 'tela-usuarios', 'tela-cadastro-produtos', 'tela-relatorios'];
 
     if (telaSalva && telasAdmin.includes(telaSalva)) {
         if (chefeLogado) {
@@ -198,6 +214,17 @@ function iniciarSincronizacaoNuvem() {
         if (telaAtiva === 'tela-setup-carrinho') abrirSetupCarrinho();
     });
 
+    onSnapshot(collection(db, "vagoes"), (snapshot) => {
+        if (snapshot.empty) {
+            frotaInicialPadrao.forEach(async v => await setDoc(doc(db, "vagoes", v.id), v));
+        } else {
+            window.vagoesDB = snapshot.docs.map(d => d.data());
+            const telaAtiva = document.querySelector('.tela.ativa')?.id;
+            if (telaAtiva === 'tela-vagoes') renderizarVagoesAdmin();
+            if (telaAtiva === 'tela-setup-contagem') abrirSetupContagem();
+        }
+    });
+
     onSnapshot(collection(db, "contagens"), (snapshot) => {
         window.contagensDB = snapshot.docs.map(d => d.data());
         if (document.getElementById('tela-relatorios')?.classList.contains('ativa')) renderizarRelatoriosAdmin();
@@ -205,7 +232,6 @@ function iniciarSincronizacaoNuvem() {
 
     onSnapshot(collection(db, "cargas_dia"), (snapshot) => {
         window.cargasDiaDB = snapshot.docs.map(d => d.data());
-        // Se a tela pública estiver aberta no celular, renderiza na hora
         if (document.getElementById('tela-ver-carga')?.classList.contains('ativa')) carregarManifestoPublico(false);
         if (document.getElementById('tela-carga-dia')?.classList.contains('ativa')) verificarStatusEdicaoCarga();
     });
@@ -232,7 +258,88 @@ function atualizarDashboardKPIs() {
     if (elCont) elCont.innerText = `${totalUnCont} un`;
 }
 
-// ================= ABA PÚBLICA: VER CARGA DO TREM (AUTOMÁTICO ÚLTIMA LANÇADA) =================
+// ================= FROTA DE VAGÕES =================
+window.renderizarVagoesAdmin = function() {
+    const div = document.getElementById('listaVagoesAdmin');
+    if (!div) return;
+    div.innerHTML = "";
+
+    const vagoesOrd = [...window.vagoesDB].sort((a, b) => {
+        const nA = parseInt(a.numero) || 0;
+        const nB = parseInt(b.numero) || 0;
+        if (nA !== nB) return nA - nB;
+        return (a.numero || "").localeCompare(b.numero || "");
+    });
+
+    vagoesOrd.forEach(v => {
+        let corTipo = "var(--primary)";
+        if (v.tipo === 'boutique') corTipo = "var(--accent)";
+        if (v.tipo === 'litorina') corTipo = "#0284c7";
+        if (v.tipo === 'economico') corTipo = "#475569";
+
+        div.innerHTML += `
+            <div style="display:flex; justify-content:space-between; align-items:center; padding: 12px 0; border-bottom: 1px solid var(--border);">
+                <div>
+                    <strong style="font-size:16px;">Nº ${v.numero} - ${v.nome}</strong>
+                    <br><span style="color:${corTipo}; font-weight:700; font-size:12px; text-transform:uppercase;">[${v.tipo}]</span>
+                </div>
+                <div style="display:flex; gap:6px;">
+                    <button class="btn btn-secondary btn-pequeno" onclick="abrirModalVagao('${v.id}')"><i class="ph ph-pencil-simple"></i> Editar</button>
+                    <button class="btn btn-danger btn-pequeno" onclick="excluirVagao('${v.id}')"><i class="ph ph-trash"></i></button>
+                </div>
+            </div>
+        `;
+    });
+};
+
+window.abrirModalVagao = function(id = null) {
+    if (id) {
+        const v = window.vagoesDB.find(x => x.id === id);
+        if (!v) return;
+        document.getElementById('modalVagaoTitulo').innerHTML = '<i class="ph ph-pencil-simple"></i> Editar Vagão';
+        document.getElementById('modalVagaoIdOriginal').value = v.id;
+        document.getElementById('modalVagaoNumero').value = v.numero;
+        document.getElementById('modalVagaoNome').value = v.nome;
+        document.getElementById('modalVagaoTipo').value = v.tipo || 'turistico';
+    } else {
+        document.getElementById('modalVagaoTitulo').innerHTML = '<i class="ph ph-plus-circle"></i> Novo Vagão';
+        document.getElementById('modalVagaoIdOriginal').value = "";
+        document.getElementById('modalVagaoNumero').value = "";
+        document.getElementById('modalVagaoNome').value = "";
+        document.getElementById('modalVagaoTipo').value = "turistico";
+    }
+
+    window.abrirModal('modal-vagao');
+    setTimeout(() => window.focarProximo('modalVagaoNumero'), 100);
+};
+
+window.salvarVagaoModal = async function() {
+    const idOriginal = document.getElementById('modalVagaoIdOriginal').value;
+    const numero = document.getElementById('modalVagaoNumero').value.trim();
+    const nome = document.getElementById('modalVagaoNome').value.trim();
+    const tipo = document.getElementById('modalVagaoTipo').value;
+
+    if (!numero || !nome) return alert("Preencha a Placa/Número e o Nome do Vagão!");
+
+    const idFinal = idOriginal || ("vagao_" + Date.now().toString());
+    await setDoc(doc(db, "vagoes", idFinal), {
+        id: idFinal,
+        numero: window.escapeHTML(numero),
+        nome: window.escapeHTML(nome),
+        tipo: tipo
+    }, { merge: true });
+
+    window.fecharModal('modal-vagao');
+    alert("Vagão cadastrado com sucesso no banco de dados!");
+};
+
+window.excluirVagao = async function(id) {
+    if (confirm("Tem certeza que deseja excluir este vagão da frota?")) {
+        await deleteDoc(doc(db, "vagoes", id));
+    }
+};
+
+// ================= ABA PÚBLICA: VER CARGA DO TREM =================
 function carregarManifestoPublico(forcarUltima = false) {
     const div = document.getElementById('conteudoManifestoPublico');
     if (!div) return;
@@ -240,7 +347,6 @@ function carregarManifestoPublico(forcarUltima = false) {
 
     const elData = document.getElementById('filtroDataManifesto');
 
-    // Se os dados do banco ainda não chegaram pelo celular
     if (!window.cargasDiaDB || window.cargasDiaDB.length === 0) {
         div.innerHTML = `
             <div style="text-align:center; padding:35px 15px; color:var(--secondary);">
@@ -251,7 +357,6 @@ function carregarManifestoPublico(forcarUltima = false) {
         return;
     }
 
-    // Ordena as cargas pela data e timestamp mais recente
     const cargasOrdenadas = [...window.cargasDiaDB].sort((a, b) => {
         if (b.data !== a.data) return b.data.localeCompare(a.data);
         return (b.timestamp || 0) - (a.timestamp || 0);
@@ -259,7 +364,6 @@ function carregarManifestoPublico(forcarUltima = false) {
 
     const ultimaCarga = cargasOrdenadas[0];
 
-    // Se for abertura da tela ou campo vazio, fixa automaticamente a data da última carga
     let dataSel = elData ? elData.value : "";
     if (forcarUltima || !dataSel) {
         dataSel = ultimaCarga ? ultimaCarga.data : new Date().toISOString().split('T')[0];
@@ -836,14 +940,31 @@ window.removerUsuario = async function(id) {
     }
 };
 
-// ================= CONTAGEM DE VAGÃO (APOIOS) =================
+// ================= CONTAGEM DE VAGÃO (APOIOS - COM VAGÕES DINÂMICOS) =================
 function abrirSetupContagem() {
     const selUser = document.getElementById('selectNomeApoio');
-    if (!selUser) return;
-    selUser.innerHTML = "";
-    [...window.usuariosDB].sort((a,b) => a.nome.localeCompare(b.nome)).forEach(u => {
-        selUser.innerHTML += `<option value="${u.nome}">${u.nome}</option>`;
-    });
+    if (selUser) {
+        selUser.innerHTML = "";
+        [...window.usuariosDB].sort((a,b) => a.nome.localeCompare(b.nome)).forEach(u => {
+            selUser.innerHTML += `<option value="${u.nome}">${u.nome}</option>`;
+        });
+    }
+
+    const selVagao = document.getElementById('selectVagaoApoio');
+    if (selVagao) {
+        selVagao.innerHTML = "";
+        const vagoesOrd = [...window.vagoesDB].sort((a, b) => {
+            const nA = parseInt(a.numero) || 0;
+            const nB = parseInt(b.numero) || 0;
+            if (nA !== nB) return nA - nB;
+            return (a.numero || "").localeCompare(b.numero || "");
+        });
+
+        vagoesOrd.forEach(v => {
+            const labelTipo = v.tipo ? `[${v.tipo.toUpperCase()}]` : '';
+            selVagao.innerHTML += `<option value="Nº ${v.numero} - ${v.nome}">Placa/Nº: ${v.numero} &bull; ${v.nome} ${labelTipo}</option>`;
+        });
+    }
 
     const draftStr = localStorage.getItem('trem_draft_contagem');
     const draft = draftStr ? JSON.parse(draftStr) : null;
@@ -852,7 +973,7 @@ function abrirSetupContagem() {
     document.getElementById('dataContagemApoio').value = draft?.data || hj;
     document.getElementById('nomeGuiaApoio').value = draft?.guia || "";
     if (draft?.sentido) document.getElementById('selectSentidoApoio').value = draft.sentido;
-    if (draft?.vagao) document.getElementById('selectVagaoApoio').value = draft.vagao;
+    if (draft?.vagao && selVagao) selVagao.value = draft.vagao;
 }
 
 window.iniciarContagemVagao = function() {
