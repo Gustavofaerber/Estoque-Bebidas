@@ -1,22 +1,22 @@
 /* DESIGN SYSTEM FERROVIÁRIO - LOGÍSTICA DE BEBIDAS */
 :root {
-    --bg: #d4ded8; /* Fundo sálvia/cinza fosco descansado para os olhos */
+    --bg: #d7e2dc; /* Tom sálvia/cinza fosco descansado para os olhos */
     --card: #f6f8f7; /* Superfície de cartão com contraste limpo */
     --card-hover: #ffffff;
-    --primary: #082f1b;
-    --primary-light: #125332;
-    --container-color: #0b5936;
-    --container-bg: #e0f2e9;
-    --container-border: #92cfaf;
-    --bagageiro-color: #8c320a;
-    --bagageiro-bg: #f9ebe0;
-    --bagageiro-border: #f4b98c;
+    --primary: #0a3821;
+    --primary-light: #165335;
+    --container-color: #0d5f3a;
+    --container-bg: #e2f4eb;
+    --container-border: #99d6b5;
+    --bagageiro-color: #923a0e;
+    --bagageiro-bg: #fbede2;
+    --bagageiro-border: #f7c397;
     --secondary: #475569;
     --accent: #b45309;
     --danger: #b91c1c;
     --success: #15803d;
-    --border: #abbfb4;
-    --border-dark: #839e90;
+    --border: #b0c6ba;
+    --border-dark: #8da99a;
     --text: #0f172a;
     --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
 }
@@ -164,7 +164,6 @@ body {
     border-color: #84dfaf;
 }
 
-/* RESUMO DOS ESTOQUES */
 .resumo-estoques-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -186,7 +185,6 @@ body {
     gap: 6px;
 }
 
-/* CAIXAS DE AJUSTE MANUAL */
 .box-ajuste-col {
     padding: 12px;
     border-radius: 10px;
@@ -201,7 +199,6 @@ body {
     background: var(--bagageiro-bg);
     border: 1.5px solid var(--bagageiro-border);
 }
-
 .box-ajuste-col label {
     font-weight: 700;
     font-size: 13px;
@@ -210,7 +207,6 @@ body {
     align-items: center;
     gap: 6px;
 }
-
 .input-unidade-group {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -227,7 +223,6 @@ body {
     margin-bottom: 3px;
 }
 
-/* BOTÕES */
 .btn {
     padding: 14px 18px;
     border: none;
@@ -356,7 +351,6 @@ input[type="date"] { position: relative; cursor: pointer; }
 .input-avaria { border-color: var(--danger) !important; color: var(--danger) !important; }
 .input-pax { background: #e8f8f5 !important; color: var(--success) !important; border-color: #86efac !important;}
 
-/* CARDS DO MONITOR DE VIAGEM (ABERTO X FECHADO) */
 .grid-vagoes-cards {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -365,7 +359,6 @@ input[type="date"] { position: relative; cursor: pointer; }
 @media (max-width: 600px) {
     .grid-vagoes-cards { grid-template-columns: 1fr; }
 }
-
 .card-vagao-status {
     background: #ffffff;
     border: 2px solid var(--border);
@@ -390,7 +383,6 @@ input[type="date"] { position: relative; cursor: pointer; }
     background: #f1f5f9;
     opacity: 0.85;
 }
-
 .badge-tag-status {
     display: inline-block;
     padding: 3px 8px;
@@ -418,7 +410,6 @@ input[type="date"] { position: relative; cursor: pointer; }
     flex-wrap: wrap;
 }
 
-/* CAIXA DE REFORÇO NO MODAL */
 .box-destaque-reforco {
     background: #fefce8;
     border: 1.5px solid #fef08a;
@@ -426,7 +417,30 @@ input[type="date"] { position: relative; cursor: pointer; }
     border-radius: 10px;
 }
 
-/* RECEITAS LISTA DE PRODUTOS */
+.box-checklist-bebidas {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    max-height: 200px;
+    overflow-y: auto;
+    background: #f8fafc;
+    border: 1.5px solid var(--border);
+    padding: 10px;
+    border-radius: 8px;
+}
+.item-chk-bebida {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+.item-chk-bebida input {
+    width: 18px;
+    height: 18px;
+}
+
 .item-receita-linha {
     display: flex;
     justify-content: space-between;
@@ -438,7 +452,6 @@ input[type="date"] { position: relative; cursor: pointer; }
     border-bottom: none;
 }
 
-/* MANIFESTO VISUAL */
 .manifesto-card {
     background: #ffffff;
     border: 2px solid var(--primary);
@@ -478,9 +491,9 @@ input[type="date"] { position: relative; cursor: pointer; }
     white-space: pre-line;
 }
 
-/* TABELA DE RELATÓRIO 100% VISÍVEL NO MOBILE */
+/* TABELA DE RELATÓRIO AJUSTADA PRO CELULAR */
 .tabela-container {
-    overflow: hidden;
+    overflow-x: auto;
     border-radius: 8px;
     border: 1.5px solid var(--border);
     width: 100%;
@@ -488,21 +501,20 @@ input[type="date"] { position: relative; cursor: pointer; }
 .tabela-relatorio {
     width: 100%;
     border-collapse: collapse;
-    font-size: 13px;
+    font-size: 12px;
     background: var(--card);
     table-layout: fixed;
 }
 .tabela-relatorio th, .tabela-relatorio td {
     border: 1px solid var(--border);
-    padding: 8px 2px;
+    padding: 6px 2px;
     text-align: center;
     word-wrap: break-word;
-    overflow: hidden;
 }
 .tabela-relatorio th {
     background-color: var(--primary);
     color: #ffffff;
-    font-size: 11px;
+    font-size: 10px;
     text-transform: uppercase;
     font-weight: 700;
 }
@@ -511,6 +523,7 @@ input[type="date"] { position: relative; cursor: pointer; }
     font-weight: 700;
     color: var(--primary);
     padding-left: 6px;
+    font-size: 12px;
 }
 
 /* TOTALIZADORES LANCHES X BEBIDAS */
@@ -531,7 +544,6 @@ input[type="date"] { position: relative; cursor: pointer; }
     color: #991b1b;
 }
 
-/* BOTÕES DE ABA */
 .filtros-relatorio {
     display: flex;
     gap: 8px;
