@@ -1,22 +1,22 @@
 /* DESIGN SYSTEM FERROVIÁRIO - LOGÍSTICA DE BEBIDAS */
 :root {
-    --bg: #d7e2dc; /* Tom sálvia/grafite fosco de alto contraste */
-    --card: #f8faf9; /* Cartão sutilmente pigmentado, adeus branco puro */
+    --bg: #d4ded8; /* Fundo sálvia/cinza fosco descansado para os olhos */
+    --card: #f6f8f7; /* Superfície de cartão com contraste limpo */
     --card-hover: #ffffff;
     --primary: #082f1b;
     --primary-light: #125332;
     --container-color: #0b5936;
-    --container-bg: #e2f4eb;
-    --container-border: #99d6b5;
-    --bagageiro-color: #923a0e;
-    --bagageiro-bg: #fbede2;
-    --bagageiro-border: #f7c397;
+    --container-bg: #e0f2e9;
+    --container-border: #92cfaf;
+    --bagageiro-color: #8c320a;
+    --bagageiro-bg: #f9ebe0;
+    --bagageiro-border: #f4b98c;
     --secondary: #475569;
     --accent: #b45309;
     --danger: #b91c1c;
     --success: #15803d;
-    --border: #b0c6ba;
-    --border-dark: #8da99a;
+    --border: #abbfb4;
+    --border-dark: #839e90;
     --text: #0f172a;
     --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
 }
@@ -426,29 +426,16 @@ input[type="date"] { position: relative; cursor: pointer; }
     border-radius: 10px;
 }
 
-/* CHECKLIST DE BEBIDAS */
-.box-checklist-bebidas {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-    max-height: 200px;
-    overflow-y: auto;
-    background: #f8fafc;
-    border: 1.5px solid var(--border);
-    padding: 10px;
-    border-radius: 8px;
-}
-.item-chk-bebida {
+/* RECEITAS LISTA DE PRODUTOS */
+.item-receita-linha {
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    gap: 6px;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
+    padding: 8px 0;
+    border-bottom: 1px dashed var(--border);
 }
-.item-chk-bebida input {
-    width: 18px;
-    height: 18px;
+.item-receita-linha:last-child {
+    border-bottom: none;
 }
 
 /* MANIFESTO VISUAL */
