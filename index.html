@@ -53,7 +53,7 @@
             </div>
         </div>
 
-        <!-- TELA: MONITOR DE OPERAÇÃO DE VIAGEM (ABERTOS X FECHADOS) -->
+        <!-- TELA: MONITOR DE OPERAÇÃO DE VIAGEM -->
         <div id="tela-operacao-viagem" class="tela">
             <div class="header">
                 <h3><i class="ph ph-compass"></i> Monitor da Viagem</h3>
@@ -76,7 +76,7 @@
 
                 <hr class="divisor">
                 <p style="font-size:13px; color:var(--secondary); margin-bottom:12px;">
-                    Clique em qualquer vagão <strong>Aberto</strong> para adicionar reforço em viagem ou fazer o fechamento de sobras:
+                    Clique em qualquer vagão <strong>Aberto</strong> para verificar a carga ou solicitar reforço:
                 </p>
                 <div id="gridVagoesOperacao" class="grid-vagoes-cards"></div>
             </div>
@@ -125,17 +125,35 @@
                 <h4 style="margin-bottom: 15px; font-size:17px;"><i class="ph ph-squares-four"></i> Módulos Operacionais</h4>
                 <div class="grid-menu-admin">
                     <button class="btn btn-menu" onclick="mostrarTela('tela-carga-dia')"><i class="ph ph-truck"></i> Montar / Editar Carga</button>
+                    <button class="btn btn-menu" onclick="mostrarTela('tela-receitas')"><i class="ph ph-receipt"></i> Receitas de Carga (Kits)</button>
+                    <button class="btn btn-menu" onclick="mostrarTela('tela-vagoes')"><i class="ph ph-train"></i> Frota de Vagões</button>
                     <button class="btn btn-menu" onclick="mostrarTela('tela-estoques')"><i class="ph ph-warehouse"></i> Situação dos Estoques</button>
-                    <button class="btn btn-menu" onclick="mostrarTela('tela-vagoes')"><i class="ph ph-train"></i> Frota & Bebidas p/ Vagão</button>
                     <button class="btn btn-menu" onclick="mostrarTela('tela-relatorios')"><i class="ph ph-chart-bar"></i> Relatórios & Balanço</button>
                     <button class="btn btn-menu" onclick="mostrarTela('tela-cadastro-produtos')"><i class="ph ph-package"></i> Produtos & Preços</button>
                     <button class="btn btn-menu" onclick="mostrarTela('tela-usuarios')"><i class="ph ph-users"></i> Equipe de Apoios</button>
-                    <button class="btn btn-dark" style="grid-column: span 2;" onclick="mostrarTela('tela-inicial')"><i class="ph ph-arrow-left"></i> Voltar à Tela Inicial</button>
+                    <button class="btn btn-dark" onclick="mostrarTela('tela-inicial')"><i class="ph ph-arrow-left"></i> Tela Inicial</button>
                 </div>
             </div>
         </div>
 
-        <!-- TELA FROTA DE VAGÕES & BEBIDAS PERMITIDAS -->
+        <!-- TELA: RECEITAS DE CARGA (KITS PRÉ-CONFIGURADOS) -->
+        <div id="tela-receitas" class="tela">
+            <div class="header">
+                <h3><i class="ph ph-receipt"></i> Receitas de Carga (Kits)</h3>
+                <button class="btn btn-secondary btn-pequeno" onclick="mostrarTela('tela-admin')">Voltar</button>
+            </div>
+            <div class="card">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                    <span style="font-size:14px; color:var(--secondary); font-weight:600;">Modelos de Carga Prontos p/ Vagões</span>
+                    <button class="btn btn-primary btn-pequeno" onclick="abrirModalReceita()">
+                        <i class="ph ph-plus-circle"></i> Nova Receita
+                    </button>
+                </div>
+                <div id="listaReceitasAdmin"></div>
+            </div>
+        </div>
+
+        <!-- TELA: FROTA DE VAGÕES -->
         <div id="tela-vagoes" class="tela">
             <div class="header">
                 <h3><i class="ph ph-train"></i> Frota de Vagões</h3>
@@ -143,7 +161,7 @@
             </div>
             <div class="card">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                    <span style="font-size:14px; color:var(--secondary); font-weight:600;">Personalize os itens de cada vagão</span>
+                    <span style="font-size:14px; color:var(--secondary); font-weight:600;">Vagões Cadastrados & Receita Padrão</span>
                     <button class="btn btn-primary btn-pequeno" onclick="abrirModalVagao()">
                         <i class="ph ph-plus-circle"></i> Novo Vagão
                     </button>
@@ -347,8 +365,9 @@
                 <button class="btn btn-danger btn-pequeno" onclick="mostrarTela('tela-setup-contagem')">Cancelar</button>
             </div>
             <div class="card card-limpo">
+                <div id="avisoReceitaCarregada" style="margin-bottom:12px;"></div>
                 <p style="font-size: 13px; color: var(--secondary); margin-bottom: 15px;">
-                    Preencha <strong>Carga</strong> e <strong>Sobra</strong> das bebidas deste vagão:
+                    Cargas preenchidas automaticamente pela receita do vagão. Edite a carga se pegou mais e informe a <strong>Sobra</strong>:
                 </p>
                 <div id="listaItensContagem"></div>
                 
@@ -402,7 +421,7 @@
                 </div>
 
                 <div class="box-aviso-baga">
-                    <i class="ph ph-arrow-down-left"></i> As sobras desta contagem serão somadas ao <strong>Bagageiro</strong>.
+                    <i class="ph ph-arrow-down-left"></i> As sobras desta contagem e as cargas extras serão processadas no <strong>Bagageiro</strong>.
                 </div>
 
                 <div class="form-group" style="margin-top: 15px;">
@@ -411,7 +430,7 @@
                 </div>
                 
                 <button class="btn btn-success btn-lg" onclick="salvarContagemDefinitiva()">
-                    <i class="ph ph-paper-plane-right"></i> Confirmar e Salvar no Bagageiro
+                    <i class="ph ph-paper-plane-right"></i> Confirmar e Salvar
                 </button>
             </div>
         </div>
@@ -516,6 +535,69 @@
         </div>
     </div>
 
+    <!-- MODAL POP-UP: RECEITA DE CARGA (KITS) -->
+    <div id="modal-receita" class="modal-overlay">
+        <div class="modal-content" style="max-width:560px;">
+            <h3 id="modalReceitaTitulo" style="margin-top:0; color:var(--primary);"><i class="ph ph-receipt"></i> Modelo de Carga (Receita)</h3>
+            <input type="hidden" id="modalReceitaIdOriginal">
+            
+            <div class="form-group">
+                <label>Nome da Receita (Ex: Base Turístico Padrão):</label>
+                <input type="text" id="modalReceitaNome" placeholder="Ex: Base Turístico 48 Lugares" onkeydown="if(event.key==='Enter') focarProximo('rec_input_C')">
+            </div>
+
+            <p style="font-size:13px; color:var(--secondary); margin-bottom:10px;">
+                Defina as quantidades padrão que serão carregadas em cada vagão associado:
+            </p>
+            <div id="modalReceitaListaProdutos" style="max-height:260px; overflow-y:auto; border:1.5px solid var(--border); border-radius:8px; padding:10px; background:#ffffff; margin-bottom:15px;"></div>
+
+            <div style="display:flex; gap:10px;">
+                <button class="btn btn-primary" style="flex:2;" onclick="salvarReceitaModal()"><i class="ph ph-check"></i> Salvar Receita</button>
+                <button class="btn btn-secondary" style="flex:1;" onclick="fecharModal('modal-receita')">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL POP-UP: VAGÃO SIMPLIFICADO COM RECEITA -->
+    <div id="modal-vagao" class="modal-overlay">
+        <div class="modal-content">
+            <h3 id="modalVagaoTitulo" style="margin-top:0; color:var(--primary);"><i class="ph ph-train"></i> Vagão</h3>
+            <input type="hidden" id="modalVagaoIdOriginal">
+            
+            <div class="grid-inputs" style="grid-template-columns: 1fr 2fr; margin-bottom:15px;">
+                <div>
+                    <label>Placa / Nº:</label>
+                    <input type="text" id="modalVagaoNumero" placeholder="Ex: 03" onkeydown="if(event.key==='Enter') focarProximo('modalVagaoNome')">
+                </div>
+                <div>
+                    <label>Nome do Vagão:</label>
+                    <input type="text" id="modalVagaoNome" placeholder="Ex: Turístico 3" onkeydown="if(event.key==='Enter') focarProximo('modalVagaoTipo')">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Modelo / Categoria:</label>
+                <select id="modalVagaoTipo" onchange="autoSugerirReceitaVagao()">
+                    <option value="turistico">Turístico</option>
+                    <option value="economico">Econômico</option>
+                    <option value="boutique">Boutique</option>
+                    <option value="litorina">Litorina</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label style="color:var(--primary); font-weight:700;"><i class="ph ph-receipt"></i> Receita de Carga Padrão:</label>
+                <select id="modalVagaoReceitaPadrao"></select>
+                <small style="color:var(--secondary); font-size:12px;">Ao selecionar uma receita, as bebidas e quantidades são aplicadas com 1 clique.</small>
+            </div>
+            
+            <div style="display:flex; gap:10px; margin-top:20px;">
+                <button class="btn btn-primary" style="flex:2;" onclick="salvarVagaoModal()"><i class="ph ph-check"></i> Salvar Vagão</button>
+                <button class="btn btn-secondary" style="flex:1;" onclick="fecharModal('modal-vagao')">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL POP-UP: PRODUTO -->
     <div id="modal-produto" class="modal-overlay">
         <div class="modal-content">
@@ -550,45 +632,6 @@
             <div style="display:flex; gap:10px; margin-top:20px;">
                 <button class="btn btn-primary" style="flex:2;" onclick="salvarProdutoModal()"><i class="ph ph-check"></i> Salvar Produto</button>
                 <button class="btn btn-secondary" style="flex:1;" onclick="fecharModal('modal-produto')">Cancelar</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL POP-UP: VAGÃO COM BEBIDAS SELECIONADAS -->
-    <div id="modal-vagao" class="modal-overlay">
-        <div class="modal-content">
-            <h3 id="modalVagaoTitulo" style="margin-top:0; color:var(--primary);"><i class="ph ph-train"></i> Vagão</h3>
-            <input type="hidden" id="modalVagaoIdOriginal">
-            
-            <div class="grid-inputs" style="grid-template-columns: 1fr 2fr; margin-bottom:15px;">
-                <div>
-                    <label>Placa / Nº:</label>
-                    <input type="text" id="modalVagaoNumero" placeholder="Ex: 1" onkeydown="if(event.key==='Enter') focarProximo('modalVagaoNome')">
-                </div>
-                <div>
-                    <label>Nome do Vagão:</label>
-                    <input type="text" id="modalVagaoNome" placeholder="Ex: Curitiba" onkeydown="if(event.key==='Enter') focarProximo('modalVagaoTipo')">
-                </div>
-            </div>
-            <div class="form-group">
-                <label>Modelo / Categoria:</label>
-                <select id="modalVagaoTipo" onchange="atualizarCheckboxesBebidasPadrao()">
-                    <option value="turistico">Turístico</option>
-                    <option value="economico">Econômico</option>
-                    <option value="boutique">Boutique</option>
-                    <option value="litorina">Litorina</option>
-                </select>
-            </div>
-
-            <div class="form-group" style="margin-top:15px;">
-                <label><i class="ph ph-check-square"></i> Bebidas que este vagão carrega:</label>
-                <p style="font-size:12px; color:var(--secondary); margin-bottom:8px;">Marque apenas as que devem aparecer na contagem:</p>
-                <div id="boxCheckboxesBebidasVagao" class="box-checklist-bebidas"></div>
-            </div>
-            
-            <div style="display:flex; gap:10px; margin-top:20px;">
-                <button class="btn btn-primary" style="flex:2;" onclick="salvarVagaoModal()"><i class="ph ph-check"></i> Salvar Vagão</button>
-                <button class="btn btn-secondary" style="flex:1;" onclick="fecharModal('modal-vagao')">Cancelar</button>
             </div>
         </div>
     </div>
