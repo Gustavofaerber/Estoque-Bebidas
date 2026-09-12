@@ -20,13 +20,13 @@
                 <h2>Logística de Bebidas</h2>
                 <p class="subtitulo">Controle de Bordo, Estoques & Escala</p>
                 
-                <button class="btn btn-manifesto btn-lg" onclick="abrirVerCargaPublico()">
+                <button class="btn btn-manifesto btn-lg" onclick="mostrarTela('tela-ver-carga')">
                     <i class="ph ph-notepad"></i> Ver Carga do Trem (Escala de Bordo)
                 </button>
-                <button class="btn btn-primary btn-lg" style="margin-top: 12px;" onclick="abrirSetupContagem()">
+                <button class="btn btn-primary btn-lg" style="margin-top: 12px;" onclick="mostrarTela('tela-setup-contagem')">
                     <i class="ph ph-clipboard-text"></i> Contagem de Vagão (Apoios)
                 </button>
-                <button class="btn btn-carrinho btn-lg" style="margin-top: 12px;" onclick="abrirSetupCarrinho()">
+                <button class="btn btn-carrinho btn-lg" style="margin-top: 12px;" onclick="mostrarTela('tela-setup-carrinho')">
                     <i class="ph ph-shopping-cart"></i> Venda de Bebidas (Carrinho)
                 </button>
                 <button class="btn btn-dark" style="margin-top: 25px;" onclick="irParaPainelChefe()">
@@ -77,12 +77,12 @@
             </div>
 
             <div class="kpi-grid">
-                <div class="kpi-card kpi-container" onclick="abrirTelaEstoques()">
+                <div class="kpi-card kpi-container" onclick="mostrarTela('tela-estoques')">
                     <span class="kpi-label"><i class="ph ph-archive"></i> Contêiner Geral</span>
                     <span class="kpi-valor" id="kpiContainerTotal">0 fd</span>
                     <small class="kpi-sub">Ver Detalhes &raquo;</small>
                 </div>
-                <div class="kpi-card kpi-bagageiro" onclick="abrirTelaEstoques()">
+                <div class="kpi-card kpi-bagageiro" onclick="mostrarTela('tela-estoques')">
                     <span class="kpi-label"><i class="ph ph-bag"></i> Bagageiro (Pulmão)</span>
                     <span class="kpi-valor" id="kpiBagageiroTotal">0 fd</span>
                     <small class="kpi-sub">Ver Detalhes &raquo;</small>
@@ -92,9 +92,9 @@
             <div class="card">
                 <h4 style="margin-bottom: 15px; font-size:17px;"><i class="ph ph-squares-four"></i> Módulos Operacionais</h4>
                 <div class="grid-menu-admin">
-                    <button class="btn btn-menu" onclick="abrirCargaDoDia()"><i class="ph ph-truck"></i> Montar Carga do Dia</button>
-                    <button class="btn btn-menu" onclick="abrirTelaEstoques()"><i class="ph ph-warehouse"></i> Situação dos Estoques</button>
-                    <button class="btn btn-menu" onclick="abrirRelatoriosAdmin()"><i class="ph ph-chart-bar"></i> Relatórios & Balanço</button>
+                    <button class="btn btn-menu" onclick="mostrarTela('tela-carga-dia')"><i class="ph ph-truck"></i> Montar Carga do Dia</button>
+                    <button class="btn btn-menu" onclick="mostrarTela('tela-estoques')"><i class="ph ph-warehouse"></i> Situação dos Estoques</button>
+                    <button class="btn btn-menu" onclick="mostrarTela('tela-relatorios')"><i class="ph ph-chart-bar"></i> Relatórios & Balanço</button>
                     <button class="btn btn-menu" onclick="mostrarTela('tela-cadastro-produtos')"><i class="ph ph-package"></i> Produtos & Preços</button>
                     <button class="btn btn-menu" onclick="mostrarTela('tela-usuarios')"><i class="ph ph-users"></i> Equipe de Apoios</button>
                     <button class="btn btn-dark" onclick="mostrarTela('tela-inicial')"><i class="ph ph-arrow-left"></i> Tela Inicial</button>
@@ -109,7 +109,6 @@
                 <button class="btn btn-secondary btn-pequeno" onclick="mostrarTela('tela-admin')">Voltar</button>
             </div>
 
-            <!-- RESUMO RÁPIDO: DUAS TABELAS -->
             <div class="resumo-estoques-grid">
                 <div class="card card-estoque-cont">
                     <div class="card-estoque-header">
@@ -140,7 +139,6 @@
                 </div>
             </div>
 
-            <!-- FORMULÁRIO DE AJUSTE MANUAL -->
             <div class="card">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;">
                     <h4 style="font-size:16px; margin:0;"><i class="ph ph-pencil-simple"></i> Ajuste Manual de Saldos</h4>
@@ -435,9 +433,15 @@
             <h3 id="modalProdutoTitulo" style="margin-top:0; color:var(--primary);"><i class="ph ph-package"></i> Produto</h3>
             <input type="hidden" id="modalProdIdOriginal">
             
-            <div class="form-group">
-                <label>Sigla do Produto:</label>
-                <input type="text" id="modalProdSigla" placeholder="Ex: C" onkeydown="if(event.key==='Enter') focarProximo('modalProdNome')">
+            <div class="grid-inputs" style="grid-template-columns: 1fr 2fr; margin-bottom:15px;">
+                <div>
+                    <label>Ordem na Lista:</label>
+                    <input type="number" id="modalProdOrdem" placeholder="Ex: 1" min="1" onkeydown="if(event.key==='Enter') focarProximo('modalProdSigla')">
+                </div>
+                <div>
+                    <label>Sigla do Produto:</label>
+                    <input type="text" id="modalProdSigla" placeholder="Ex: C" onkeydown="if(event.key==='Enter') focarProximo('modalProdNome')">
+                </div>
             </div>
             <div class="form-group">
                 <label>Nome Completo:</label>
