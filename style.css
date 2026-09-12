@@ -1,21 +1,22 @@
 /* DESIGN SYSTEM FERROVIÁRIO - LOGÍSTICA DE BEBIDAS */
 :root {
-    --bg: #dbe4dd; /* Tom sálvia/cinza pastel suave, eliminando o branco ofuscante */
-    --card: #ffffff;
-    --card-subtle: #f4f8f5;
-    --primary: #0a3821;
-    --primary-light: #155734;
-    --container-color: #0d5f3a;
-    --container-bg: #e5f5ec;
-    --container-border: #9ed4b7;
-    --bagageiro-color: #9a3412;
-    --bagageiro-bg: #fbf0e6;
-    --bagageiro-border: #f8c399;
+    --bg: #d7e2dc; /* Tom sálvia/grafite fosco de alto contraste */
+    --card: #f8faf9; /* Cartão sutilmente pigmentado, adeus branco puro */
+    --card-hover: #ffffff;
+    --primary: #082f1b;
+    --primary-light: #125332;
+    --container-color: #0b5936;
+    --container-bg: #e2f4eb;
+    --container-border: #99d6b5;
+    --bagageiro-color: #923a0e;
+    --bagageiro-bg: #fbede2;
+    --bagageiro-border: #f7c397;
     --secondary: #475569;
     --accent: #b45309;
     --danger: #b91c1c;
     --success: #15803d;
-    --border: #b3c7bc;
+    --border: #b0c6ba;
+    --border-dark: #8da99a;
     --text: #0f172a;
     --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
 }
@@ -32,7 +33,7 @@ body {
     color: var(--text);
     padding: 16px 10px;
     -webkit-font-smoothing: antialiased;
-    font-size: 16px; /* Fonte aumentada para melhor leitura */
+    font-size: 16px;
 }
 
 .app-container {
@@ -42,14 +43,14 @@ body {
 
 .tela { 
     display: none; 
-    animation: fadeIn 0.22s ease-out; 
+    animation: fadeIn 0.2s ease-out; 
 }
 .tela.ativa { 
     display: block; 
 }
 
 @keyframes fadeIn { 
-    from { opacity: 0; transform: translateY(5px); } 
+    from { opacity: 0; transform: translateY(4px); } 
     to { opacity: 1; transform: translateY(0); } 
 }
 
@@ -62,7 +63,7 @@ body {
     padding: 16px 20px;
     border-radius: 14px;
     margin-bottom: 16px;
-    box-shadow: 0 4px 15px rgba(10, 56, 33, 0.22);
+    box-shadow: 0 4px 15px rgba(8, 47, 27, 0.25);
 }
 .header h3 { 
     font-size: 19px; 
@@ -78,7 +79,7 @@ body {
     background: var(--card);
     padding: 22px;
     border-radius: 16px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
     border: 1.5px solid var(--border);
     margin-bottom: 16px;
 }
@@ -98,7 +99,7 @@ body {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    background: #dcfce7;
+    background: #cbf5db;
     color: var(--primary);
     font-size: 13px;
     font-weight: 700;
@@ -107,6 +108,7 @@ body {
     margin-bottom: 16px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    border: 1px solid #99e6b8;
 }
 .subtitulo {
     color: var(--secondary);
@@ -158,8 +160,8 @@ body {
     font-weight: 700;
 }
 .kpi-destaque {
-    background: #ecfdf5;
-    border-color: #86efac;
+    background: #e2f7ed;
+    border-color: #84dfaf;
 }
 
 /* RESUMO DOS ESTOQUES */
@@ -173,8 +175,8 @@ body {
     .resumo-estoques-grid { grid-template-columns: 1fr; }
 }
 
-.card-estoque-cont { border-top: 5px solid var(--container-color); padding: 16px; background:#f4fbf7;}
-.card-estoque-baga { border-top: 5px solid var(--bagageiro-color); padding: 16px; background:#fdf9f5;}
+.card-estoque-cont { border-top: 5px solid var(--container-color); padding: 16px; background:#eefaf3;}
+.card-estoque-baga { border-top: 5px solid var(--bagageiro-color); padding: 16px; background:#faf3ec;}
 .card-estoque-header { margin-bottom: 12px; }
 .card-estoque-header h4 {
     font-size: 16px;
@@ -243,10 +245,12 @@ body {
 .btn:active { transform: scale(0.98); }
 .btn-primary { background: var(--primary); color: white; }
 .btn-primary:hover { background: var(--primary-light); }
-.btn-carrinho { background: #0f766e; color: white; }
-.btn-carrinho:hover { background: #115e59; }
-.btn-boutique { background: #9333ea; color: white; }
-.btn-boutique:hover { background: #7e22ce; }
+.btn-carrinho { background: #0e7068; color: white; }
+.btn-carrinho:hover { background: #0a5650; }
+.btn-boutique { background: #862ccb; color: white; }
+.btn-boutique:hover { background: #6f21ab; }
+.btn-operacao { background: #0369a1; color: white; }
+.btn-operacao:hover { background: #075985; }
 .btn-manifesto { 
     background: #1e293b; 
     color: #ffffff; 
@@ -254,19 +258,19 @@ body {
     box-shadow: 0 4px 12px rgba(180, 83, 9, 0.2);
 }
 .btn-manifesto:hover { background: #0f172a; }
-.btn-secondary { background: #e2e8f0; color: #1e293b; border: 1px solid var(--border); }
+.btn-secondary { background: #e2e8f0; color: #1e293b; border: 1.5px solid var(--border); }
 .btn-danger { background: var(--danger); color: white; }
 .btn-success { background: var(--success); color: white; }
 .btn-dark { background: #1e293b; color: white; }
 .btn-menu {
-    background: #f1f5f9;
+    background: #eef3f0;
     color: var(--primary);
     border: 1.5px solid var(--border);
     padding: 16px;
     font-size: 15px;
 }
 .btn-menu:hover {
-    background: #e2e8f0;
+    background: #e1ede6;
     border-color: var(--primary);
 }
 .btn-lg { padding: 18px; font-size: 16px; border-radius: 12px;}
@@ -352,7 +356,77 @@ input[type="date"] { position: relative; cursor: pointer; }
 .input-avaria { border-color: var(--danger) !important; color: var(--danger) !important; }
 .input-pax { background: #e8f8f5 !important; color: var(--success) !important; border-color: #86efac !important;}
 
-/* CHECKLIST DE BEBIDAS NO MODAL DO VAGÃO */
+/* CARDS DO MONITOR DE VIAGEM (ABERTO X FECHADO) */
+.grid-vagoes-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+@media (max-width: 600px) {
+    .grid-vagoes-cards { grid-template-columns: 1fr; }
+}
+
+.card-vagao-status {
+    background: #ffffff;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    padding: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+.card-vagao-status:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+}
+.vagao-aberto {
+    border-left: 6px solid var(--success);
+    background: #f4fbf7;
+}
+.vagao-fechado {
+    border-left: 6px solid var(--secondary);
+    background: #f1f5f9;
+    opacity: 0.85;
+}
+
+.badge-tag-status {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+.status-aberto { background: #dcfce7; color: #166534; }
+.status-fechado { background: #e2e8f0; color: #475569; }
+
+.badge-tag-sentido {
+    background: #e0f2fe;
+    color: #0369a1;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.botoes-fluxo-viagem {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+/* CAIXA DE REFORÇO NO MODAL */
+.box-destaque-reforco {
+    background: #fefce8;
+    border: 1.5px solid #fef08a;
+    padding: 12px;
+    border-radius: 10px;
+}
+
+/* CHECKLIST DE BEBIDAS */
 .box-checklist-bebidas {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -417,9 +491,9 @@ input[type="date"] { position: relative; cursor: pointer; }
     white-space: pre-line;
 }
 
-/* TABELA DE RELATÓRIO 100% VISÍVEL NO MOBILE (SEM SCROLL LATERAL) */
+/* TABELA DE RELATÓRIO 100% VISÍVEL NO MOBILE */
 .tabela-container {
-    overflow: hidden; /* Não permite rolagem horizontal */
+    overflow: hidden;
     border-radius: 8px;
     border: 1.5px solid var(--border);
     width: 100%;
@@ -429,7 +503,7 @@ input[type="date"] { position: relative; cursor: pointer; }
     border-collapse: collapse;
     font-size: 13px;
     background: var(--card);
-    table-layout: fixed; /* Força caber perfeitamente na largura do celular */
+    table-layout: fixed;
 }
 .tabela-relatorio th, .tabela-relatorio td {
     border: 1px solid var(--border);
@@ -452,7 +526,7 @@ input[type="date"] { position: relative; cursor: pointer; }
     padding-left: 6px;
 }
 
-/* TOTALIZADORES LANCHES X BEBIDAS (PASTEL GREEN X PASTEL RED) */
+/* TOTALIZADORES LANCHES X BEBIDAS */
 .box-comparativo-status {
     padding: 12px;
     border-radius: 10px;
@@ -460,12 +534,12 @@ input[type="date"] { position: relative; cursor: pointer; }
     transition: all 0.2s ease;
 }
 .kpi-match {
-    background: #dcfce7; /* Verde fraquinho pastel */
+    background: #dcfce7;
     border: 1.5px solid #86efac;
     color: #166534;
 }
 .kpi-divergent {
-    background: #fee2e2; /* Vermelho fraquinho pastel */
+    background: #fee2e2;
     border: 1.5px solid #fca5a5;
     color: #991b1b;
 }
