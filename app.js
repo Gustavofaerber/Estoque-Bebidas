@@ -110,12 +110,11 @@ window.mostrarTela = function(id) {
 
     localStorage.setItem('trem_tela_ativa', id);
 
-    // Carrega os dados na hora sem risco de tela branca
     if (id === 'tela-cadastro-produtos') renderizarProdutosAdmin();
     if (id === 'tela-usuarios') renderizarUsuarios();
     if (id === 'tela-estoques') abrirTelaEstoques();
     if (id === 'tela-carga-dia') abrirCargaDoDia();
-    if (id === 'tela-ver-carga') carregarManifestoPublico();
+    if (id === 'tela-ver-carga') carregarManifestoPublico(true); // Força carregar a última lançada
     if (id === 'tela-relatorios') renderizarRelatoriosAdmin();
     if (id === 'tela-setup-contagem') abrirSetupContagem();
     if (id === 'tela-setup-carrinho') abrirSetupCarrinho();
@@ -188,7 +187,7 @@ function iniciarSincronizacaoNuvem() {
         const telaAtiva = document.querySelector('.tela.ativa')?.id;
         if (telaAtiva === 'tela-cadastro-produtos') renderizarProdutosAdmin();
         if (telaAtiva === 'tela-estoques') renderizarApenasTabelasResumoEstoques();
-        if (telaAtiva === 'tela-ver-carga') carregarManifestoPublico();
+        if (telaAtiva === 'tela-ver-carga') carregarManifestoPublico(false);
     });
 
     onSnapshot(collection(db, "usuarios"), (snapshot) => {
@@ -206,7 +205,8 @@ function iniciarSincronizacaoNuvem() {
 
     onSnapshot(collection(db, "cargas_dia"), (snapshot) => {
         window.cargasDiaDB = snapshot.docs.map(d => d.data());
-        if (document.getElementById('tela-ver-carga')?.classList.contains('ativa')) carregarManifestoPublico();
+        // Se a tela pública estiver aberta no celular, renderiza na hora
+        if (document.getElementById('tela-ver-carga')?.classList.contains('ativa')) carregarManifestoPublico(false);
         if (document.getElementById('tela-carga-dia')?.classList.contains('ativa')) verificarStatusEdicaoCarga();
     });
 
@@ -232,15 +232,39 @@ function atualizarDashboardKPIs() {
     if (elCont) elCont.innerText = `${totalUnCont} un`;
 }
 
-// ================= ABA PÚBLICA: VER CARGA DO TREM =================
-function carregarManifestoPublico() {
+// ================= ABA PÚBLICA: VER CARGA DO TREM (AUTOMÁTICO ÚLTIMA LANÇADA) =================
+function carregarManifestoPublico(forcarUltima = false) {
     const div = document.getElementById('conteudoManifestoPublico');
     if (!div) return;
     div.innerHTML = "";
 
     const elData = document.getElementById('filtroDataManifesto');
-    const dataSel = elData ? elData.value : new Date().toISOString().split('T')[0];
-    if (elData && !elData.value) elData.value = dataSel;
+
+    // Se os dados do banco ainda não chegaram pelo celular
+    if (!window.cargasDiaDB || window.cargasDiaDB.length === 0) {
+        div.innerHTML = `
+            <div style="text-align:center; padding:35px 15px; color:var(--secondary);">
+                <i class="ph ph-circle-notch ph-spin" style="font-size:36px; display:block; margin-bottom:10px; color:var(--primary);"></i>
+                <p>Buscando última carga lançada no banco de dados...</p>
+            </div>
+        `;
+        return;
+    }
+
+    // Ordena as cargas pela data e timestamp mais recente
+    const cargasOrdenadas = [...window.cargasDiaDB].sort((a, b) => {
+        if (b.data !== a.data) return b.data.localeCompare(a.data);
+        return (b.timestamp || 0) - (a.timestamp || 0);
+    });
+
+    const ultimaCarga = cargasOrdenadas[0];
+
+    // Se for abertura da tela ou campo vazio, fixa automaticamente a data da última carga
+    let dataSel = elData ? elData.value : "";
+    if (forcarUltima || !dataSel) {
+        dataSel = ultimaCarga ? ultimaCarga.data : new Date().toISOString().split('T')[0];
+        if (elData) elData.value = dataSel;
+    }
 
     const carga = window.cargasDiaDB.find(c => c.data === dataSel);
 
@@ -248,7 +272,8 @@ function carregarManifestoPublico() {
         div.innerHTML = `
             <div style="text-align:center; padding:30px 15px; color:var(--secondary);">
                 <i class="ph ph-calendar-blank" style="font-size:36px; display:block; margin-bottom:8px;"></i>
-                <p>Nenhuma escala de carga registrada para o dia <strong>${dataSel ? dataSel.split('-').reverse().join('/') : '--/--/----'}</strong>.</p>
+                <p>Nenhuma escala registrada para <strong>${dataSel ? dataSel.split('-').reverse().join('/') : '--/--/----'}</strong>.</p>
+                ${ultimaCarga ? `<button class="btn btn-secondary btn-pequeno" style="margin-top:10px;" onclick="document.getElementById('filtroDataManifesto').value='${ultimaCarga.data}'; carregarManifestoPublico(false);"><i class="ph ph-arrow-counter-clockwise"></i> Ver Carga de ${ultimaCarga.data.split('-').reverse().join('/')}</button>` : ''}
             </div>
         `;
         return;
@@ -282,11 +307,19 @@ function carregarManifestoPublico() {
         `;
     });
 
+    const isMaisRecente = ultimaCarga && ultimaCarga.data === carga.data;
+
     div.innerHTML = `
         <div class="manifesto-card">
             <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid var(--primary); padding-bottom:8px; margin-bottom:12px;">
-                <h3 style="color:var(--primary); font-size:18px; margin:0;"><i class="ph ph-train"></i> Carga Prevista</h3>
-                <span style="font-weight:700; color:var(--accent);">${dataSel.split('-').reverse().join('/')}</span>
+                <div>
+                    <h3 style="color:var(--primary); font-size:18px; margin:0;"><i class="ph ph-train"></i> Carga Oficial</h3>
+                    ${isMaisRecente ? '<span style="background:#dcfce7; color:#15803d; font-size:11px; padding:2px 8px; border-radius:12px; font-weight:700;">Última Carga Lançada</span>' : ''}
+                </div>
+                <div style="text-align:right;">
+                    <span style="font-size:12px; color:var(--secondary); display:block;">Para a Viagem:</span>
+                    <span style="font-weight:800; color:var(--accent); font-size:16px;">${carga.data.split('-').reverse().join('/')}</span>
+                </div>
             </div>
             ${linhasHtml}
             ${carga.obsEspeciais ? `
@@ -432,7 +465,6 @@ function abrirCargaDoDia() {
         const unPorFardo = p.unidadesPorFardo || 1;
         const bagaDisponivel = formatarEstoqueFardos(p.estoqueBagageiroUnidades, unPorFardo);
 
-        // Precedência de preenchimento: Rascunho > Carga salva no banco > 0
         let valTotal = 0;
         let valBaga = 0;
         let valDest = "";
@@ -520,7 +552,6 @@ window.salvarCargaDoDia = async function() {
         const novaOrdem = parseInt(document.getElementById(`carga_ordem_${p.id}`)?.value) || p.ordem || 99;
         const unFardo = p.unidadesPorFardo || 1;
 
-        // Salva a ordem atualizada diretamente no produto
         if (p.ordem !== novaOrdem) {
             p.ordem = novaOrdem;
             batch.update(doc(db, "produtos", p.id), { ordem: novaOrdem });
@@ -529,7 +560,6 @@ window.salvarCargaDoDia = async function() {
         if (total > 0 || (cargaAntiga && cargaAntiga.itens?.[p.id])) {
             itensSalvos[p.id] = { total, baga, cont, destino, ordem: novaOrdem };
 
-            // Cálculo diferencial para não duplicar baixa no estoque se estiver editando
             const antigoCont = cargaAntiga?.itens?.[p.id]?.cont || 0;
             const antigoBaga = cargaAntiga?.itens?.[p.id]?.baga || 0;
 
