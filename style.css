@@ -1,6 +1,6 @@
 /* DESIGN SYSTEM FERROVIÁRIO - LOGÍSTICA DE BEBIDAS */
 :root {
-    --bg: #dfe7e2; /* Fundo sálvia pastel mais encorpado, sem claridade ofuscante */
+    --bg: #dfe7e2;
     --card: #ffffff;
     --card-subtle: #f8faf9;
     --primary: #0a3821;
@@ -35,13 +35,11 @@ body {
     font-size: 15px;
 }
 
-/* CONTAINER CENTRALIZADO */
 .app-container {
     max-width: 960px;
     margin: 0 auto;
 }
 
-/* SISTEMA DE TELAS SPA */
 .tela { 
     display: none; 
     animation: fadeIn 0.25s ease-out; 
@@ -55,7 +53,6 @@ body {
     to { opacity: 1; transform: translateY(0); } 
 }
 
-/* CABEÇALHOS E CARDS */
 .header {
     display: flex;
     justify-content: space-between;
@@ -117,7 +114,6 @@ body {
     margin-bottom: 25px;
 }
 
-/* DASHBOARD KPIS */
 .kpi-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -166,7 +162,6 @@ body {
     border-color: #86efac;
 }
 
-/* TABELAS DE RESUMO DE ESTOQUE */
 .resumo-estoques-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -188,7 +183,6 @@ body {
     gap: 6px;
 }
 
-/* CAIXAS VISUAIS DE AJUSTE MANUAL (ESTOQUE) */
 .box-ajuste-col {
     padding: 12px;
     border-radius: 10px;
@@ -229,7 +223,6 @@ body {
     margin-bottom: 3px;
 }
 
-/* BOTÕES */
 .btn {
     padding: 14px 18px;
     border: none;
@@ -283,7 +276,6 @@ body {
     .grid-menu-admin { grid-template-columns: 1fr; }
 }
 
-/* FORMULÁRIOS & INPUTS */
 .form-group { margin-bottom: 16px; }
 .form-group label { 
     display: block; 
@@ -314,7 +306,6 @@ input[type="date"] { position: relative; cursor: pointer; }
 
 .divisor { border: 0; border-top: 1px dashed var(--border); margin: 18px 0;}
 
-/* ITENS DE CONTAGEM */
 .item-contagem {
     border: 1.5px solid var(--border);
     padding: 16px;
@@ -345,7 +336,6 @@ input[type="date"] { position: relative; cursor: pointer; }
 .input-avaria { border-color: var(--danger) !important; color: var(--danger) !important; }
 .input-pax { background: #e8f8f5 !important; color: var(--success) !important; border-color: #86efac !important;}
 
-/* MANIFESTO VISUAL */
 .manifesto-card {
     background: #ffffff;
     border: 2px solid var(--primary);
@@ -385,7 +375,6 @@ input[type="date"] { position: relative; cursor: pointer; }
     white-space: pre-line;
 }
 
-/* TABELA DE RELATÓRIO */
 .tabela-container {
     overflow-x: auto;
     border-radius: 8px;
@@ -416,7 +405,6 @@ input[type="date"] { position: relative; cursor: pointer; }
     padding-left: 10px;
 }
 
-/* BOTÕES DE ABA */
 .filtros-relatorio {
     display: flex;
     gap: 8px;
@@ -443,7 +431,6 @@ input[type="date"] { position: relative; cursor: pointer; }
     box-shadow: 0 2px 8px rgba(10, 56, 33, 0.25);
 }
 
-/* RESUMO E BOXES */
 .info-resumo-topo {
     font-size: 14px;
     color: var(--secondary);
@@ -485,7 +472,6 @@ input[type="date"] { position: relative; cursor: pointer; }
 }
 .msg-erro { background: var(--danger); color: white; }
 
-/* MODAIS (JANELAS POP-UP) */
 .modal-overlay {
     display: none;
     position: fixed;
