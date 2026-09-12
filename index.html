@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Logística de Bebidas - Trem</title>
-    <meta name="theme-color" content="#0a3821">
+    <meta name="theme-color" content="#062314">
     <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="style.css">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
@@ -23,11 +23,11 @@
                 <button class="btn btn-manifesto btn-lg" onclick="mostrarTela('tela-ver-carga')">
                     <i class="ph ph-notepad"></i> Ver Carga do Trem (Escala de Bordo)
                 </button>
+                <button class="btn btn-operacao btn-lg" style="margin-top: 12px;" onclick="mostrarTela('tela-operacao-viagem')">
+                    <i class="ph ph-compass"></i> Monitor de Viagem (Vagões & Reforço)
+                </button>
                 <button class="btn btn-primary btn-lg" style="margin-top: 12px;" onclick="mostrarTela('tela-setup-contagem')">
                     <i class="ph ph-clipboard-text"></i> Contagem de Vagão (Apoios)
-                </button>
-                <button class="btn btn-boutique btn-lg" style="margin-top: 12px;" onclick="mostrarTela('tela-boutiques-hub')">
-                    <i class="ph ph-sparkle"></i> Boutiques & Litorinas (Ajustes & Sobras)
                 </button>
                 <button class="btn btn-carrinho btn-lg" style="margin-top: 12px;" onclick="mostrarTela('tela-setup-carrinho')">
                     <i class="ph ph-shopping-cart"></i> Venda de Bebidas (Carrinho)
@@ -50,6 +50,35 @@
                     <input type="date" id="filtroDataManifesto" onclick="this.showPicker && this.showPicker()" onchange="carregarManifestoPublico()">
                 </div>
                 <div id="conteudoManifestoPublico"></div>
+            </div>
+        </div>
+
+        <!-- TELA: MONITOR DE OPERAÇÃO DE VIAGEM (ABERTOS X FECHADOS) -->
+        <div id="tela-operacao-viagem" class="tela">
+            <div class="header">
+                <h3><i class="ph ph-compass"></i> Monitor da Viagem</h3>
+                <button class="btn btn-secondary btn-pequeno" onclick="mostrarTela('tela-inicial')">Voltar</button>
+            </div>
+            <div class="card">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                    <div>
+                        <span style="font-size:12px; color:var(--secondary); text-transform:uppercase; font-weight:700;">Status Atual:</span>
+                        <h4 id="lblEtapaViagemTexto" style="margin:2px 0; color:var(--primary);">Em Preparação (Curitiba)</h4>
+                    </div>
+                    <span id="badgeSentidoAtivo" class="badge-tag-sentido">Ida</span>
+                </div>
+
+                <div class="botoes-fluxo-viagem">
+                    <button class="btn btn-primary btn-pequeno" id="btnIniciarIda" onclick="iniciarViagemIda()"><i class="ph ph-play"></i> Iniciar Viagem (Ida)</button>
+                    <button class="btn btn-boutique btn-pequeno" id="btnPrepararRetorno" onclick="prepararRetornoMorretes()"><i class="ph ph-arrows-clockwise"></i> Carga de Retorno (Morretes)</button>
+                    <button class="btn btn-primary btn-pequeno" id="btnIniciarVolta" onclick="iniciarViagemVolta()"><i class="ph ph-play"></i> Iniciar Viagem (Volta)</button>
+                </div>
+
+                <hr class="divisor">
+                <p style="font-size:13px; color:var(--secondary); margin-bottom:12px;">
+                    Clique em qualquer vagão <strong>Aberto</strong> para adicionar reforço em viagem ou fazer o fechamento de sobras:
+                </p>
+                <div id="gridVagoesOperacao" class="grid-vagoes-cards"></div>
             </div>
         </div>
 
@@ -133,7 +162,7 @@
             <div class="resumo-estoques-grid">
                 <div class="card card-estoque-cont">
                     <div class="card-estoque-header">
-                        <h4><i class="ph ph-archive"></i> Contêiner (Principal)</h4>
+                        <h4><i class="ph ph-archive"></i> Contêiner</h4>
                     </div>
                     <div class="tabela-container">
                         <table class="tabela-relatorio">
@@ -240,7 +269,7 @@
             </div>
         </div>
 
-        <!-- TELA RELATÓRIOS SALVOS (ORDEM POR PLACA, FILTRO IDA/VOLTA & TOTALIZADORES) -->
+        <!-- TELA RELATÓRIOS SALVOS -->
         <div id="tela-relatorios" class="tela">
             <div class="header">
                 <h3><i class="ph ph-chart-bar"></i> Relatórios Operacionais</h3>
@@ -275,37 +304,7 @@
             </div>
         </div>
 
-        <!-- MÓDULO EXCLUSIVO: BOUTIQUES & LITORINAS -->
-        <div id="tela-boutiques-hub" class="tela">
-            <div class="header">
-                <h3><i class="ph ph-sparkle"></i> Boutiques & Litorinas</h3>
-                <button class="btn btn-secondary btn-pequeno" onclick="mostrarTela('tela-inicial')">Voltar</button>
-            </div>
-            <div class="card">
-                <div class="form-group">
-                    <label>Selecione a Boutique / Litorina:</label>
-                    <select id="selectVagaoBoutiqueHub" onchange="carregarFormularioBoutiqueHub()"></select>
-                </div>
-                <div class="form-group">
-                    <label>Data:</label>
-                    <input type="date" id="dataBoutiqueHub" onclick="this.showPicker && this.showPicker()">
-                </div>
-                <div class="form-group">
-                    <label>Etapa da Viagem:</label>
-                    <select id="etapaBoutiqueHub" onchange="carregarFormularioBoutiqueHub()">
-                        <option value="morretes_sem_retorno">Chegada Morretes: SEM Retorno (Baixar todas as sobras)</option>
-                        <option value="morretes_com_retorno">Chegada Morretes: COM Retorno (Ajuste de bebidas para volta)</option>
-                        <option value="reforco_trajeto">Em Viagem: Pegar Reforço do Bagageiro</option>
-                        <option value="curitiba_final">Chegada Curitiba: Fechamento Final das Sobras</option>
-                    </select>
-                </div>
-
-                <hr class="divisor">
-                <div id="areaFormBoutiqueHub"></div>
-            </div>
-        </div>
-
-        <!-- SETUP DE CONTAGEM (VAGÕES TURÍSTICOS E ECONÔMICO) -->
+        <!-- SETUP DE CONTAGEM (APOIO) -->
         <div id="tela-setup-contagem" class="tela">
             <div class="header">
                 <h3>Contagem de Vagão</h3>
@@ -341,7 +340,7 @@
             </div>
         </div>
 
-        <!-- FORMULÁRIO DE CONTAGEM DO VAGÃO (FILTRADO COM AS BEBIDAS DO VAGÃO) -->
+        <!-- FORMULÁRIO DE CONTAGEM DO VAGÃO -->
         <div id="tela-contagem-vagao" class="tela">
             <div class="header">
                 <h3><span id="lblVagaoContagem"></span> (<span id="lblSentidoContagem"></span>)</h3>
@@ -349,7 +348,7 @@
             </div>
             <div class="card card-limpo">
                 <p style="font-size: 13px; color: var(--secondary); margin-bottom: 15px;">
-                    Exibindo somente as bebidas deste vagão. Preencha <strong>Carga</strong> e <strong>Sobra</strong>:
+                    Preencha <strong>Carga</strong> e <strong>Sobra</strong> das bebidas deste vagão:
                 </p>
                 <div id="listaItensContagem"></div>
                 
@@ -372,7 +371,6 @@
                     <div><strong>Data:</strong> <span id="resumoData"></span></div>
                 </div>
                 
-                <!-- COMPARATIVO LANCHES X BEBIDAS -->
                 <div id="boxStatusComparativoResumo" class="box-comparativo-status">
                     <div style="display:flex; justify-content:space-around; align-items:center;">
                         <div style="text-align:center;">
@@ -484,6 +482,38 @@
             </div>
         </div>
 
+    </div>
+
+    <!-- MODAL POP-UP: DETALHES DO VAGÃO EM OPERAÇÃO (VER CARGA & REFORÇO) -->
+    <div id="modal-vagao-operacao" class="modal-overlay">
+        <div class="modal-content" style="max-width:550px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid var(--border); padding-bottom:8px; margin-bottom:12px;">
+                <div>
+                    <h3 id="modalOpVagaoNome" style="margin:0; color:var(--primary); font-size:18px;"></h3>
+                    <span id="modalOpVagaoStatus" style="font-size:12px; font-weight:700;"></span>
+                </div>
+                <button class="btn btn-secondary btn-pequeno" onclick="fecharModal('modal-vagao-operacao')"><i class="ph ph-x"></i></button>
+            </div>
+
+            <h4 style="font-size:14px; color:var(--secondary); margin-bottom:8px;"><i class="ph ph-clipboard"></i> Bebidas Embarcadas neste Vagão:</h4>
+            <div id="modalOpListaItens" style="max-height:220px; overflow-y:auto; margin-bottom:14px;"></div>
+
+            <div class="box-destaque-reforco">
+                <h4 style="margin:0 0 6px 0; color:var(--primary); font-size:14px;"><i class="ph ph-arrows-left-right"></i> Reforço em Viagem (Faltou no Vagão):</h4>
+                <p style="font-size:12px; color:var(--secondary); margin-bottom:8px;">Pegue bebidas do Bagageiro durante o trajeto e adicione ao vagão:</p>
+                <div style="display:flex; gap:8px;">
+                    <select id="modalOpSelectBebidaReforco" style="flex:2;"></select>
+                    <input type="number" id="modalOpQtdReforco" placeholder="Qtd" min="1" value="1" style="flex:1;">
+                    <button class="btn btn-primary" style="width:auto;" onclick="adicionarReforcoVagao()"><i class="ph ph-plus"></i></button>
+                </div>
+                <div id="modalOpListaReforcosFeitos" style="margin-top:8px; font-size:13px;"></div>
+            </div>
+
+            <div style="display:flex; gap:10px; margin-top:16px;">
+                <button class="btn btn-success" style="flex:2;" id="btnModalIrContarVagao" onclick="irContarVagaoDoModal()"><i class="ph ph-clipboard-text"></i> Fazer Contagem de Sobras</button>
+                <button class="btn btn-secondary" style="flex:1;" onclick="fecharModal('modal-vagao-operacao')">Fechar</button>
+            </div>
+        </div>
     </div>
 
     <!-- MODAL POP-UP: PRODUTO -->
