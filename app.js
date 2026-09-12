@@ -2,7 +2,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
 import { 
     getFirestore, collection, onSnapshot, doc, setDoc, updateDoc, deleteDoc, 
-    enableIndexedDbPersistence, increment 
+    enableIndexedDbPersistence, increment, writeBatch 
 } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -76,7 +76,7 @@ function ordenarPorRegra(lista) {
         if (idxA !== -1 && idxB !== -1) return idxA - idxB;
         if (idxA !== -1) return -1;
         if (idxB !== -1) return 1;
-        return a.nome.localeCompare(b.nome);
+        return (a.nome || "").localeCompare(b.nome || "");
     });
 }
 
@@ -139,6 +139,8 @@ function restaurarSessaoOuTela() {
     if (telaSalva && telasAdmin.includes(telaSalva)) {
         if (chefeLogado) {
             window.mostrarTela(telaSalva);
+            if (telaSalva === 'tela-estoques') abrirTelaEstoques();
+            if (telaSalva === 'tela-carga-dia') abrirCargaDoDia();
         } else {
             window.mostrarTela('tela-login');
         }
@@ -155,9 +157,9 @@ function iniciarSincronizacaoNuvem() {
         window.produtosDB = snapshot.docs.map(d => d.data());
         atualizarDashboardKPIs();
         
+        // Atualiza apenas tabelas de leitura sem apagar campos de digitação do usuário
         if (document.getElementById('tela-cadastro-produtos').classList.contains('ativa')) renderizarProdutosAdmin();
-        if (document.getElementById('tela-estoques').classList.contains('ativa')) abrirTelaEstoques();
-        if (document.getElementById('tela-carga-dia').classList.contains('ativa')) abrirCargaDoDia();
+        if (document.getElementById('tela-estoques').classList.contains('ativa')) renderizarApenasTabelasResumoEstoques();
     });
 
     onSnapshot(collection(db, "usuarios"), (snapshot) => {
@@ -263,6 +265,88 @@ function carregarManifestoPublico() {
     `;
 }
 
+// ================= GESTÃO DE RASCUNHOS (DRAFTS) =================
+window.salvarDraftEstoque = function() {
+    const draft = {};
+    window.produtosDB.forEach(p => {
+        draft[p.id] = {
+            cFd: document.getElementById(`est_cont_fd_${p.id}`)?.value || "",
+            cUn: document.getElementById(`est_cont_un_${p.id}`)?.value || "",
+            bFd: document.getElementById(`est_baga_fd_${p.id}`)?.value || "",
+            bUn: document.getElementById(`est_baga_un_${p.id}`)?.value || ""
+        };
+    });
+    localStorage.setItem('trem_draft_estoque', JSON.stringify(draft));
+};
+
+window.limparDraftEstoque = function() {
+    if (confirm("Deseja restaurar os valores originais do estoque descartando o rascunho atual?")) {
+        localStorage.removeItem('trem_draft_estoque');
+        abrirTelaEstoques();
+    }
+};
+
+window.salvarDraftCarga = function() {
+    const draft = {
+        data: document.getElementById('dataCargaDia')?.value || "",
+        obs: document.getElementById('obsEspeciaisCarga')?.value || "",
+        itens: {}
+    };
+    window.produtosDB.forEach(p => {
+        draft.itens[p.id] = {
+            total: document.getElementById(`carga_total_${p.id}`)?.value || "",
+            baga: document.getElementById(`carga_baga_${p.id}`)?.value || "",
+            dest: document.getElementById(`carga_dest_${p.id}`)?.value || ""
+        };
+    });
+    localStorage.setItem('trem_draft_carga', JSON.stringify(draft));
+};
+
+window.limparDraftCarga = function() {
+    if (confirm("Deseja zerar os campos da carga do dia?")) {
+        localStorage.removeItem('trem_draft_carga');
+        abrirCargaDoDia();
+    }
+};
+
+window.salvarDraftContagem = function() {
+    const draft = {
+        apoio: document.getElementById('selectNomeApoio')?.value || "",
+        data: document.getElementById('dataContagemApoio')?.value || "",
+        sentido: document.getElementById('selectSentidoApoio')?.value || "",
+        vagao: document.getElementById('selectVagaoApoio')?.value || "",
+        guia: document.getElementById('nomeGuiaApoio')?.value || "",
+        itens: {}
+    };
+    window.produtosDB.forEach(p => {
+        draft.itens[p.id] = {
+            carga: document.getElementById(`carga_${p.id}`)?.value || "",
+            saldo: document.getElementById(`saldo_${p.id}`)?.value || "",
+            trip: document.getElementById(`trip_${p.id}`)?.value || "",
+            ava: document.getElementById(`ava_${p.id}`)?.value || ""
+        };
+    });
+    localStorage.setItem('trem_draft_contagem', JSON.stringify(draft));
+};
+
+window.salvarDraftCarrinho = function() {
+    const draft = {
+        data: document.getElementById('dataCarrinho')?.value || "",
+        sentido: document.getElementById('sentidoCarrinho')?.value || "",
+        apoio: document.getElementById('selectApoioCarrinho')?.value || "",
+        troco: document.getElementById('carrinhoTroco')?.value || "",
+        itens: {},
+        extras: window.itensExtrasCarrinhoTemp || []
+    };
+    window.produtosDB.filter(p => p.nome.includes('(Venda)')).forEach(p => {
+        draft.itens[p.id] = {
+            saiu: document.getElementById(`venda_saiu_${p.id}`)?.value || "",
+            sobrou: document.getElementById(`venda_sobrou_${p.id}`)?.value || ""
+        };
+    });
+    localStorage.setItem('trem_draft_carrinho', JSON.stringify(draft));
+};
+
 // ================= CARGA DO DIA (MONTAGEM PELO CHEFE) =================
 window.abrirCargaDoDia = function() {
     const div = document.getElementById('listaItensCargaDia');
@@ -270,9 +354,17 @@ window.abrirCargaDoDia = function() {
 
     ordenarPorRegra(window.produtosDB);
 
+    const draftStr = localStorage.getItem('trem_draft_carga');
+    const draft = draftStr ? JSON.parse(draftStr) : null;
+
     window.produtosDB.filter(p => !p.nome.includes('(Venda)')).forEach(p => {
         const unPorFardo = p.unidadesPorFardo || 1;
         const bagaDisponivel = formatarEstoqueFardos(p.estoqueBagageiroUnidades, unPorFardo);
+
+        const valTotal = draft?.itens?.[p.id]?.total ?? 0;
+        const valBaga = draft?.itens?.[p.id]?.baga ?? 0;
+        const valDest = draft?.itens?.[p.id]?.dest ?? "";
+        const valCont = Math.max(0, valTotal - valBaga);
 
         div.innerHTML += `
             <div class="item-contagem">
@@ -283,28 +375,28 @@ window.abrirCargaDoDia = function() {
                 <div class="grid-inputs" style="grid-template-columns: 1fr 1fr 1fr; margin-bottom:8px;">
                     <div>
                         <label>Total Fardos:</label>
-                        <input type="number" id="carga_total_${p.id}" value="0" min="0" oninput="calcularFormulaLinha('${p.id}')">
+                        <input type="number" id="carga_total_${p.id}" value="${valTotal}" min="0" oninput="calcularFormulaLinha('${p.id}'); salvarDraftCarga();">
                     </div>
                     <div>
                         <label>Do Bagageiro:</label>
-                        <input type="number" id="carga_baga_${p.id}" value="0" min="0" oninput="calcularFormulaLinha('${p.id}')">
+                        <input type="number" id="carga_baga_${p.id}" value="${valBaga}" min="0" oninput="calcularFormulaLinha('${p.id}') ; salvarDraftCarga();">
                     </div>
                     <div>
                         <label>= Contêiner:</label>
-                        <input type="number" id="carga_cont_${p.id}" readonly class="input-pax" value="0">
+                        <input type="number" id="carga_cont_${p.id}" readonly class="input-pax" value="${valCont}">
                     </div>
                 </div>
                 <div>
                     <label style="font-size:11px; font-weight:700; color:var(--secondary);">Distribuição / Vagões:</label>
-                    <input type="text" id="carga_dest_${p.id}" placeholder="Ex: 1 eco, 2 tur, 3 pls 15 e 17" style="padding:8px 12px; font-size:13px;">
+                    <input type="text" id="carga_dest_${p.id}" value="${valDest}" placeholder="Ex: 1 eco, 2 tur, 3 pls 15 e 17" style="padding:8px 12px; font-size:13px;" oninput="salvarDraftCarga()">
                 </div>
             </div>
         `;
     });
 
     const hj = new Date().toISOString().split('T')[0];
-    document.getElementById('dataCargaDia').value = hj;
-    document.getElementById('obsEspeciaisCarga').value = "";
+    document.getElementById('dataCargaDia').value = draft?.data || hj;
+    document.getElementById('obsEspeciaisCarga').value = draft?.obs || "";
     window.mostrarTela('tela-carga-dia');
 };
 
@@ -321,6 +413,8 @@ window.salvarCargaDoDia = async function() {
     const obsEspeciais = document.getElementById('obsEspeciaisCarga').value.trim();
     let itensSalvos = {};
 
+    const batch = writeBatch(db);
+
     for (let p of window.produtosDB.filter(x => !x.nome.includes('(Venda)'))) {
         const total = parseInt(document.getElementById(`carga_total_${p.id}`)?.value) || 0;
         const baga = parseInt(document.getElementById(`carga_baga_${p.id}`)?.value) || 0;
@@ -332,7 +426,7 @@ window.salvarCargaDoDia = async function() {
             itensSalvos[p.id] = { total, baga, cont, destino };
 
             const pRef = doc(db, "produtos", p.id);
-            await updateDoc(pRef, {
+            batch.update(pRef, {
                 estoqueContainerUnidades: increment(-(cont * unFardo)),
                 estoqueBagageiroUnidades: increment(-(baga * unFardo))
             });
@@ -340,7 +434,7 @@ window.salvarCargaDoDia = async function() {
     }
 
     const cargaId = data;
-    await setDoc(doc(db, "cargas_dia", cargaId), {
+    batch.set(doc(db, "cargas_dia", cargaId), {
         id: cargaId,
         data,
         itens: itensSalvos,
@@ -348,47 +442,65 @@ window.salvarCargaDoDia = async function() {
         timestamp: Date.now()
     });
 
+    await batch.commit();
+
+    localStorage.removeItem('trem_draft_carga');
     alert("Carga do trem cadastrada e publicada no banco de dados com sucesso!");
     window.mostrarTela('tela-admin');
 };
 
-// ================= SITUAÇÃO DOS ESTOQUES (COM LABELS CLAROS) =================
-window.abrirTelaEstoques = function() {
+// ================= SITUAÇÃO DOS ESTOQUES =================
+function renderizarApenasTabelasResumoEstoques() {
     ordenarPorRegra(window.produtosDB);
 
-    // 1. Tabela Contêiner
     const tbodyCont = document.getElementById('tabelaResumoContainer');
-    tbodyCont.innerHTML = "";
-    window.produtosDB.forEach(p => {
-        tbodyCont.innerHTML += `
-            <tr>
-                <td><strong>${p.id}</strong> - ${p.nome}</td>
-                <td style="color:var(--primary); font-weight:bold;">${formatarEstoqueFardos(p.estoqueContainerUnidades, p.unidadesPorFardo)}</td>
-            </tr>
-        `;
-    });
+    if (tbodyCont) {
+        tbodyCont.innerHTML = "";
+        window.produtosDB.forEach(p => {
+            tbodyCont.innerHTML += `
+                <tr>
+                    <td><strong>${p.id}</strong> - ${p.nome}</td>
+                    <td style="color:var(--primary); font-weight:bold;">${formatarEstoqueFardos(p.estoqueContainerUnidades, p.unidadesPorFardo)}</td>
+                </tr>
+            `;
+        });
+    }
 
-    // 2. Tabela Bagageiro
     const tbodyBaga = document.getElementById('tabelaResumoBagageiro');
-    tbodyBaga.innerHTML = "";
-    window.produtosDB.forEach(p => {
-        tbodyBaga.innerHTML += `
-            <tr>
-                <td><strong>${p.id}</strong> - ${p.nome}</td>
-                <td style="color:var(--bagageiro-color); font-weight:bold;">${formatarEstoqueFardos(p.estoqueBagageiroUnidades, p.unidadesPorFardo)}</td>
-            </tr>
-        `;
-    });
+    if (tbodyBaga) {
+        tbodyBaga.innerHTML = "";
+        window.produtosDB.forEach(p => {
+            tbodyBaga.innerHTML += `
+                <tr>
+                    <td><strong>${p.id}</strong> - ${p.nome}</td>
+                    <td style="color:var(--bagageiro-color); font-weight:bold;">${formatarEstoqueFardos(p.estoqueBagageiroUnidades, p.unidadesPorFardo)}</td>
+                </tr>
+            `;
+        });
+    }
+}
 
-    // 3. Ajuste Manual com caixas visuais e identificadores claros
+window.abrirTelaEstoques = function() {
+    renderizarApenasTabelasResumoEstoques();
+
+    const draftStr = localStorage.getItem('trem_draft_estoque');
+    const draft = draftStr ? JSON.parse(draftStr) : null;
+
     const divManual = document.getElementById('listaEstoqueGeral');
     divManual.innerHTML = "";
+
     window.produtosDB.forEach(p => {
         const unFardo = p.unidadesPorFardo || 1;
-        const contFardos = Math.floor((p.estoqueContainerUnidades || 0) / unFardo);
-        const contUnidades = (p.estoqueContainerUnidades || 0) % unFardo;
-        const bagaFardos = Math.floor((p.estoqueBagageiroUnidades || 0) / unFardo);
-        const bagaUnidades = (p.estoqueBagageiroUnidades || 0) % unFardo;
+
+        const contFardosDb = Math.floor((p.estoqueContainerUnidades || 0) / unFardo);
+        const contUnidadesDb = (p.estoqueContainerUnidades || 0) % unFardo;
+        const bagaFardosDb = Math.floor((p.estoqueBagageiroUnidades || 0) / unFardo);
+        const bagaUnidadesDb = (p.estoqueBagageiroUnidades || 0) % unFardo;
+
+        const valCFd = draft?.[p.id]?.cFd !== undefined && draft?.[p.id]?.cFd !== "" ? draft[p.id].cFd : contFardosDb;
+        const valCUn = draft?.[p.id]?.cUn !== undefined && draft?.[p.id]?.cUn !== "" ? draft[p.id].cUn : contUnidadesDb;
+        const valBFd = draft?.[p.id]?.bFd !== undefined && draft?.[p.id]?.bFd !== "" ? draft[p.id].bFd : bagaFardosDb;
+        const valBUn = draft?.[p.id]?.bUn !== undefined && draft?.[p.id]?.bUn !== "" ? draft[p.id].bUn : bagaUnidadesDb;
 
         divManual.innerHTML += `
             <div class="item-contagem">
@@ -402,12 +514,12 @@ window.abrirTelaEstoques = function() {
                         <label style="color:var(--container-color);"><i class="ph ph-archive"></i> Contêiner:</label>
                         <div class="input-unidade-group">
                             <div>
-                                <span>Fardos:</span>
-                                <input type="number" id="est_cont_fd_${p.id}" value="${contFardos}" min="0">
+                                <span>[ Fardos ]</span>
+                                <input type="number" id="est_cont_fd_${p.id}" value="${valCFd}" min="0" oninput="salvarDraftEstoque()">
                             </div>
                             <div>
-                                <span>+ Unidades:</span>
-                                <input type="number" id="est_cont_un_${p.id}" value="${contUnidades}" min="0">
+                                <span>[ + Unidades ]</span>
+                                <input type="number" id="est_cont_un_${p.id}" value="${valCUn}" min="0" oninput="salvarDraftEstoque()">
                             </div>
                         </div>
                     </div>
@@ -417,12 +529,12 @@ window.abrirTelaEstoques = function() {
                         <label style="color:var(--bagageiro-color);"><i class="ph ph-bag"></i> Bagageiro:</label>
                         <div class="input-unidade-group">
                             <div>
-                                <span>Fardos:</span>
-                                <input type="number" id="est_baga_fd_${p.id}" value="${bagaFardos}" min="0">
+                                <span>[ Fardos ]</span>
+                                <input type="number" id="est_baga_fd_${p.id}" value="${valBFd}" min="0" oninput="salvarDraftEstoque()">
                             </div>
                             <div>
-                                <span>+ Unidades:</span>
-                                <input type="number" id="est_baga_un_${p.id}" value="${bagaUnidades}" min="0">
+                                <span>[ + Unidades ]</span>
+                                <input type="number" id="est_baga_un_${p.id}" value="${valBUn}" min="0" oninput="salvarDraftEstoque()">
                             </div>
                         </div>
                     </div>
@@ -441,6 +553,7 @@ window.abrirModalConfirmaEstoque = function() {
 
 window.confirmarAjustesEstoqueComObs = async function() {
     const obs = document.getElementById('modalObsAjusteEstoque').value.trim();
+    const batch = writeBatch(db);
 
     for (let p of window.produtosDB) {
         const unFardo = p.unidadesPorFardo || 1;
@@ -454,23 +567,25 @@ window.confirmarAjustesEstoqueComObs = async function() {
         const totalBaga = (bFd * unFardo) + bUn;
 
         const pRef = doc(db, "produtos", p.id);
-        await updateDoc(pRef, {
+        batch.update(pRef, {
             estoqueContainerUnidades: totalCont,
             estoqueBagageiroUnidades: totalBaga
         });
     }
 
-    // Registra o log da alteração manual no banco de dados
     const logId = Date.now().toString();
-    await setDoc(doc(db, "logs_ajuste_estoque", logId), {
+    batch.set(doc(db, "logs_ajuste_estoque", logId), {
         id: logId,
         timestamp: Date.now(),
         data: new Date().toLocaleDateString('pt-BR'),
-        observacao: window.escapeHTML(obs) || "Ajuste manual padrão"
+        observacao: window.escapeHTML(obs) || "Ajuste manual geral"
     });
 
+    await batch.commit();
+
+    localStorage.removeItem('trem_draft_estoque');
     window.fecharModal('modal-confirma-estoque');
-    alert("Estoques atualizados no banco de dados com sucesso!");
+    alert("Todos os estoques foram atualizados no banco de dados com sucesso!");
     window.abrirTelaEstoques();
 };
 
@@ -482,7 +597,7 @@ window.abrirModalProduto = function(id = null) {
         document.getElementById('modalProdutoTitulo').innerHTML = '<i class="ph ph-pencil-simple"></i> Editar Produto';
         document.getElementById('modalProdIdOriginal').value = p.id;
         document.getElementById('modalProdSigla').value = p.id;
-        document.getElementById('modalProdSigla').disabled = true; // Não altera ID de produto existente
+        document.getElementById('modalProdSigla').disabled = true;
         document.getElementById('modalProdNome').value = p.nome;
         document.getElementById('modalProdUnFardo').value = p.unidadesPorFardo || 12;
         document.getElementById('modalProdPreco').value = p.precoVenda || 0;
@@ -584,9 +699,15 @@ window.abrirSetupContagem = function() {
         selUser.innerHTML += `<option value="${u.nome}">${u.nome}</option>`;
     });
 
+    const draftStr = localStorage.getItem('trem_draft_contagem');
+    const draft = draftStr ? JSON.parse(draftStr) : null;
+
     const hj = new Date().toISOString().split('T')[0];
-    document.getElementById('dataContagemApoio').value = hj;
-    document.getElementById('nomeGuiaApoio').value = "";
+    document.getElementById('dataContagemApoio').value = draft?.data || hj;
+    document.getElementById('nomeGuiaApoio').value = draft?.guia || "";
+    if (draft?.sentido) document.getElementById('selectSentidoApoio').value = draft.sentido;
+    if (draft?.vagao) document.getElementById('selectVagaoApoio').value = draft.vagao;
+
     window.mostrarTela('tela-setup-contagem');
 };
 
@@ -606,9 +727,17 @@ window.iniciarContagemVagao = function() {
     const div = document.getElementById('listaItensContagem');
     div.innerHTML = "";
 
+    const draftStr = localStorage.getItem('trem_draft_contagem');
+    const draft = draftStr ? JSON.parse(draftStr) : null;
+
     ordenarPorRegra(window.produtosDB);
     window.produtosDB.filter(p => !p.nome.includes('(Venda)')).forEach(p => {
         let cargaPadrao = p.id === 'KL' ? 49 : (p.id === 'Ac' || p.id === 'C' ? 24 : 0);
+
+        const valCarga = draft?.itens?.[p.id]?.carga !== undefined && draft?.itens?.[p.id]?.carga !== "" ? draft.itens[p.id].carga : cargaPadrao;
+        const valSaldo = draft?.itens?.[p.id]?.saldo !== undefined && draft?.itens?.[p.id]?.saldo !== "" ? draft.itens[p.id].saldo : "";
+        const valTrip = draft?.itens?.[p.id]?.trip !== undefined && draft?.itens?.[p.id]?.trip !== "" ? draft.itens[p.id].trip : 0;
+        const valAva = draft?.itens?.[p.id]?.ava !== undefined && draft?.itens?.[p.id]?.ava !== "" ? draft.itens[p.id].ava : 0;
 
         div.innerHTML += `
             <div class="item-contagem">
@@ -616,29 +745,30 @@ window.iniciarContagemVagao = function() {
                 <div class="grid-inputs" style="grid-template-columns: repeat(3, 1fr);">
                     <div>
                         <label>Carga:</label>
-                        <input type="number" id="carga_${p.id}" value="${cargaPadrao}" onfocus="this.select()" oninput="calcularConsumo('${p.id}')">
+                        <input type="number" id="carga_${p.id}" value="${valCarga}" onfocus="this.select()" oninput="calcularConsumo('${p.id}'); salvarDraftContagem();">
                     </div>
                     <div>
                         <label>Sobra (Saldo):</label>
-                        <input type="number" id="saldo_${p.id}" class="destaque-input" placeholder="0" onfocus="this.select()" oninput="calcularConsumo('${p.id}')">
+                        <input type="number" id="saldo_${p.id}" value="${valSaldo}" class="destaque-input" placeholder="0" onfocus="this.select()" oninput="calcularConsumo('${p.id}'); salvarDraftContagem();">
                     </div>
                     <div>
                         <label>Pax (Auto):</label>
-                        <input type="number" id="pax_${p.id}" class="input-pax" readonly value="${cargaPadrao}">
+                        <input type="number" id="pax_${p.id}" class="input-pax" readonly value="${valCarga}">
                     </div>
                     <div>
                         <label>Tripulação:</label>
-                        <input type="number" id="trip_${p.id}" value="0" onfocus="this.select()" oninput="calcularConsumo('${p.id}')">
+                        <input type="number" id="trip_${p.id}" value="${valTrip}" onfocus="this.select()" oninput="calcularConsumo('${p.id}'); salvarDraftContagem();">
                     </div>
                     <div>
                         <label>Avaria:</label>
-                        <input type="number" id="ava_${p.id}" class="input-avaria" value="0" onfocus="this.select()" oninput="calcularConsumo('${p.id}')">
+                        <input type="number" id="ava_${p.id}" class="input-avaria" value="${valAva}" onfocus="this.select()" oninput="calcularConsumo('${p.id}'); salvarDraftContagem();">
                     </div>
                 </div>
             </div>
         `;
     });
 
+    window.produtosDB.filter(p => !p.nome.includes('(Venda)')).forEach(p => calcularConsumo(p.id));
     window.mostrarTela('tela-contagem-vagao');
 };
 
@@ -709,17 +839,22 @@ window.salvarContagemDefinitiva = async function() {
     window.contagemTemp.id = contagemId;
     window.contagemTemp.timestamp = Date.now();
 
+    const batch = writeBatch(db);
+
     for (let id in window.contagemTemp.itens) {
         const item = window.contagemTemp.itens[id];
         if (item.saldo > 0) {
             const prodRef = doc(db, "produtos", id);
-            await updateDoc(prodRef, {
+            batch.update(prodRef, {
                 estoqueBagageiroUnidades: increment(item.saldo)
             });
         }
     }
 
-    await setDoc(doc(db, "contagens", contagemId), window.contagemTemp);
+    batch.set(doc(db, "contagens", contagemId), window.contagemTemp);
+    await batch.commit();
+
+    localStorage.removeItem('trem_draft_contagem');
     alert("Contagem registrada! As sobras foram creditadas no estoque do Bagageiro.");
     window.contagemTemp = {};
     window.mostrarTela('tela-inicial');
@@ -733,8 +868,13 @@ window.abrirSetupCarrinho = function() {
         selApoio.innerHTML += `<option value="${u.nome}">${u.nome}</option>`;
     });
 
+    const draftStr = localStorage.getItem('trem_draft_carrinho');
+    const draft = draftStr ? JSON.parse(draftStr) : null;
+
     const hj = new Date().toISOString().split('T')[0];
-    document.getElementById('dataCarrinho').value = hj;
+    document.getElementById('dataCarrinho').value = draft?.data || hj;
+    if (draft?.sentido) document.getElementById('sentidoCarrinho').value = draft.sentido;
+
     window.mostrarTela('tela-setup-carrinho');
 };
 
@@ -745,13 +885,19 @@ window.iniciarAcertoCarrinho = function() {
     const div = document.getElementById('listaItensCarrinho');
     div.innerHTML = "";
 
+    const draftStr = localStorage.getItem('trem_draft_carrinho');
+    const draft = draftStr ? JSON.parse(draftStr) : null;
+
     window.produtosDB.filter(p => p.nome.includes('(Venda)')).forEach(p => {
+        const valSaiu = draft?.itens?.[p.id]?.saiu !== undefined ? draft.itens[p.id].saiu : 0;
+        const valSobrou = draft?.itens?.[p.id]?.sobrou !== undefined ? draft.itens[p.id].sobrou : 0;
+
         div.innerHTML += `
             <div class="item-contagem">
                 <div class="item-contagem-header"><span>${p.nome} (R$ ${window.formatarMoeda(p.precoVenda)})</span></div>
                 <div class="grid-inputs" style="grid-template-columns: 1fr 1fr;">
-                    <div><label>Saiu com:</label><input type="number" id="venda_saiu_${p.id}" value="0" onfocus="this.select()" oninput="calcularVendas()"></div>
-                    <div><label>Sobrou:</label><input type="number" id="venda_sobrou_${p.id}" class="destaque-input" placeholder="0" onfocus="this.select()" oninput="calcularVendas()"></div>
+                    <div><label>Saiu com:</label><input type="number" id="venda_saiu_${p.id}" value="${valSaiu}" onfocus="this.select()" oninput="calcularVendas(); salvarDraftCarrinho();"></div>
+                    <div><label>Sobrou:</label><input type="number" id="venda_sobrou_${p.id}" value="${valSobrou}" class="destaque-input" placeholder="0" onfocus="this.select()" oninput="calcularVendas(); salvarDraftCarrinho();"></div>
                 </div>
             </div>
         `;
@@ -763,9 +909,9 @@ window.iniciarAcertoCarrinho = function() {
         selExtra.innerHTML += `<option value="${p.id}">${p.nome} (R$ ${window.formatarMoeda(p.precoVenda)})</option>`;
     });
 
-    window.itensExtrasCarrinhoTemp = [];
+    window.itensExtrasCarrinhoTemp = draft?.extras || [];
     renderizarExtrasAdicionados();
-    document.getElementById('carrinhoTroco').value = 0;
+    document.getElementById('carrinhoTroco').value = draft?.troco || 0;
     window.calcularVendas();
     window.mostrarTela('tela-acerto-carrinho');
 };
@@ -789,6 +935,7 @@ window.adicionarItemExtraVenda = function() {
     document.getElementById('selectItemExtraCarrinho').value = "";
     renderizarExtrasAdicionados();
     window.calcularVendas();
+    window.salvarDraftCarrinho();
 };
 
 function renderizarExtrasAdicionados() {
@@ -808,6 +955,7 @@ window.removerItemExtra = function(idx) {
     window.itensExtrasCarrinhoTemp.splice(idx, 1);
     renderizarExtrasAdicionados();
     window.calcularVendas();
+    window.salvarDraftCarrinho();
 };
 
 window.calcularVendas = function() {
@@ -857,6 +1005,7 @@ window.salvarAcertoCarrinho = async function() {
         timestamp: Date.now()
     });
 
+    localStorage.removeItem('trem_draft_carrinho');
     alert(`Acerto concluído e salvo no banco de dados!\nTotal apurado: R$ ${totalVendaTexto}`);
     window.mostrarTela('tela-inicial');
 };
