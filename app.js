@@ -34,7 +34,7 @@ window.contagemTemp = {};
 window.itensExtrasCarrinhoTemp = [];
 window.modoRelatorioAdmin = 'vagao';
 
-// Ordem padrão oficial com base na lista tradicional do chefe
+// Ordem padrão tradicional do bloco de notas do chefe
 const ORDEM_PADRAO_CHEFE = [
     'C', 'Cp', 'Zp', 'Gg', 'Gp', 'Fgp', 'Am', 'Acp', 'Agsp', 'Aggp', 
     'Chn', 'Chz', 'Su', 'Sp', 'KL', 'Kl', 'Esp', 'Gelo', 'Ac'
@@ -72,7 +72,7 @@ window.formatarMoeda = function(v) {
     return (v || 0).toFixed(2).replace('.', ',');
 };
 
-// ================= ORDENAÇÃO CUSTOMIZÁVEL DAS BEBIDAS =================
+// ================= ORDENAÇÃO DINÂMICA =================
 function ordenarPorRegra(lista) {
     return lista.sort((a, b) => {
         const ordA = a.ordem !== undefined && a.ordem !== null && a.ordem !== "" ? parseInt(a.ordem) : 9999;
@@ -90,7 +90,7 @@ function ordenarPorRegra(lista) {
     });
 }
 
-// ================= MODAIS (POP-UPS) =================
+// ================= MODAIS =================
 window.abrirModal = function(id) {
     const el = document.getElementById(id);
     if (el) el.style.display = 'flex';
@@ -101,7 +101,7 @@ window.fecharModal = function(id) {
     if (el) el.style.display = 'none';
 };
 
-// ================= ROTEADOR DINÂMICO E TELAS (ZERO TELAS EM BRANCO) =================
+// ================= ROTEADOR DINÂMICO DE TELAS =================
 window.mostrarTela = function(id) {
     document.querySelectorAll('.tela').forEach(t => t.classList.remove('ativa'));
     const tela = document.getElementById(id);
@@ -110,7 +110,7 @@ window.mostrarTela = function(id) {
 
     localStorage.setItem('trem_tela_ativa', id);
 
-    // Renderiza os dados imediatamente na abertura da tela sem precisar de F5
+    // Carrega os dados na hora sem risco de tela branca
     if (id === 'tela-cadastro-produtos') renderizarProdutosAdmin();
     if (id === 'tela-usuarios') renderizarUsuarios();
     if (id === 'tela-estoques') abrirTelaEstoques();
@@ -159,6 +159,8 @@ function restaurarSessaoOuTela() {
     if (telaSalva && telasAdmin.includes(telaSalva)) {
         if (chefeLogado) {
             window.mostrarTela(telaSalva);
+            if (telaSalva === 'tela-estoques') abrirTelaEstoques();
+            if (telaSalva === 'tela-carga-dia') abrirCargaDoDia();
         } else {
             window.mostrarTela('tela-login');
         }
@@ -186,7 +188,6 @@ function iniciarSincronizacaoNuvem() {
         const telaAtiva = document.querySelector('.tela.ativa')?.id;
         if (telaAtiva === 'tela-cadastro-produtos') renderizarProdutosAdmin();
         if (telaAtiva === 'tela-estoques') renderizarApenasTabelasResumoEstoques();
-        if (telaAtiva === 'tela-carga-dia') abrirCargaDoDia();
         if (telaAtiva === 'tela-ver-carga') carregarManifestoPublico();
     });
 
@@ -206,6 +207,7 @@ function iniciarSincronizacaoNuvem() {
     onSnapshot(collection(db, "cargas_dia"), (snapshot) => {
         window.cargasDiaDB = snapshot.docs.map(d => d.data());
         if (document.getElementById('tela-ver-carga')?.classList.contains('ativa')) carregarManifestoPublico();
+        if (document.getElementById('tela-carga-dia')?.classList.contains('ativa')) verificarStatusEdicaoCarga();
     });
 
     onSnapshot(collection(db, "vendas_carrinho"), (snapshot) => {
@@ -236,7 +238,10 @@ function carregarManifestoPublico() {
     if (!div) return;
     div.innerHTML = "";
 
-    const dataSel = document.getElementById('filtroDataManifesto').value;
+    const elData = document.getElementById('filtroDataManifesto');
+    const dataSel = elData ? elData.value : new Date().toISOString().split('T')[0];
+    if (elData && !elData.value) elData.value = dataSel;
+
     const carga = window.cargasDiaDB.find(c => c.data === dataSel);
 
     if (!carga || !carga.itens || Object.keys(carga.itens).length === 0) {
@@ -249,17 +254,16 @@ function carregarManifestoPublico() {
         return;
     }
 
-    let itensOrdenados = Object.keys(carga.itens).map(sigla => ({
-        sigla,
-        ...carga.itens[sigla],
-        prodObj: window.produtosDB.find(p => p.id === sigla) || { id: sigla, ordem: 9999 }
-    }));
-
-    itensOrdenados.sort((a, b) => {
-        const ordA = a.prodObj.ordem !== undefined ? parseInt(a.prodObj.ordem) : 9999;
-        const ordB = b.prodObj.ordem !== undefined ? parseInt(b.prodObj.ordem) : 9999;
-        return ordA - ordB;
+    let itensOrdenados = Object.keys(carga.itens).map(sigla => {
+        const prod = window.produtosDB.find(p => p.id === sigla);
+        return {
+            sigla,
+            ...carga.itens[sigla],
+            ordem: carga.itens[sigla].ordem !== undefined ? carga.itens[sigla].ordem : (prod?.ordem ?? 9999)
+        };
     });
+
+    itensOrdenados.sort((a, b) => (parseInt(a.ordem) || 9999) - (parseInt(b.ordem) || 9999));
 
     let linhasHtml = "";
     itensOrdenados.forEach(item => {
@@ -297,7 +301,7 @@ function carregarManifestoPublico() {
     `;
 }
 
-// ================= GESTÃO DE RASCUNHOS (DRAFTS) =================
+// ================= GESTÃO DE RASCUNHOS =================
 window.salvarDraftEstoque = function() {
     const draft = {};
     window.produtosDB.forEach(p => {
@@ -328,7 +332,8 @@ window.salvarDraftCarga = function() {
         draft.itens[p.id] = {
             total: document.getElementById(`carga_total_${p.id}`)?.value || "",
             baga: document.getElementById(`carga_baga_${p.id}`)?.value || "",
-            dest: document.getElementById(`carga_dest_${p.id}`)?.value || ""
+            dest: document.getElementById(`carga_dest_${p.id}`)?.value || "",
+            ordem: document.getElementById(`carga_ordem_${p.id}`)?.value || ""
         };
     });
     localStorage.setItem('trem_draft_carga', JSON.stringify(draft));
@@ -379,31 +384,83 @@ window.salvarDraftCarrinho = function() {
     localStorage.setItem('trem_draft_carrinho', JSON.stringify(draft));
 };
 
-// ================= CARGA DO DIA (MONTAGEM PELO CHEFE) =================
+// ================= CARGA DO DIA (MONTAGEM E EDIÇÃO) =================
+window.trocarDataCargaDia = function() {
+    localStorage.removeItem('trem_draft_carga');
+    abrirCargaDoDia();
+};
+
+function verificarStatusEdicaoCarga() {
+    const dataSel = document.getElementById('dataCargaDia')?.value;
+    const boxStatus = document.getElementById('statusCargaEdicao');
+    if (!boxStatus || !dataSel) return;
+
+    const cargaExistente = window.cargasDiaDB.find(c => c.data === dataSel);
+    if (cargaExistente && cargaExistente.itens && Object.keys(cargaExistente.itens).length > 0) {
+        boxStatus.innerHTML = `
+            <div style="background:#fef3c7; border:1.5px solid #fde68a; color:#92400e; padding:10px 14px; border-radius:8px; font-weight:700; font-size:14px; display:flex; align-items:center; gap:8px;">
+                <i class="ph ph-pencil-simple-line"></i> Editando Carga Existente de ${dataSel.split('-').reverse().join('/')}. As alterações ajustarão o estoque automaticamente.
+            </div>
+        `;
+    } else {
+        boxStatus.innerHTML = `
+            <div style="background:#e0f2fe; border:1.5px solid #bae6fd; color:#0369a1; padding:10px 14px; border-radius:8px; font-weight:600; font-size:13px; display:flex; align-items:center; gap:8px;">
+                <i class="ph ph-plus-circle"></i> Criando Nova Carga para o dia ${dataSel.split('-').reverse().join('/')}.
+            </div>
+        `;
+    }
+}
+
 function abrirCargaDoDia() {
     const div = document.getElementById('listaItensCargaDia');
     if (!div) return;
     div.innerHTML = "";
 
-    ordenarPorRegra(window.produtosDB);
+    const hj = new Date().toISOString().split('T')[0];
+    const elData = document.getElementById('dataCargaDia');
+    if (!elData.value) elData.value = hj;
+    const dataSel = elData.value;
 
+    const cargaExistente = window.cargasDiaDB.find(c => c.data === dataSel);
     const draftStr = localStorage.getItem('trem_draft_carga');
     const draft = draftStr ? JSON.parse(draftStr) : null;
+
+    verificarStatusEdicaoCarga();
+    ordenarPorRegra(window.produtosDB);
 
     window.produtosDB.filter(p => !p.nome.includes('(Venda)')).forEach(p => {
         const unPorFardo = p.unidadesPorFardo || 1;
         const bagaDisponivel = formatarEstoqueFardos(p.estoqueBagageiroUnidades, unPorFardo);
 
-        const valTotal = draft?.itens?.[p.id]?.total !== undefined && draft?.itens?.[p.id]?.total !== "" ? draft.itens[p.id].total : 0;
-        const valBaga = draft?.itens?.[p.id]?.baga !== undefined && draft?.itens?.[p.id]?.baga !== "" ? draft.itens[p.id].baga : 0;
-        const valDest = draft?.itens?.[p.id]?.dest ?? "";
+        // Precedência de preenchimento: Rascunho > Carga salva no banco > 0
+        let valTotal = 0;
+        let valBaga = 0;
+        let valDest = "";
+        let valOrdem = p.ordem || 99;
+
+        if (draft && draft.data === dataSel && draft.itens?.[p.id]) {
+            valTotal = draft.itens[p.id].total || 0;
+            valBaga = draft.itens[p.id].baga || 0;
+            valDest = draft.itens[p.id].dest || "";
+            valOrdem = draft.itens[p.id].ordem !== undefined ? draft.itens[p.id].ordem : valOrdem;
+        } else if (cargaExistente && cargaExistente.itens?.[p.id]) {
+            valTotal = cargaExistente.itens[p.id].total || 0;
+            valBaga = cargaExistente.itens[p.id].baga || 0;
+            valDest = cargaExistente.itens[p.id].destino || "";
+            valOrdem = cargaExistente.itens[p.id].ordem !== undefined ? cargaExistente.itens[p.id].ordem : valOrdem;
+        }
+
         const valCont = Math.max(0, valTotal - valBaga);
 
         div.innerHTML += `
             <div class="item-contagem">
                 <div class="item-contagem-header">
-                    <span><span class="badge-ordem">#${p.ordem || '-'}</span> ${p.nome} (${p.id})</span>
-                    <small style="color:var(--accent); font-size:13px;">Bagageiro tem: ${bagaDisponivel}</small>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <span style="font-size:12px; font-weight:700; color:var(--secondary);">Ordem:</span>
+                        <input type="number" id="carga_ordem_${p.id}" value="${valOrdem}" style="width:55px; padding:4px 6px; font-size:13px; text-align:center; border-radius:6px;" oninput="salvarDraftCarga()">
+                        <strong>${p.nome} (${p.id})</strong>
+                    </div>
+                    <small style="color:var(--accent); font-size:13px;">Bagageiro: ${bagaDisponivel}</small>
                 </div>
                 <div class="grid-inputs" style="grid-template-columns: 1fr 1fr 1fr; margin-bottom:8px;">
                     <div>
@@ -420,18 +477,23 @@ function abrirCargaDoDia() {
                     </div>
                 </div>
                 <div>
-                    <label style="font-size:11px; font-weight:700; color:var(--secondary);">Distribuição / Vagões:</label>
+                    <label style="font-size:11px; font-weight:700; color:var(--secondary);">Distribuição / Destino:</label>
                     <input type="text" id="carga_dest_${p.id}" value="${valDest}" placeholder="Ex: 1 eco, 2 tur, 3 pls 15 e 17" style="padding:8px 12px; font-size:13px;" oninput="salvarDraftCarga()">
                 </div>
             </div>
         `;
     });
 
-    const hj = new Date().toISOString().split('T')[0];
-    const elData = document.getElementById('dataCargaDia');
-    if (elData) elData.value = draft?.data || hj;
     const elObs = document.getElementById('obsEspeciaisCarga');
-    if (elObs) elObs.value = draft?.obs || "";
+    if (elObs) {
+        if (draft && draft.data === dataSel) {
+            elObs.value = draft.obs || "";
+        } else if (cargaExistente) {
+            elObs.value = cargaExistente.obsEspeciais || "";
+        } else {
+            elObs.value = "";
+        }
+    }
 }
 
 window.calcularFormulaLinha = function(id) {
@@ -445,6 +507,7 @@ window.calcularFormulaLinha = function(id) {
 window.salvarCargaDoDia = async function() {
     const data = document.getElementById('dataCargaDia').value;
     const obsEspeciais = document.getElementById('obsEspeciaisCarga').value.trim();
+    const cargaAntiga = window.cargasDiaDB.find(c => c.data === data);
     let itensSalvos = {};
 
     const batch = writeBatch(db);
@@ -454,16 +517,32 @@ window.salvarCargaDoDia = async function() {
         const baga = parseInt(document.getElementById(`carga_baga_${p.id}`)?.value) || 0;
         const cont = parseInt(document.getElementById(`carga_cont_${p.id}`)?.value) || 0;
         const destino = document.getElementById(`carga_dest_${p.id}`)?.value.trim() || "";
+        const novaOrdem = parseInt(document.getElementById(`carga_ordem_${p.id}`)?.value) || p.ordem || 99;
         const unFardo = p.unidadesPorFardo || 1;
 
-        if (total > 0) {
-            itensSalvos[p.id] = { total, baga, cont, destino };
+        // Salva a ordem atualizada diretamente no produto
+        if (p.ordem !== novaOrdem) {
+            p.ordem = novaOrdem;
+            batch.update(doc(db, "produtos", p.id), { ordem: novaOrdem });
+        }
 
-            const pRef = doc(db, "produtos", p.id);
-            batch.update(pRef, {
-                estoqueContainerUnidades: increment(-(cont * unFardo)),
-                estoqueBagageiroUnidades: increment(-(baga * unFardo))
-            });
+        if (total > 0 || (cargaAntiga && cargaAntiga.itens?.[p.id])) {
+            itensSalvos[p.id] = { total, baga, cont, destino, ordem: novaOrdem };
+
+            // Cálculo diferencial para não duplicar baixa no estoque se estiver editando
+            const antigoCont = cargaAntiga?.itens?.[p.id]?.cont || 0;
+            const antigoBaga = cargaAntiga?.itens?.[p.id]?.baga || 0;
+
+            const difCont = cont - antigoCont;
+            const difBaga = baga - antigoBaga;
+
+            if (difCont !== 0 || difBaga !== 0) {
+                const pRef = doc(db, "produtos", p.id);
+                batch.update(pRef, {
+                    estoqueContainerUnidades: increment(-(difCont * unFardo)),
+                    estoqueBagageiroUnidades: increment(-(difBaga * unFardo))
+                });
+            }
         }
     }
 
@@ -479,7 +558,7 @@ window.salvarCargaDoDia = async function() {
     await batch.commit();
 
     localStorage.removeItem('trem_draft_carga');
-    alert("Carga do trem salva e publicada no banco de dados com sucesso!");
+    alert("Carga do trem salva e atualizada com sucesso no banco de dados!");
     window.mostrarTela('tela-admin');
 };
 
@@ -619,7 +698,7 @@ window.confirmarAjustesEstoqueComObs = async function() {
     abrirTelaEstoques();
 };
 
-// ================= PRODUTOS EM MODAL POP-UP COM ORDEM =================
+// ================= PRODUTOS EM MODAL POP-UP =================
 window.abrirModalProduto = function(id = null) {
     if (id) {
         const p = window.produtosDB.find(x => x.id === id);
@@ -767,7 +846,7 @@ window.iniciarContagemVagao = function() {
 
     ordenarPorRegra(window.produtosDB);
     window.produtosDB.filter(p => !p.nome.includes('(Venda)')).forEach(p => {
-        let cargaPadrao = p.id === 'KL' ? 49 : (p.id === 'Ac' || p.id === 'C' ? 24 : 0);
+        let cargaPadrao = p.id === 'KL' || p.id === 'Kl' ? 49 : (p.id === 'Ac' || p.id === 'Acp' || p.id === 'C' ? 24 : 0);
 
         const valCarga = draft?.itens?.[p.id]?.carga !== undefined && draft?.itens?.[p.id]?.carga !== "" ? draft.itens[p.id].carga : cargaPadrao;
         const valSaldo = draft?.itens?.[p.id]?.saldo !== undefined && draft?.itens?.[p.id]?.saldo !== "" ? draft.itens[p.id].saldo : "";
