@@ -26,6 +26,9 @@
                 <button class="btn btn-primary btn-lg" style="margin-top: 12px;" onclick="mostrarTela('tela-setup-contagem')">
                     <i class="ph ph-clipboard-text"></i> Contagem de Vagão (Apoios)
                 </button>
+                <button class="btn btn-boutique btn-lg" style="margin-top: 12px;" onclick="mostrarTela('tela-boutiques-hub')">
+                    <i class="ph ph-sparkle"></i> Boutiques & Litorinas (Ajustes & Sobras)
+                </button>
                 <button class="btn btn-carrinho btn-lg" style="margin-top: 12px;" onclick="mostrarTela('tela-setup-carrinho')">
                     <i class="ph ph-shopping-cart"></i> Venda de Bebidas (Carrinho)
                 </button>
@@ -78,7 +81,7 @@
 
             <div class="kpi-grid">
                 <div class="kpi-card kpi-container" onclick="mostrarTela('tela-estoques')">
-                    <span class="kpi-label"><i class="ph ph-archive"></i> Contêiner Geral</span>
+                    <span class="kpi-label"><i class="ph ph-archive"></i> Contêiner</span>
                     <span class="kpi-valor" id="kpiContainerTotal">0 fd</span>
                     <small class="kpi-sub">Ver Detalhes &raquo;</small>
                 </div>
@@ -94,7 +97,7 @@
                 <div class="grid-menu-admin">
                     <button class="btn btn-menu" onclick="mostrarTela('tela-carga-dia')"><i class="ph ph-truck"></i> Montar / Editar Carga</button>
                     <button class="btn btn-menu" onclick="mostrarTela('tela-estoques')"><i class="ph ph-warehouse"></i> Situação dos Estoques</button>
-                    <button class="btn btn-menu" onclick="mostrarTela('tela-vagoes')"><i class="ph ph-train"></i> Frota de Vagões</button>
+                    <button class="btn btn-menu" onclick="mostrarTela('tela-vagoes')"><i class="ph ph-train"></i> Frota & Bebidas p/ Vagão</button>
                     <button class="btn btn-menu" onclick="mostrarTela('tela-relatorios')"><i class="ph ph-chart-bar"></i> Relatórios & Balanço</button>
                     <button class="btn btn-menu" onclick="mostrarTela('tela-cadastro-produtos')"><i class="ph ph-package"></i> Produtos & Preços</button>
                     <button class="btn btn-menu" onclick="mostrarTela('tela-usuarios')"><i class="ph ph-users"></i> Equipe de Apoios</button>
@@ -103,7 +106,7 @@
             </div>
         </div>
 
-        <!-- TELA FROTA DE VAGÕES -->
+        <!-- TELA FROTA DE VAGÕES & BEBIDAS PERMITIDAS -->
         <div id="tela-vagoes" class="tela">
             <div class="header">
                 <h3><i class="ph ph-train"></i> Frota de Vagões</h3>
@@ -111,7 +114,7 @@
             </div>
             <div class="card">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                    <span style="font-size:14px; color:var(--secondary); font-weight:600;">Vagões em Operação</span>
+                    <span style="font-size:14px; color:var(--secondary); font-weight:600;">Personalize os itens de cada vagão</span>
                     <button class="btn btn-primary btn-pequeno" onclick="abrirModalVagao()">
                         <i class="ph ph-plus-circle"></i> Novo Vagão
                     </button>
@@ -144,7 +147,7 @@
 
                 <div class="card card-estoque-baga">
                     <div class="card-estoque-header">
-                        <h4><i class="ph ph-bag"></i> Bagageiro (Sobras/Giro)</h4>
+                        <h4><i class="ph ph-bag"></i> Bagageiro</h4>
                     </div>
                     <div class="tabela-container">
                         <table class="tabela-relatorio">
@@ -163,7 +166,7 @@
                     <button class="btn btn-danger btn-pequeno" onclick="limparDraftEstoque()"><i class="ph ph-arrow-counter-clockwise"></i> Descartar Rascunho</button>
                 </div>
                 <p style="font-size:13px; color:var(--secondary); margin-bottom:15px;">
-                    Altere os fardos e unidades soltas diretamente. O rascunho fica salvo enquanto você digita:
+                    Altere os fardos e unidades soltas diretamente:
                 </p>
                 <div id="listaEstoqueGeral"></div>
                 <button class="btn btn-primary btn-lg" style="margin-top:15px;" onclick="abrirModalConfirmaEstoque()">
@@ -237,7 +240,7 @@
             </div>
         </div>
 
-        <!-- TELA RELATÓRIOS SALVOS -->
+        <!-- TELA RELATÓRIOS SALVOS (ORDEM POR PLACA, FILTRO IDA/VOLTA & TOTALIZADORES) -->
         <div id="tela-relatorios" class="tela">
             <div class="header">
                 <h3><i class="ph ph-chart-bar"></i> Relatórios Operacionais</h3>
@@ -248,17 +251,61 @@
                     <label>Data de Consulta:</label>
                     <input type="date" id="filtroDataRelatorio" onclick="this.showPicker && this.showPicker()" onchange="renderizarRelatoriosAdmin()">
                 </div>
-                <div class="filtros-relatorio">
-                    <button class="btn-aba ativo" id="btnRelVagao" onclick="setModoRelatorio('vagao')">Por Vagão</button>
-                    <button class="btn-aba" id="btnRelTur" onclick="setModoRelatorio('turisticos')">Soma Turísticos</button>
-                    <button class="btn-aba" id="btnRelGeral" onclick="setModoRelatorio('geral')">Balanço do Dia</button>
-                    <button class="btn-aba" id="btnRelVendas" onclick="setModoRelatorio('vendas')">Vendas Carrinho</button>
+                
+                <div style="margin-bottom:10px;">
+                    <span style="font-size:12px; font-weight:700; color:var(--secondary); text-transform:uppercase;">Categoria:</span>
+                    <div class="filtros-relatorio" style="margin-top:4px;">
+                        <button class="btn-aba ativo" id="btnRelVagao" onclick="setModoRelatorio('todos')">Todos os Vagões</button>
+                        <button class="btn-aba" id="btnRelTur" onclick="setModoRelatorio('turisticos')">Só Turísticos</button>
+                        <button class="btn-aba" id="btnRelBoutLito" onclick="setModoRelatorio('boutiques_litorinas')">Boutiques & Litorinas</button>
+                        <button class="btn-aba" id="btnRelVendas" onclick="setModoRelatorio('vendas')">Vendas Carrinho</button>
+                    </div>
                 </div>
+
+                <div style="margin-bottom:15px;">
+                    <span style="font-size:12px; font-weight:700; color:var(--secondary); text-transform:uppercase;">Sentido:</span>
+                    <div class="filtros-relatorio" style="margin-top:4px;">
+                        <button class="btn-aba ativo" id="btnSentidoTodos" onclick="setFiltroSentido('todos')">Ida & Volta</button>
+                        <button class="btn-aba" id="btnSentidoIda" onclick="setFiltroSentido('Ida')">Apenas Ida</button>
+                        <button class="btn-aba" id="btnSentidoVolta" onclick="setFiltroSentido('Volta')">Apenas Volta</button>
+                    </div>
+                </div>
+
                 <div id="listaRelatoriosAdmin"></div>
             </div>
         </div>
 
-        <!-- SETUP DE CONTAGEM (APOIO) -->
+        <!-- MÓDULO EXCLUSIVO: BOUTIQUES & LITORINAS -->
+        <div id="tela-boutiques-hub" class="tela">
+            <div class="header">
+                <h3><i class="ph ph-sparkle"></i> Boutiques & Litorinas</h3>
+                <button class="btn btn-secondary btn-pequeno" onclick="mostrarTela('tela-inicial')">Voltar</button>
+            </div>
+            <div class="card">
+                <div class="form-group">
+                    <label>Selecione a Boutique / Litorina:</label>
+                    <select id="selectVagaoBoutiqueHub" onchange="carregarFormularioBoutiqueHub()"></select>
+                </div>
+                <div class="form-group">
+                    <label>Data:</label>
+                    <input type="date" id="dataBoutiqueHub" onclick="this.showPicker && this.showPicker()">
+                </div>
+                <div class="form-group">
+                    <label>Etapa da Viagem:</label>
+                    <select id="etapaBoutiqueHub" onchange="carregarFormularioBoutiqueHub()">
+                        <option value="morretes_sem_retorno">Chegada Morretes: SEM Retorno (Baixar todas as sobras)</option>
+                        <option value="morretes_com_retorno">Chegada Morretes: COM Retorno (Ajuste de bebidas para volta)</option>
+                        <option value="reforco_trajeto">Em Viagem: Pegar Reforço do Bagageiro</option>
+                        <option value="curitiba_final">Chegada Curitiba: Fechamento Final das Sobras</option>
+                    </select>
+                </div>
+
+                <hr class="divisor">
+                <div id="areaFormBoutiqueHub"></div>
+            </div>
+        </div>
+
+        <!-- SETUP DE CONTAGEM (VAGÕES TURÍSTICOS E ECONÔMICO) -->
         <div id="tela-setup-contagem" class="tela">
             <div class="header">
                 <h3>Contagem de Vagão</h3>
@@ -281,7 +328,7 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>Selecione o Vagão (Placa / Nome):</label>
+                    <label>Selecione o Vagão:</label>
                     <select id="selectVagaoApoio"></select>
                 </div>
                 <div class="form-group">
@@ -294,7 +341,7 @@
             </div>
         </div>
 
-        <!-- FORMULÁRIO DE CONTAGEM DO VAGÃO -->
+        <!-- FORMULÁRIO DE CONTAGEM DO VAGÃO (FILTRADO COM AS BEBIDAS DO VAGÃO) -->
         <div id="tela-contagem-vagao" class="tela">
             <div class="header">
                 <h3><span id="lblVagaoContagem"></span> (<span id="lblSentidoContagem"></span>)</h3>
@@ -302,7 +349,7 @@
             </div>
             <div class="card card-limpo">
                 <p style="font-size: 13px; color: var(--secondary); margin-bottom: 15px;">
-                    Preencha a <strong>Carga</strong> e a <strong>Sobra (Saldo)</strong>. O Pax calcula automaticamente.
+                    Exibindo somente as bebidas deste vagão. Preencha <strong>Carga</strong> e <strong>Sobra</strong>:
                 </p>
                 <div id="listaItensContagem"></div>
                 
@@ -325,14 +372,18 @@
                     <div><strong>Data:</strong> <span id="resumoData"></span></div>
                 </div>
                 
-                <div class="kpi-grid" style="margin-bottom: 15px;">
-                    <div class="kpi-card kpi-destaque">
-                        <span class="kpi-label">LANCHES (PAX)</span>
-                        <span class="kpi-valor" id="resumoTotalLanches">0</span>
-                    </div>
-                    <div class="kpi-card kpi-destaque">
-                        <span class="kpi-label">BEBIDAS (PAX)</span>
-                        <span class="kpi-valor" id="resumoTotalBebidas">0</span>
+                <!-- COMPARATIVO LANCHES X BEBIDAS -->
+                <div id="boxStatusComparativoResumo" class="box-comparativo-status">
+                    <div style="display:flex; justify-content:space-around; align-items:center;">
+                        <div style="text-align:center;">
+                            <span style="font-size:11px; font-weight:700; text-transform:uppercase;">Lanches (Pax)</span>
+                            <h3 id="resumoTotalLanches" style="margin:2px 0;">0</h3>
+                        </div>
+                        <div style="font-size:20px; font-weight:bold; opacity:0.6;">x</div>
+                        <div style="text-align:center;">
+                            <span style="font-size:11px; font-weight:700; text-transform:uppercase;">Bebidas (Pax)</span>
+                            <h3 id="resumoTotalBebidas" style="margin:2px 0;">0</h3>
+                        </div>
                     </div>
                 </div>
                 
@@ -340,12 +391,12 @@
                     <table class="tabela-relatorio">
                         <thead>
                             <tr>
-                                <th>Produto</th>
-                                <th>Carga</th>
-                                <th>Pax</th>
-                                <th>Trip.</th>
-                                <th>Avaria</th>
-                                <th>Sobra</th>
+                                <th style="width:32%;">Bebida</th>
+                                <th style="width:14%;">Carga</th>
+                                <th style="width:14%;">Pax</th>
+                                <th style="width:12%;">Trip</th>
+                                <th style="width:12%;">Ava</th>
+                                <th style="width:16%;">Sobra</th>
                             </tr>
                         </thead>
                         <tbody id="tabelaResumoCorpo"></tbody>
@@ -353,7 +404,7 @@
                 </div>
 
                 <div class="box-aviso-baga">
-                    <i class="ph ph-arrow-down-left"></i> As sobras desta contagem serão somadas ao <strong>Estoque do Bagageiro</strong>.
+                    <i class="ph ph-arrow-down-left"></i> As sobras desta contagem serão somadas ao <strong>Bagageiro</strong>.
                 </div>
 
                 <div class="form-group" style="margin-top: 15px;">
@@ -410,9 +461,6 @@
                 <hr class="divisor">
                 
                 <h4 style="color:var(--primary); margin-bottom:10px;"><i class="ph ph-plus-circle"></i> Vendeu mais alguma coisa?</h4>
-                <p style="font-size:12px; color:var(--secondary); margin-bottom:10px;">
-                    Adicione refrigerantes, kit lanches ou bebidas vendidas avulsas:
-                </p>
                 <div style="display:flex; gap:8px; margin-bottom:10px;">
                     <select id="selectItemExtraCarrinho" style="flex:2;"></select>
                     <input type="number" id="qtdItemExtraCarrinho" placeholder="Qtd" min="1" value="1" style="flex:1;" onkeydown="if(event.key==='Enter') adicionarItemExtraVenda()">
@@ -446,11 +494,11 @@
             
             <div class="grid-inputs" style="grid-template-columns: 1fr 2fr; margin-bottom:15px;">
                 <div>
-                    <label>Ordem na Lista:</label>
+                    <label>Ordem:</label>
                     <input type="number" id="modalProdOrdem" placeholder="Ex: 1" min="1" onkeydown="if(event.key==='Enter') focarProximo('modalProdSigla')">
                 </div>
                 <div>
-                    <label>Sigla do Produto:</label>
+                    <label>Sigla:</label>
                     <input type="text" id="modalProdSigla" placeholder="Ex: C" onkeydown="if(event.key==='Enter') focarProximo('modalProdNome')">
                 </div>
             </div>
@@ -476,7 +524,7 @@
         </div>
     </div>
 
-    <!-- MODAL POP-UP: VAGÃO (FROTA) -->
+    <!-- MODAL POP-UP: VAGÃO COM BEBIDAS SELECIONADAS -->
     <div id="modal-vagao" class="modal-overlay">
         <div class="modal-content">
             <h3 id="modalVagaoTitulo" style="margin-top:0; color:var(--primary);"><i class="ph ph-train"></i> Vagão</h3>
@@ -485,7 +533,7 @@
             <div class="grid-inputs" style="grid-template-columns: 1fr 2fr; margin-bottom:15px;">
                 <div>
                     <label>Placa / Nº:</label>
-                    <input type="text" id="modalVagaoNumero" placeholder="Ex: 11" onkeydown="if(event.key==='Enter') focarProximo('modalVagaoNome')">
+                    <input type="text" id="modalVagaoNumero" placeholder="Ex: 1" onkeydown="if(event.key==='Enter') focarProximo('modalVagaoNome')">
                 </div>
                 <div>
                     <label>Nome do Vagão:</label>
@@ -494,17 +542,44 @@
             </div>
             <div class="form-group">
                 <label>Modelo / Categoria:</label>
-                <select id="modalVagaoTipo" onkeydown="if(event.key==='Enter') salvarVagaoModal()">
+                <select id="modalVagaoTipo" onchange="atualizarCheckboxesBebidasPadrao()">
                     <option value="turistico">Turístico</option>
                     <option value="economico">Econômico</option>
                     <option value="boutique">Boutique</option>
                     <option value="litorina">Litorina</option>
                 </select>
             </div>
+
+            <div class="form-group" style="margin-top:15px;">
+                <label><i class="ph ph-check-square"></i> Bebidas que este vagão carrega:</label>
+                <p style="font-size:12px; color:var(--secondary); margin-bottom:8px;">Marque apenas as que devem aparecer na contagem:</p>
+                <div id="boxCheckboxesBebidasVagao" class="box-checklist-bebidas"></div>
+            </div>
             
             <div style="display:flex; gap:10px; margin-top:20px;">
                 <button class="btn btn-primary" style="flex:2;" onclick="salvarVagaoModal()"><i class="ph ph-check"></i> Salvar Vagão</button>
                 <button class="btn btn-secondary" style="flex:1;" onclick="fecharModal('modal-vagao')">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL POP-UP: CHEFE EDITAR RELATÓRIO DO APOIO -->
+    <div id="modal-editar-relatorio" class="modal-overlay">
+        <div class="modal-content" style="max-width:550px;">
+            <h3 style="margin-top:0; color:var(--primary);"><i class="ph ph-pencil-simple"></i> Corrigir Relatório do Vagão</h3>
+            <p id="subtituloModalEditaRelatorio" style="font-size:13px; color:var(--secondary); margin-bottom:12px;"></p>
+            <input type="hidden" id="editRelatorioIdOriginal">
+
+            <div id="listaItensEdicaoRelatorio" style="max-height: 50vh; overflow-y: auto;"></div>
+
+            <div class="form-group" style="margin-top:12px;">
+                <label>Observação do Chefe:</label>
+                <input type="text" id="obsEdicaoChefeRelatorio" placeholder="Ex: Corrigido saldo da coca">
+            </div>
+
+            <div style="display:flex; gap:10px; margin-top:15px;">
+                <button class="btn btn-primary" style="flex:2;" onclick="salvarEdicaoRelatorioPeloChefe()"><i class="ph ph-check"></i> Salvar Correção</button>
+                <button class="btn btn-secondary" style="flex:1;" onclick="fecharModal('modal-editar-relatorio')">Cancelar</button>
             </div>
         </div>
     </div>
