@@ -92,7 +92,7 @@
             <div class="card">
                 <h4 style="margin-bottom: 15px; font-size:17px;"><i class="ph ph-squares-four"></i> Módulos Operacionais</h4>
                 <div class="grid-menu-admin">
-                    <button class="btn btn-menu" onclick="mostrarTela('tela-carga-dia')"><i class="ph ph-truck"></i> Montar Carga do Dia</button>
+                    <button class="btn btn-menu" onclick="mostrarTela('tela-carga-dia')"><i class="ph ph-truck"></i> Montar / Editar Carga</button>
                     <button class="btn btn-menu" onclick="mostrarTela('tela-estoques')"><i class="ph ph-warehouse"></i> Situação dos Estoques</button>
                     <button class="btn btn-menu" onclick="mostrarTela('tela-relatorios')"><i class="ph ph-chart-bar"></i> Relatórios & Balanço</button>
                     <button class="btn btn-menu" onclick="mostrarTela('tela-cadastro-produtos')"><i class="ph ph-package"></i> Produtos & Preços</button>
@@ -154,21 +154,25 @@
             </div>
         </div>
 
-        <!-- TELA CARGA DO DIA -->
+        <!-- TELA CARGA DO DIA (MONTAGEM E EDIÇÃO) -->
         <div id="tela-carga-dia" class="tela">
             <div class="header">
-                <h3><i class="ph ph-truck"></i> Montar Carga do Trem</h3>
+                <h3><i class="ph ph-truck"></i> Montar / Editar Carga do Trem</h3>
                 <button class="btn btn-secondary btn-pequeno" onclick="mostrarTela('tela-admin')">Voltar</button>
             </div>
             <div class="card">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                    <span style="font-size:13px; color:var(--secondary);">Os valores digitados ficam salvos em rascunho automaticamente.</span>
+                    <span style="font-size:13px; color:var(--secondary);">Altere a data para criar ou editar uma carga já lançada.</span>
                     <button class="btn btn-danger btn-pequeno" onclick="limparDraftCarga()"><i class="ph ph-trash"></i> Limpar Rascunho</button>
                 </div>
+
                 <div class="form-group">
                     <label>Data da Operação:</label>
-                    <input type="date" id="dataCargaDia" onclick="this.showPicker && this.showPicker()" onchange="salvarDraftCarga()">
+                    <input type="date" id="dataCargaDia" onclick="this.showPicker && this.showPicker()" onchange="trocarDataCargaDia()">
                 </div>
+
+                <div id="statusCargaEdicao" style="margin-bottom:12px;"></div>
+
                 <div id="listaItensCargaDia"></div>
 
                 <div class="form-group" style="margin-top:20px;">
