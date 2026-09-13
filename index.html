@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Logística de Bebidas - Trem</title>
-    <meta name="theme-color" content="#0f172a">
+    <meta name="theme-color" content="#062314">
     <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="style.css">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
@@ -125,14 +125,15 @@
             <div class="card">
                 <h4 style="margin-bottom: 15px; font-size:17px;"><i class="ph ph-squares-four"></i> Módulos</h4>
                 <div class="grid-menu-admin">
-                    <button class="btn btn-menu" onclick="mostrarTela('tela-carga-vagao')"><i class="ph ph-truck"></i> Montar Carga p/ Vagão</button>
+                    <button class="btn btn-menu" onclick="mostrarTela('tela-carga-dia')"><i class="ph ph-truck"></i> Montar Carga Geral</button>
+                    <button class="btn btn-menu" onclick="mostrarTela('tela-carga-vagao')"><i class="ph ph-train-regional"></i> Carga por Vagão</button>
                     <button class="btn btn-menu" onclick="mostrarTela('tela-receitas')"><i class="ph ph-receipt"></i> Receitas de Carga (Kits)</button>
                     <button class="btn btn-menu" onclick="mostrarTela('tela-estoques')"><i class="ph ph-warehouse"></i> Situação dos Estoques</button>
-                    <button class="btn btn-menu" onclick="mostrarTela('tela-vagoes')"><i class="ph ph-train"></i> Frota de Vagões</button>
+                    <button class="btn btn-menu" onclick="mostrarTela('tela-vagoes')"><i class="ph ph-list-dashes"></i> Frota de Vagões</button>
                     <button class="btn btn-menu" onclick="mostrarTela('tela-relatorios')"><i class="ph ph-chart-bar"></i> Relatórios & Balanço</button>
                     <button class="btn btn-menu" onclick="mostrarTela('tela-cadastro-produtos')"><i class="ph ph-package"></i> Produtos & Preços</button>
                     <button class="btn btn-menu" onclick="mostrarTela('tela-usuarios')"><i class="ph ph-users"></i> Equipe de Apoios</button>
-                    <button class="btn btn-dark" onclick="mostrarTela('tela-inicial')"><i class="ph ph-arrow-left"></i> Voltar à Tela Inicial</button>
+                    <button class="btn btn-dark" style="grid-column: span 2;" onclick="mostrarTela('tela-inicial')"><i class="ph ph-arrow-left"></i> Voltar à Tela Inicial</button>
                 </div>
             </div>
         </div>
@@ -154,10 +155,42 @@
             </div>
         </div>
 
+        <!-- TELA: CARGA GERAL DO DIA (MANIFESTO) -->
+        <div id="tela-carga-dia" class="tela">
+            <div class="header">
+                <h3><i class="ph ph-truck"></i> Montar Carga Geral</h3>
+                <button class="btn btn-secondary btn-pequeno" onclick="mostrarTela('tela-admin')">Voltar</button>
+            </div>
+            <div class="card">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                    <button class="btn btn-secondary btn-pequeno" onclick="copiarCargaDiaAnterior()"><i class="ph ph-copy"></i> Copiar Carga Anterior</button>
+                    <button class="btn btn-danger btn-pequeno" onclick="limparDraftCarga()"><i class="ph ph-trash"></i> Limpar Rascunho</button>
+                </div>
+
+                <div class="form-group">
+                    <label>Data da Operação:</label>
+                    <input type="date" id="dataCargaDia" onclick="this.showPicker && this.showPicker()" onchange="trocarDataCargaDia()">
+                </div>
+
+                <div id="statusCargaEdicao" style="margin-bottom:12px;"></div>
+
+                <div id="listaItensCargaDia"></div>
+
+                <div class="form-group" style="margin-top:20px;">
+                    <label style="color:var(--bagageiro-color); font-size:15px;">
+                        <i class="ph ph-star"></i> Observações Especiais / Freezer / Extras:
+                    </label>
+                    <textarea id="obsEspeciaisCarga" rows="3" placeholder="Ex: *2 Agg Arruda&#10;Gelo = 9 (1 Litos, 2 Cam, Car e Bar)" oninput="salvarDraftCarga()"></textarea>
+                </div>
+
+                <button class="btn btn-primary btn-lg" onclick="salvarCargaDoDia()"><i class="ph ph-check-circle"></i> Salvar e Publicar Carga Geral</button>
+            </div>
+        </div>
+
         <!-- TELA: CARGA POR VAGÃO (SEPARADO) -->
         <div id="tela-carga-vagao" class="tela">
             <div class="header">
-                <h3><i class="ph ph-truck"></i> Montar Carga por Vagão</h3>
+                <h3><i class="ph ph-train-regional"></i> Montar Carga por Vagão</h3>
                 <button class="btn btn-secondary btn-pequeno" onclick="mostrarTela('tela-admin')">Voltar</button>
             </div>
             <div class="card">
@@ -174,7 +207,7 @@
         <!-- TELA FROTA DE VAGÕES -->
         <div id="tela-vagoes" class="tela">
             <div class="header">
-                <h3><i class="ph ph-train"></i> Frota de Vagões</h3>
+                <h3><i class="ph ph-list-dashes"></i> Frota de Vagões</h3>
                 <button class="btn btn-secondary btn-pequeno" onclick="mostrarTela('tela-admin')">Voltar</button>
             </div>
             <div class="card">
@@ -474,9 +507,13 @@
                 <button class="btn btn-danger btn-pequeno" onclick="mostrarTela('tela-setup-carrinho')">Cancelar</button>
             </div>
             <div class="card">
+                <p style="font-size:13px; color:var(--secondary); margin-bottom:15px;">
+                    Informe as quantidades de saída e retorno dos itens de venda:
+                </p>
                 <div id="listaItensCarrinho"></div>
                 
                 <hr class="divisor">
+                
                 <h4 style="color:var(--primary); margin-bottom:10px;"><i class="ph ph-plus-circle"></i> Vendeu mais alguma coisa?</h4>
                 <div style="display:flex; gap:8px; margin-bottom:10px;">
                     <select id="selectItemExtraCarrinho" style="flex:2;"></select>
@@ -484,11 +521,14 @@
                     <button class="btn btn-primary" style="width:auto;" onclick="adicionarItemExtraVenda()"><i class="ph ph-plus"></i></button>
                 </div>
                 <div id="listaExtrasAdicionados" style="margin-bottom:15px;"></div>
+
                 <hr class="divisor">
+
                 <div class="form-group">
                     <label>Troco Inicial Pego no Bagageiro (R$):</label>
                     <input type="number" id="carrinhoTroco" value="0" onfocus="this.select()" oninput="calcularVendas();">
                 </div>
+                
                 <div class="box-total-vendas">
                     <p style="margin: 0; font-size:14px; font-weight:600;">Valor Líquido de Vendas:</p>
                     <h2>R$ <span id="lblTotalVendasCarrinho">0,00</span></h2>
@@ -510,10 +550,15 @@
             </div>
             
             <input type="hidden" id="modalMcvVagaoId">
-            <div class="form-group">
-                <label>Aplicar Receita (Opcional):</label>
-                <select id="modalMcvReceitaSelect" onchange="aplicarReceitaNaCargaModal()"></select>
-                <small style="color:var(--secondary); font-size:12px;">Selecione para preencher automaticamente as bebidas.</small>
+            
+            <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                 <div class="form-group" style="flex:2; margin-right:10px;">
+                     <label>Aplicar Receita (Opcional):</label>
+                     <select id="modalMcvReceitaSelect" onchange="aplicarReceitaNaCargaModal()"></select>
+                 </div>
+                 <div style="flex:1; display:flex; align-items:flex-end; padding-bottom:16px;">
+                     <button class="btn btn-secondary btn-pequeno" onclick="copiarCargaVagaoAnteriorModal()"><i class="ph ph-copy"></i> Repetir Última</button>
+                 </div>
             </div>
 
             <div id="modalMcvListaItens" style="max-height: 40vh; overflow-y: auto; margin-bottom:15px; border:1px solid var(--border); border-radius:8px; padding:10px; background:#f8faf9;"></div>
