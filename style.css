@@ -10,7 +10,7 @@
     --container-border: #99d6b5;
     --bagageiro-color: #923a0e;
     --bagageiro-bg: #fbede2;
-    --bagageiro-border: #f7c397;
+    --bagageiro-border: #f4b98c;
     --secondary: #475569;
     --accent: #b45309;
     --danger: #b91c1c;
@@ -225,7 +225,6 @@ body {
     margin-bottom: 3px;
 }
 
-/* BOTÕES */
 .btn {
     padding: 14px 18px;
     border: none;
@@ -640,7 +639,7 @@ input[type="date"] { position: relative; cursor: pointer; }
     animation: fadeIn 0.22s ease-out;
 }
 
-/* ================= NOTIFICAÇÕES TOAST (SUBSTITUI O ALERT) ================= */
+/* ================= NOTIFICAÇÕES TOAST (SUBSTITUI O ALERT E CONFIRM FEIOS) ================= */
 .toast-container {
     position: fixed;
     bottom: 24px;
@@ -671,7 +670,7 @@ input[type="date"] { position: relative; cursor: pointer; }
     pointer-events: auto;
 }
 .toast-erro {
-    background: var(--danger);
+    background: #b91c1c;
 }
 @keyframes slideUpFade {
     from { opacity: 0; transform: translateY(30px); }
