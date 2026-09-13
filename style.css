@@ -11,6 +11,9 @@
     --bagageiro-color: #923a0e;
     --bagageiro-bg: #fbede2;
     --bagageiro-border: #f4b98c;
+    --transito-color: #0369a1;
+    --transito-bg: #e0f2fe;
+    --transito-border: #7dd3fc;
     --secondary: #475569;
     --accent: #b45309;
     --danger: #b91c1c;
@@ -153,15 +156,6 @@ body {
     color: var(--primary);
     display: block;
     margin: 8px 0;
-}
-.kpi-sub {
-    font-size: 12px;
-    color: var(--accent);
-    font-weight: 700;
-}
-.kpi-destaque {
-    background: #e2f7ed;
-    border-color: #84dfaf;
 }
 
 .resumo-estoques-grid {
@@ -353,6 +347,117 @@ input[type="date"] { position: relative; cursor: pointer; }
 .input-avaria { border-color: var(--danger) !important; color: var(--danger) !important; }
 .input-pax { background: #e8f8f5 !important; color: var(--success) !important; border-color: #86efac !important;}
 
+/* CONTROLES INTUITIVOS PARA RETORNO DE BOUTIQUE (+ / -) */
+.box-ajuste-retorno-linha {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px dashed var(--border);
+}
+.controles-ajuste-retorno {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.select-operador-retorno {
+    width: 60px !important;
+    padding: 8px 4px !important;
+    font-weight: 800;
+    font-size: 16px;
+    text-align: center;
+    border-radius: 8px;
+    background: #ffffff;
+    cursor: pointer;
+}
+
+/* SELETOR DE SENTIDO PARA CARGA POR VAGÃO */
+.seletor-sentido-carga {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+.btn-aba-sentido {
+    padding: 12px;
+    border-radius: 10px;
+    border: 2px solid var(--border);
+    background: #e2e8f0;
+    color: var(--secondary);
+    font-weight: 700;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s;
+}
+.btn-aba-sentido.ativo {
+    background: var(--primary);
+    color: #ffffff;
+    border-color: var(--primary);
+    box-shadow: 0 4px 12px rgba(8, 47, 27, 0.2);
+}
+
+/* NUVEM / ESTOQUE EM TRÂNSITO */
+.card-transito-nuvem {
+    background: var(--transito-bg);
+    border: 2px solid var(--transito-border);
+    padding: 14px 16px;
+    border-radius: 12px;
+    margin-bottom: 15px;
+}
+.card-transito-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+}
+.tag-transito {
+    background: #0284c7;
+    color: #ffffff;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 800;
+}
+.grade-transito-itens {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 8px;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--transito-border);
+}
+.item-chip-transito {
+    background: #ffffff;
+    border: 1px solid var(--transito-border);
+    padding: 6px 8px;
+    border-radius: 8px;
+    font-size: 12px;
+    display: flex;
+    justify-content: space-between;
+}
+
+/* CARDS DE VAGÕES NA CARGA (COM TOGGLE ATIVO / INATIVO) */
+.card-carga-vagao-item {
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1.5px solid var(--border);
+    background: #ffffff;
+    transition: all 0.2s;
+}
+.card-carga-vagao-inativo {
+    opacity: 0.55;
+    background: #f1f5f9;
+    border-style: dashed;
+}
+
 .grid-vagoes-cards {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -493,7 +598,6 @@ input[type="date"] { position: relative; cursor: pointer; }
     white-space: pre-line;
 }
 
-/* TABELA DE RELATÓRIO AJUSTADA PRO CELULAR */
 .tabela-container {
     overflow-x: auto;
     border-radius: 8px;
@@ -528,7 +632,6 @@ input[type="date"] { position: relative; cursor: pointer; }
     font-size: 12px;
 }
 
-/* TOTALIZADORES LANCHES X BEBIDAS */
 .box-comparativo-status {
     padding: 12px;
     border-radius: 10px;
@@ -612,7 +715,6 @@ input[type="date"] { position: relative; cursor: pointer; }
 }
 .msg-erro { background: var(--danger); color: white; }
 
-/* MODAIS */
 .modal-overlay {
     display: none;
     position: fixed;
@@ -637,46 +739,4 @@ input[type="date"] { position: relative; cursor: pointer; }
     box-shadow: 0 15px 35px rgba(0,0,0,0.25);
     border: 1.5px solid var(--border);
     animation: fadeIn 0.22s ease-out;
-}
-
-/* ================= NOTIFICAÇÕES TOAST (SUBSTITUI O ALERT E CONFIRM FEIOS) ================= */
-.toast-container {
-    position: fixed;
-    bottom: 24px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 10000;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    width: 90%;
-    max-width: 400px;
-    pointer-events: none;
-}
-.toast-msg {
-    background: #0f766e;
-    color: #ffffff;
-    padding: 14px 18px;
-    border-radius: 12px;
-    font-size: 15px;
-    font-weight: 700;
-    text-align: center;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.25);
-    animation: slideUpFade 0.3s ease-out forwards;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    pointer-events: auto;
-}
-.toast-erro {
-    background: #b91c1c;
-}
-@keyframes slideUpFade {
-    from { opacity: 0; transform: translateY(30px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-@keyframes fadeOutDown {
-    from { opacity: 1; transform: translateY(0); }
-    to { opacity: 0; transform: translateY(30px); }
 }
