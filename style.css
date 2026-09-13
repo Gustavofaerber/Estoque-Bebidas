@@ -225,6 +225,7 @@ body {
     margin-bottom: 3px;
 }
 
+/* BOTÕES */
 .btn {
     padding: 14px 18px;
     border: none;
@@ -639,7 +640,7 @@ input[type="date"] { position: relative; cursor: pointer; }
     animation: fadeIn 0.22s ease-out;
 }
 
-/* ================= NOTIFICAÇÕES TOAST ================= */
+/* ================= NOTIFICAÇÕES TOAST (SUBSTITUI O ALERT) ================= */
 .toast-container {
     position: fixed;
     bottom: 24px;
@@ -669,6 +670,14 @@ input[type="date"] { position: relative; cursor: pointer; }
     gap: 8px;
     pointer-events: auto;
 }
-.toast-erro { background: #b91c1c; }
-@keyframes slideUpFade { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes fadeOutDown { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(30px); } }
+.toast-erro {
+    background: var(--danger);
+}
+@keyframes slideUpFade {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeOutDown {
+    from { opacity: 1; transform: translateY(0); }
+    to { opacity: 0; transform: translateY(30px); }
+}
