@@ -24,7 +24,7 @@
                 <p class="subtitulo">Controle de Bordo, Estoques & Escala</p>
                 
                 <button class="btn btn-manifesto btn-lg" onclick="window.mostrarTela('tela-ver-carga')">
-                    <i class="ph ph-notepad"></i> Ver Carga do Trem (Escala)
+                    <i class="ph ph-notepad"></i> Ver Carga do Trem
                 </button>
                 <button class="btn btn-operacao btn-lg" style="margin-top: 12px;" onclick="window.mostrarTela('tela-operacao-viagem')">
                     <i class="ph ph-compass"></i> Monitor da Viagem (Reforços)
@@ -47,7 +47,7 @@
         <!-- TELA PÚBLICA: VER CARGA -->
         <div id="tela-ver-carga" class="tela">
             <div class="header">
-                <h3><i class="ph ph-notepad"></i> Escala de Cargas</h3>
+                <h3><i class="ph ph-notepad"></i> Carga do Trem</h3>
                 <button class="btn btn-secondary btn-pequeno" onclick="window.mostrarTela('tela-inicial')">Voltar</button>
             </div>
             <div class="card">
@@ -537,18 +537,6 @@
     </div>
 
     <!-- MODAIS POP-UPS (TODOS AQUI) -->
-
-    <!-- MODAL POP-UP: CONFIRMAÇÃO GENÉRICA (SUBSTITUI WINDOW.CONFIRM) -->
-    <div id="modal-confirmacao" class="modal-overlay">
-        <div class="modal-content" style="max-width: 400px; text-align: center;">
-            <div style="margin-bottom:15px; color:var(--primary);"><i class="ph ph-question" style="font-size: 48px;"></i></div>
-            <h3 style="margin-top:0; color:var(--text); font-size:18px;" id="lblConfirmacaoTexto">Tem certeza?</h3>
-            <div style="display:flex; gap:10px; margin-top:25px;">
-                <button class="btn btn-primary" style="flex:1;" onclick="window.executarConfirmacao()"><i class="ph ph-check"></i> Sim</button>
-                <button class="btn btn-secondary" style="flex:1;" onclick="window.fecharModal('modal-confirmacao')">Não</button>
-            </div>
-        </div>
-    </div>
 
     <!-- MODAL: CARGA DE UM VAGÃO (O CHEFE EDITA AQUI ANTES DE SALVAR) -->
     <div id="modal-montar-carga-vagao" class="modal-overlay">
