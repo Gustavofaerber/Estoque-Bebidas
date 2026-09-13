@@ -51,7 +51,7 @@ if (!document.getElementById('modal-confirmacao')) {
     document.body.appendChild(confModal);
 }
 
-// ================= SISTEMA DE NOTIFICAÇÕES (TOAST) E CONFIRMAÇÃO =================
+// ================= SISTEMA DE NOTIFICAÇÕES E CONFIRMAÇÃO =================
 window.mostrarToast = function(mensagem, isErro = false) {
     let container = document.getElementById('toast-container');
     if (!container) {
@@ -119,7 +119,6 @@ const catalogoInicial = [
     { id: 'Gelo', nome: 'Saco de Gelo', unidadesPorFardo: 1, ordem: 17, precoVenda: 0, estoqueContainerUnidades: 50, estoqueBagageiroUnidades: 10 }
 ];
 
-// Receitas padrão prontas
 const receitasIniciaisPadrao = [
     { id: 'rec_turistico_48', nome: 'Base Turístico (48 Lugares)', itens: { C: 24, Gg: 12, Zp: 6, Acp: 24, KL: 49 } },
     { id: 'rec_economico', nome: 'Base Econômico', itens: { C: 24, Gg: 12, Zp: 6, Acp: 24, KL: 49 } },
@@ -136,6 +135,9 @@ const frotaInicialPadrao = [
     { id: '01', numero: '01', nome: 'Econômico 1', tipo: 'economico', receitaId: 'rec_economico', bebidasPermitidas: ['C', 'Cp', 'Zp', 'Gg', 'Gp', 'Acp', 'KL'] },
     { id: '18', numero: '18', nome: 'Foz do Iguaçu', tipo: 'boutique', receitaId: 'rec_boutique_padrao', bebidasPermitidas: ['Cp', 'Zp', 'Gp', 'Fgp', 'Am', 'Agsp', 'Aggp', 'Chn', 'Chz', 'Su', 'Sp', 'KL', 'Esp', 'Gelo'] },
     { id: '20', numero: '20', nome: 'Curitiba', tipo: 'boutique', receitaId: 'rec_boutique_padrao', bebidasPermitidas: ['Cp', 'Zp', 'Gp', 'Fgp', 'Am', 'Agsp', 'Aggp', 'Chn', 'Chz', 'Su', 'Sp', 'KL', 'Esp', 'Gelo'] },
+    { id: 'Cam', numero: 'Cam', nome: 'Camarote', tipo: 'boutique', receitaId: 'rec_boutique_padrao', bebidasPermitidas: ['Cp', 'Zp', 'Gp', 'Fgp', 'Am', 'Agsp', 'Aggp', 'Chn', 'Chz', 'Su', 'Sp', 'KL', 'Esp', 'Gelo'] },
+    { id: 'Imp', numero: 'Imp', nome: 'Imperial', tipo: 'boutique', receitaId: 'rec_boutique_padrao', bebidasPermitidas: ['Cp', 'Zp', 'Gp', 'Fgp', 'Am', 'Agsp', 'Aggp', 'Chn', 'Chz', 'Su', 'Sp', 'KL', 'Esp', 'Gelo'] },
+    { id: 'Bar', numero: 'Bar', nome: 'Vagão Bar', tipo: 'boutique', receitaId: 'rec_boutique_padrao', bebidasPermitidas: ['Cp', 'Zp', 'Gp', 'Fgp', 'Am', 'Agsp', 'Aggp', 'Chn', 'Chz', 'Su', 'Sp', 'KL', 'Esp', 'Gelo'] },
     { id: '7000', numero: '7000', nome: 'Litorina 7000', tipo: 'litorina', receitaId: 'rec_boutique_padrao', bebidasPermitidas: ['Cp', 'Zp', 'Gp', 'Fgp', 'Am', 'Agsp', 'Aggp', 'Chn', 'Chz', 'Su', 'Sp', 'KL', 'Esp', 'Gelo'] },
     { id: '7001', numero: '7001', nome: 'Litorina 7001', tipo: 'litorina', receitaId: 'rec_boutique_padrao', bebidasPermitidas: ['Cp', 'Zp', 'Gp', 'Fgp', 'Am', 'Agsp', 'Aggp', 'Chn', 'Chz', 'Su', 'Sp', 'KL', 'Esp', 'Gelo'] }
 ];
@@ -486,7 +488,7 @@ window.excluirReceita = async function(id) {
     });
 };
 
-// ================= FROTA DE VAGÕES (SEPARADA E SIMPLIFICADA) =================
+// ================= FROTA DE VAGÕES (SEPARADA & SIMPLIFICADA) =================
 window.renderizarVagoesAdmin = function() {
     const div = document.getElementById('listaVagoesAdmin');
     if (!div) return;
@@ -736,7 +738,6 @@ window.renderizarItensModalCargaVagao = function(cargaExistente) {
     const permitidas = vagao?.bebidasPermitidas || [];
 
     window.produtosDB.filter(p => !p.nome.includes('(Venda)')).forEach(p => {
-        // Exibe apenas os permitidos para este vagão. Mostra tudo com 0 se não estiver na receita.
         if (permitidas.length > 0 && !permitidas.includes(p.id)) return;
 
         let valTotal = 0;
@@ -748,6 +749,9 @@ window.renderizarItensModalCargaVagao = function(cargaExistente) {
         } else if (receitaObj && receitaObj.itens && receitaObj.itens[p.id]) {
             valTotal = receitaObj.itens[p.id];
         }
+
+        // REMOVIDA A TRAVA QUE ESCONDIA A BEBIDA SE FOSSE 0
+        // Agora todas as bebidas permitidas aparecem, mesmo que a receita tenha valor 0.
 
         div.innerHTML += `
             <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px dashed var(--border);">
@@ -787,7 +791,7 @@ window.salvarCargaVagaoModal = async function() {
         const baga = parseInt(bagEl.value) || 0;
         const cont = Math.max(0, total - baga);
 
-        if (total > 0) {
+        if (total > 0 || baga > 0) {
             itensSalvos[p.id] = { qtd: total, baga, cont };
         }
     }
@@ -809,7 +813,7 @@ window.salvarCargaVagaoModal = async function() {
     window.renderizarVagoesParaCarga();
 };
 
-// ================= CARGA DO DIA (MANIFESTO GERAL) - DESCONTA DO ESTOQUE EM FARDOS =================
+// ================= CARGA DO DIA (MANIFESTO GERAL) =================
 window.verificarStatusEdicaoCarga = function() {
     const dataSel = document.getElementById('dataCargaDia')?.value;
     const boxStatus = document.getElementById('statusCargaEdicao');
@@ -996,8 +1000,8 @@ window.salvarCargaDoDia = async function() {
             batch.update(doc(db, "produtos", p.id), { ordem: novaOrdem });
         }
 
-        // SALVA MESMO SE FOR 0, SE ELE EXISTIA NA CARGA ANTIGA, PARA PODER ESTORNAR
-        if (totalFardos > 0 || (cargaAntiga && cargaAntiga.itens?.[p.id])) {
+        // LIBERADO PARA SALVAR SE VOCÊ PREENCHEU QUALQUER COISA NA LINHA (MUDANÇA AQUI)
+        if (totalFardos > 0 || bagaFardos > 0 || destino !== "" || (cargaAntiga && cargaAntiga.itens?.[p.id])) {
             itensSalvos[p.id] = { total: totalFardos, baga: bagaFardos, cont: contFardos, destino, ordem: novaOrdem };
 
             const antigoContFardos = cargaAntiga?.itens?.[p.id]?.cont || 0;
@@ -1089,8 +1093,8 @@ window.carregarManifestoPublico = function(forcarUltima = false) {
 
     let linhasHtml = "";
     itensOrdenados.forEach(item => {
-        // FILTRO VISUAL: Não mostra a bebida no manifesto se o total de fardos dela for 0
-        if (item.total <= 0) return;
+        // FILTRO VISUAL ARRUMADO: Só esconde do manifesto se TUDO for 0 ou vazio
+        if (item.total <= 0 && item.baga <= 0 && (!item.destino || item.destino.trim() === '')) return;
 
         let formulaTexto = "";
         let strDestino = item.destino ? `<span class="manifesto-destino">(${item.destino})</span>` : '';
@@ -1405,115 +1409,6 @@ window.salvarAjusteRetornoBoutique = async function() {
     window.mostrarTela('tela-inicial');
 };
 
-// ================= GESTÃO DE USUÁRIOS E PRODUTOS =================
-window.renderizarUsuarios = function() {
-    const div = document.getElementById('listaUsuariosAdmin');
-    if (!div) return;
-    div.innerHTML = "";
-    [...window.usuariosDB].sort((a,b) => a.nome.localeCompare(b.nome)).forEach((u) => {
-        div.innerHTML += `
-            <div style="display:flex; justify-content:space-between; padding: 12px 0; border-bottom: 1px solid var(--border); align-items:center;">
-                <div style="font-size:15px; font-weight:600;"><i class="ph ph-user"></i> ${u.nome}</div>
-                <button class="btn btn-danger btn-pequeno" onclick="window.removerUsuario('${u.id}')"><i class="ph ph-trash"></i></button>
-            </div>
-        `;
-    });
-};
-
-window.adicionarUsuario = async function() {
-    const nome = document.getElementById('novoUsuarioNome').value.trim();
-    if (!nome) return;
-    const uid = Date.now().toString();
-    await setDoc(doc(db, "usuarios", uid), { id: uid, nome: window.escapeHTML(nome) });
-    document.getElementById('novoUsuarioNome').value = "";
-    window.mostrarToast("Apoio adicionado com sucesso!");
-};
-
-window.removerUsuario = async function(id) {
-    window.abrirConfirmacao("Remover este apoio?", async () => {
-        await deleteDoc(doc(db, "usuarios", id));
-        window.mostrarToast("Apoio removido!");
-    });
-};
-
-window.renderizarProdutosAdmin = function() {
-    ordenarPorRegra(window.produtosDB);
-    const div = document.getElementById('listaProdutosAdmin');
-    if (!div) return;
-    div.innerHTML = "";
-    window.produtosDB.forEach((p) => {
-        div.innerHTML += `
-            <div style="display:flex; justify-content:space-between; align-items:center; padding: 12px 0; border-bottom: 1px solid var(--border);">
-                <div>
-                    <span class="badge-ordem">#${p.ordem || '-'}</span>
-                    <strong style="font-size:16px;">${p.id}</strong> - ${p.nome} 
-                    <br><small style="color:var(--secondary); font-size:13px;">${p.unidadesPorFardo} un/fardo &bull; Preço Venda: <strong>R$ ${window.formatarMoeda(p.precoVenda)}</strong></small>
-                </div>
-                <div style="display:flex; gap:6px;">
-                    <button class="btn btn-secondary btn-pequeno" onclick="window.abrirModalProduto('${p.id}')"><i class="ph ph-pencil-simple"></i> Editar</button>
-                    <button class="btn btn-danger btn-pequeno" onclick="window.removerProduto('${p.id}')"><i class="ph ph-trash"></i></button>
-                </div>
-            </div>
-        `;
-    });
-};
-
-window.abrirModalProduto = function(id = null) {
-    if (id) {
-        const p = window.produtosDB.find(x => x.id === id);
-        if (!p) return;
-        document.getElementById('modalProdutoTitulo').innerHTML = '<i class="ph ph-pencil-simple"></i> Editar Produto';
-        document.getElementById('modalProdIdOriginal').value = p.id;
-        document.getElementById('modalProdSigla').value = p.id;
-        document.getElementById('modalProdSigla').disabled = true;
-        document.getElementById('modalProdNome').value = p.nome;
-        document.getElementById('modalProdUnFardo').value = p.unidadesPorFardo || 12;
-        document.getElementById('modalProdPreco').value = p.precoVenda || 0;
-        document.getElementById('modalProdOrdem').value = p.ordem !== undefined ? p.ordem : "";
-    } else {
-        document.getElementById('modalProdutoTitulo').innerHTML = '<i class="ph ph-plus-circle"></i> Novo Produto';
-        document.getElementById('modalProdIdOriginal').value = "";
-        document.getElementById('modalProdSigla').value = "";
-        document.getElementById('modalProdSigla').disabled = false;
-        document.getElementById('modalProdNome').value = "";
-        document.getElementById('modalProdUnFardo').value = "12";
-        document.getElementById('modalProdPreco').value = "";
-        document.getElementById('modalProdOrdem').value = window.produtosDB.length + 1;
-    }
-    window.abrirModal('modal-produto');
-    setTimeout(() => window.focarProximo(id ? 'modalProdNome' : 'modalProdOrdem'), 100);
-};
-
-window.salvarProdutoModal = async function() {
-    const idOriginal = document.getElementById('modalProdIdOriginal').value;
-    const sigla = document.getElementById('modalProdSigla').value.trim();
-    const nome = document.getElementById('modalProdNome').value.trim();
-    const unFardo = parseInt(document.getElementById('modalProdUnFardo').value) || 12;
-    const preco = parseFloat(document.getElementById('modalProdPreco').value) || 0;
-    const ordem = parseInt(document.getElementById('modalProdOrdem').value) || 99;
-
-    if (!sigla || !nome) { window.mostrarToast("Preencha Sigla e Nome!", true); return; }
-
-    const idFinal = idOriginal || sigla;
-    const dados = { id: idFinal, nome: window.escapeHTML(nome), unidadesPorFardo: unFardo, precoVenda: preco, ordem };
-
-    if (!idOriginal) {
-        dados.estoqueContainerUnidades = 0;
-        dados.estoqueBagageiroUnidades = 0;
-    }
-
-    await setDoc(doc(db, "produtos", idFinal), dados, { merge: true });
-    window.fecharModal('modal-produto');
-    window.mostrarToast("Produto salvo com sucesso!");
-};
-
-window.removerProduto = async function(id) {
-    window.abrirConfirmacao("Excluir este produto definitivamente?", async () => {
-        await deleteDoc(doc(db, "produtos", id));
-        window.mostrarToast("Produto excluído!");
-    });
-};
-
 // ================= CONTAGEM DE VAGÃO (APOIO) =================
 window.abrirSetupContagem = function() {
     const selUser = document.getElementById('selectNomeApoio');
@@ -1673,7 +1568,6 @@ window.gerarResumoContagem = function() {
                     <td style="font-weight:bold; color:var(--primary);">${obj.saldo}</td>
                 </tr>
             `;
-
             if (p.id === 'KL' || p.id === 'Kl') totalLanches += obj.pax;
             else totalBebidas += obj.pax;
         }
@@ -1702,7 +1596,6 @@ window.salvarContagemDefinitiva = async function() {
     for (let id in window.contagemTemp.itens) {
         const item = window.contagemTemp.itens[id];
         
-        // MATEMÁTICA DO APOIO - SOBRAS E EXTRAS
         const extraPego = Math.max(0, item.carga - item.cargaOriginal);
         const netBagageiro = item.saldo - extraPego;
 
@@ -1722,239 +1615,7 @@ window.salvarContagemDefinitiva = async function() {
     window.mostrarTela('tela-inicial');
 };
 
-// ================= GESTÃO DE RASCUNHOS =================
-window.salvarDraftEstoque = function() {
-    const draft = {};
-    window.produtosDB.forEach(p => {
-        draft[p.id] = {
-            cFd: document.getElementById(`est_cont_fd_${p.id}`)?.value || "",
-            cUn: document.getElementById(`est_cont_un_${p.id}`)?.value || "",
-            bFd: document.getElementById(`est_baga_fd_${p.id}`)?.value || "",
-            bUn: document.getElementById(`est_baga_un_${p.id}`)?.value || ""
-        };
-    });
-    localStorage.setItem('trem_draft_estoque', JSON.stringify(draft));
-};
-
-window.limparDraftEstoque = function() {
-    window.abrirConfirmacao("Deseja restaurar os valores originais descartando o rascunho?", () => {
-        localStorage.removeItem('trem_draft_estoque');
-        window.abrirTelaEstoques();
-    });
-};
-
-window.salvarDraftCarga = function() {
-    const draft = {
-        data: document.getElementById('dataCargaDia')?.value || "",
-        obs: document.getElementById('obsEspeciaisCarga')?.value || "",
-        itens: {}
-    };
-    window.produtosDB.forEach(p => {
-        draft.itens[p.id] = {
-            total: document.getElementById(`carga_total_${p.id}`)?.value || "",
-            baga: document.getElementById(`carga_baga_${p.id}`)?.value || "",
-            dest: document.getElementById(`carga_dest_${p.id}`)?.value || "",
-            ordem: document.getElementById(`carga_ordem_${p.id}`)?.value || ""
-        };
-    });
-    localStorage.setItem('trem_draft_carga', JSON.stringify(draft));
-};
-
-window.limparDraftCarga = function() {
-    window.abrirConfirmacao("Deseja zerar os campos da carga do dia?", () => {
-        localStorage.removeItem('trem_draft_carga');
-        window.abrirCargaDoDia();
-    });
-};
-
-window.salvarDraftContagem = function() {
-    const draft = {
-        apoio: document.getElementById('selectNomeApoio')?.value || "",
-        data: document.getElementById('dataContagemApoio')?.value || "",
-        sentido: document.getElementById('selectSentidoApoio')?.value || "",
-        vagaoId: document.getElementById('selectVagaoApoio')?.value || "",
-        guia: document.getElementById('nomeGuiaApoio')?.value || "",
-        itens: {}
-    };
-    window.produtosDB.forEach(p => {
-        draft.itens[p.id] = {
-            carga: document.getElementById(`carga_${p.id}`)?.value || "",
-            saldo: document.getElementById(`saldo_${p.id}`)?.value || "",
-            trip: document.getElementById(`trip_${p.id}`)?.value || "",
-            ava: document.getElementById(`ava_${p.id}`)?.value || ""
-        };
-    });
-    localStorage.setItem('trem_draft_contagem', JSON.stringify(draft));
-};
-
-window.salvarDraftCarrinho = function() {
-    const draft = {
-        data: document.getElementById('dataCarrinho')?.value || "",
-        sentido: document.getElementById('sentidoCarrinho')?.value || "",
-        apoio: document.getElementById('selectApoioCarrinho')?.value || "",
-        troco: document.getElementById('carrinhoTroco')?.value || "",
-        itens: {},
-        extras: window.itensExtrasCarrinhoTemp || []
-    };
-    window.produtosDB.filter(p => p.nome.includes('(Venda)')).forEach(p => {
-        draft.itens[p.id] = {
-            saiu: document.getElementById(`venda_saiu_${p.id}`)?.value || "",
-            sobrou: document.getElementById(`venda_sobrou_${p.id}`)?.value || ""
-        };
-    });
-    localStorage.setItem('trem_draft_carrinho', JSON.stringify(draft));
-};
-
-// ================= CARRINHO DE VENDAS =================
-window.abrirSetupCarrinho = function() {
-    const selApoio = document.getElementById('selectApoioCarrinho');
-    if (!selApoio) return;
-    selApoio.innerHTML = "";
-    [...window.usuariosDB].sort((a,b) => a.nome.localeCompare(b.nome)).forEach(u => {
-        selApoio.innerHTML += `<option value="${u.nome}">${u.nome}</option>`;
-    });
-
-    const draftStr = localStorage.getItem('trem_draft_carrinho');
-    const draft = draftStr ? JSON.parse(draftStr) : null;
-
-    const hj = new Date().toISOString().split('T')[0];
-    document.getElementById('dataCarrinho').value = draft?.data || hj;
-    if (draft?.sentido) document.getElementById('sentidoCarrinho').value = draft.sentido;
-};
-
-window.iniciarAcertoCarrinho = function() {
-    const sentido = document.getElementById('sentidoCarrinho').value;
-    document.getElementById('lblCarrinhoSentido').innerText = sentido;
-
-    const div = document.getElementById('listaItensCarrinho');
-    div.innerHTML = "";
-
-    const draftStr = localStorage.getItem('trem_draft_carrinho');
-    const draft = draftStr ? JSON.parse(draftStr) : null;
-
-    window.produtosDB.filter(p => p.nome.includes('(Venda)')).forEach(p => {
-        const valSaiu = draft?.itens?.[p.id]?.saiu !== undefined ? draft.itens[p.id].saiu : 0;
-        const valSobrou = draft?.itens?.[p.id]?.sobrou !== undefined ? draft.itens[p.id].sobrou : 0;
-
-        div.innerHTML += `
-            <div class="item-contagem">
-                <div class="item-contagem-header"><span><span class="badge-ordem">#${p.ordem || '-'}</span> ${p.nome} (R$ ${window.formatarMoeda(p.precoVenda)})</span></div>
-                <div class="grid-inputs" style="grid-template-columns: 1fr 1fr;">
-                    <div><label>Saiu com:</label><input type="number" id="venda_saiu_${p.id}" value="${valSaiu}" onfocus="this.select()" oninput="window.calcularVendas(); window.salvarDraftCarrinho();"></div>
-                    <div><label>Sobrou:</label><input type="number" id="venda_sobrou_${p.id}" value="${valSobrou}" class="destaque-input" placeholder="0" onfocus="this.select()" oninput="window.calcularVendas(); window.salvarDraftCarrinho();"></div>
-                </div>
-            </div>
-        `;
-    });
-
-    const selExtra = document.getElementById('selectItemExtraCarrinho');
-    selExtra.innerHTML = '<option value="">-- Selecione um item extra vendido --</option>';
-    window.produtosDB.forEach(p => {
-        selExtra.innerHTML += `<option value="${p.id}">${p.nome} (R$ ${window.formatarMoeda(p.precoVenda)})</option>`;
-    });
-
-    window.itensExtrasCarrinhoTemp = draft?.extras || [];
-    renderizarExtrasAdicionados();
-    document.getElementById('carrinhoTroco').value = draft?.troco || 0;
-    window.calcularVendas();
-    window.mostrarTela('tela-acerto-carrinho');
-};
-
-window.adicionarItemExtraVenda = function() {
-    const pId = document.getElementById('selectItemExtraCarrinho').value;
-    const qtd = parseInt(document.getElementById('qtdItemExtraCarrinho').value) || 1;
-
-    if (!pId) { window.mostrarToast("Selecione um produto extra da lista!", true); return; }
-    const prod = window.produtosDB.find(x => x.id === pId);
-
-    window.itensExtrasCarrinhoTemp.push({
-        id: prod.id,
-        nome: prod.nome,
-        preco: prod.precoVenda || 0,
-        qtd: qtd,
-        total: (prod.precoVenda || 0) * qtd
-    });
-
-    document.getElementById('qtdItemExtraCarrinho').value = 1;
-    document.getElementById('selectItemExtraCarrinho').value = "";
-    renderizarExtrasAdicionados();
-    window.calcularVendas();
-    window.salvarDraftCarrinho();
-};
-
-function renderizarExtrasAdicionados() {
-    const div = document.getElementById('listaExtrasAdicionados');
-    div.innerHTML = "";
-    window.itensExtrasCarrinhoTemp.forEach((item, idx) => {
-        div.innerHTML += `
-            <div style="display:flex; justify-content:space-between; align-items:center; background:#f8fafc; padding:10px 12px; border:1.5px solid var(--border); border-radius:8px; margin-bottom:6px; font-size:14px;">
-                <span><strong>${item.qtd}x</strong> ${item.nome} &bull; <span style="color:var(--success); font-weight:bold;">R$ ${window.formatarMoeda(item.total)}</span></span>
-                <button class="btn btn-danger btn-pequeno" style="padding:4px 8px;" onclick="window.removerItemExtra(${idx})"><i class="ph ph-trash"></i></button>
-            </div>
-        `;
-    });
-}
-
-window.removerItemExtra = function(idx) {
-    window.itensExtrasCarrinhoTemp.splice(idx, 1);
-    renderizarExtrasAdicionados();
-    window.calcularVendas();
-    window.salvarDraftCarrinho();
-};
-
-window.calcularVendas = function() {
-    let totalVendas = 0;
-
-    window.produtosDB.filter(p => p.nome.includes('(Venda)')).forEach(p => {
-        const saiu = parseInt(document.getElementById(`venda_saiu_${p.id}`)?.value) || 0;
-        const sobrou = parseInt(document.getElementById(`venda_sobrou_${p.id}`)?.value) || 0;
-        const vendidos = Math.max(0, saiu - sobrou);
-        totalVendas += (vendidos * (p.precoVenda || 0));
-    });
-
-    window.itensExtrasCarrinhoTemp.forEach(ex => {
-        totalVendas += ex.total;
-    });
-
-    const troco = parseFloat(document.getElementById('carrinhoTroco').value) || 0;
-
-    document.getElementById('lblTotalVendasCarrinho').innerText = window.formatarMoeda(totalVendas);
-    document.getElementById('lblTotalEntregar').innerText = 'R$ ' + window.formatarMoeda(totalVendas + troco);
-};
-
-window.salvarAcertoCarrinho = async function() {
-    const data = document.getElementById('dataCarrinho').value;
-    const sentido = document.getElementById('sentidoCarrinho').value;
-    const apoio = document.getElementById('selectApoioCarrinho').value;
-    const troco = parseFloat(document.getElementById('carrinhoTroco').value) || 0;
-    const totalVendaTexto = document.getElementById('lblTotalVendasCarrinho').innerText;
-
-    let itensVendidosBase = {};
-    window.produtosDB.filter(p => p.nome.includes('(Venda)')).forEach(p => {
-        const saiu = parseInt(document.getElementById(`venda_saiu_${p.id}`)?.value) || 0;
-        const sobrou = parseInt(document.getElementById(`venda_sobrou_${p.id}`)?.value) || 0;
-        itensVendidosBase[p.id] = { saiu, sobrou, vendidos: Math.max(0, saiu - sobrou), nome: p.nome, preco: p.precoVenda };
-    });
-
-    const vendaId = Date.now().toString();
-    await setDoc(doc(db, "vendas_carrinho", vendaId), {
-        id: vendaId,
-        data,
-        sentido,
-        apoio,
-        troco,
-        totalVendasR$: totalVendaTexto,
-        itensBase: itensVendidosBase,
-        extras: window.itensExtrasCarrinhoTemp,
-        timestamp: Date.now()
-    });
-
-    localStorage.removeItem('trem_draft_carrinho');
-    window.mostrarToast(`Acerto concluído e salvo!<br>Total apurado: R$ ${totalVendaTexto}`);
-    window.mostrarTela('tela-inicial');
-};
-
-// ================= RELATÓRIOS DO CHEFE =================
+// ================= RELATÓRIOS DO CHEFE E FILTROS =================
 window.setModoRelatorio = function(modo) {
     window.modoRelatorioAdmin = modo;
     ['btnRelVagao', 'btnRelTur', 'btnRelBoutLito', 'btnRelVendas'].forEach(id => {
@@ -2219,6 +1880,6 @@ window.salvarEdicaoRelatorioPeloChefe = async function() {
     window.renderizarRelatoriosAdmin();
 };
 
-// INICIALIZAÇÃO OBRIGATÓRIA E BLINDADA
+// ================= INICIALIZAÇÃO OBRIGATÓRIA =================
 iniciarSincronizacaoNuvem();
 restaurarSessaoOuTela();
