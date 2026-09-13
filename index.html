@@ -11,7 +11,7 @@
 </head>
 <body>
 
-    <!-- CONTAINER DE NOTIFICAÇÕES TOAST (AVISOS VERDES/VERMELHOS) -->
+    <!-- CONTAINER DE NOTIFICAÇÕES TOAST -->
     <div id="toast-container" class="toast-container"></div>
 
     <div class="app-container">
@@ -117,11 +117,11 @@
             <div class="kpi-grid">
                 <div class="kpi-card kpi-container" onclick="window.mostrarTela('tela-estoques')">
                     <span class="kpi-label"><i class="ph ph-archive"></i> Contêiner</span>
-                    <span class="kpi-valor" id="kpiContainerTotal">0 fd</span>
+                    <span class="kpi-valor" id="kpiContainerTotal">0 un</span>
                 </div>
                 <div class="kpi-card kpi-bagageiro" onclick="window.mostrarTela('tela-estoques')">
                     <span class="kpi-label"><i class="ph ph-bag"></i> Bagageiro</span>
-                    <span class="kpi-valor" id="kpiBagageiroTotal">0 fd</span>
+                    <span class="kpi-valor" id="kpiBagageiroTotal">0 un</span>
                 </div>
             </div>
 
@@ -186,14 +186,14 @@
                     <textarea id="obsEspeciaisCarga" rows="3" placeholder="Ex: *2 Agg Arruda&#10;Gelo = 9 (1 Litos, 2 Cam...)" oninput="window.salvarDraftCarga()"></textarea>
                 </div>
 
-                <button class="btn btn-primary btn-lg" onclick="window.salvarCargaDoDia()"><i class="ph ph-check-circle"></i> Salvar e Atualizar Estoque Geral</button>
+                <button class="btn btn-primary btn-lg" onclick="window.salvarCargaDoDia()"><i class="ph ph-check-circle"></i> Salvar e Carregar Estoque em Trânsito</button>
             </div>
         </div>
 
-        <!-- TELA: CARGA POR VAGÃO (SEPARADO) -->
+        <!-- TELA: CARGA POR VAGÃO (COM ABAS IDA / VOLTA & ATIVAÇÃO) -->
         <div id="tela-carga-vagao" class="tela">
             <div class="header">
-                <h3><i class="ph ph-train-regional"></i> Montar Carga por Vagão</h3>
+                <h3><i class="ph ph-train-regional"></i> Carga por Vagão</h3>
                 <button class="btn btn-secondary btn-pequeno" onclick="window.mostrarTela('tela-admin')">Voltar</button>
             </div>
             <div class="card">
@@ -201,7 +201,23 @@
                     <label>Data da Operação:</label>
                     <input type="date" id="dataCargaPorVagao" onclick="this.showPicker && this.showPicker()" onchange="window.renderizarVagoesParaCarga()">
                 </div>
-                <p style="font-size:13px; color:var(--secondary); margin-bottom:12px;">A carga individual do vagão <strong>NÃO</strong> desconta do estoque, serve apenas para planejamento do apoio:</p>
+
+                <!-- SELETOR DE SENTIDO IDA / VOLTA -->
+                <div class="seletor-sentido-carga">
+                    <button id="btnCargaSentidoIda" class="btn-aba-sentido ativo" onclick="window.trocarSentidoCargaVagao('Ida')">
+                        <i class="ph ph-arrow-right"></i> Viagem de IDA
+                    </button>
+                    <button id="btnCargaSentidoVolta" class="btn-aba-sentido" onclick="window.trocarSentidoCargaVagao('Volta')">
+                        <i class="ph ph-arrow-left"></i> Viagem de VOLTA (Retorno)
+                    </button>
+                </div>
+
+                <!-- PAINEL NUVEM / ESTOQUE EM TRÂNSITO -->
+                <div id="painelResumoEstoqueTransito" class="card-transito-nuvem"></div>
+
+                <p style="font-size:13px; color:var(--secondary); margin-bottom:12px;">
+                    Marque os vagões vazios como <strong>Inativo</strong> para não alocar bebidas na volta:
+                </p>
                 
                 <div id="listaVagoesParaCarga"></div>
             </div>
@@ -236,7 +252,7 @@
                     <div class="card-estoque-header"><h4><i class="ph ph-archive"></i> Contêiner</h4></div>
                     <div class="tabela-container">
                         <table class="tabela-relatorio">
-                            <thead><tr><th>Bebida</th><th>Saldo em Estoque</th></tr></thead>
+                            <thead><tr><th>Bebida</th><th>Saldo</th></tr></thead>
                             <tbody id="tabelaResumoContainer"></tbody>
                         </table>
                     </div>
@@ -246,7 +262,7 @@
                     <div class="card-estoque-header"><h4><i class="ph ph-bag"></i> Bagageiro</h4></div>
                     <div class="tabela-container">
                         <table class="tabela-relatorio">
-                            <thead><tr><th>Bebida</th><th>Saldo em Estoque</th></tr></thead>
+                            <thead><tr><th>Bebida</th><th>Saldo</th></tr></thead>
                             <tbody id="tabelaResumoBagageiro"></tbody>
                         </table>
                     </div>
@@ -407,7 +423,7 @@
             <div class="card card-limpo">
                 <div id="avisoCargaCarregada" style="margin-bottom:12px;"></div>
                 <p style="font-size: 13px; color: var(--secondary); margin-bottom: 15px;">
-                    Cargas puxadas do sistema. Se precisou pegar mais bebida, aumente a Carga. Informe a <strong>Sobra</strong> real:
+                    Cargas sincronizadas. Se pegou reforço, aumente a <strong>Carga</strong>. Informe a <strong>Sobra</strong> real:
                 </p>
                 <div id="listaItensContagem"></div>
                 
@@ -461,15 +477,15 @@
                 </div>
 
                 <div class="box-aviso-baga">
-                    <i class="ph ph-info"></i> Ajustes de cargas extras pegas e devolução de sobras vão direto pro <strong>Bagageiro</strong>.
+                    <i class="ph ph-info"></i> Ajustes de reforços e devolução de sobras vão direto para o <strong>Bagageiro</strong>.
                 </div>
 
                 <div class="form-group" style="margin-top: 15px;">
                     <label>Observações Extras:</label>
-                    <input type="text" id="obsFinalContagem" placeholder="Ex: 1 lata furada" onkeydown="if(event.key==='Enter') window.salvarContagemDefinitiva()">
+                    <input type="text" id="obsFinalContagem" placeholder="Ex: 1 lata amassada" onkeydown="if(event.key==='Enter') window.salvarContagemDefinitiva()">
                 </div>
                 
-                <button class="btn btn-success btn-lg" onclick="window.salvarContagemDefinitiva()">
+                <button id="btnSalvarContagemDefinitiva" class="btn btn-success btn-lg" onclick="window.salvarContagemDefinitiva()">
                     <i class="ph ph-paper-plane-right"></i> Confirmar e Fechar Vagão
                 </button>
             </div>
@@ -536,9 +552,7 @@
 
     </div>
 
-    <!-- MODAIS POP-UPS (TODOS AQUI) -->
-
-    <!-- MODAL: CARGA DE UM VAGÃO (O CHEFE EDITA AQUI ANTES DE SALVAR) -->
+    <!-- MODAL: CARGA DE UM VAGÃO -->
     <div id="modal-montar-carga-vagao" class="modal-overlay">
         <div class="modal-content" style="max-width:550px;">
             <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid var(--border); padding-bottom:8px; margin-bottom:12px;">
@@ -547,6 +561,7 @@
             </div>
             
             <input type="hidden" id="modalMcvVagaoId">
+            <input type="hidden" id="modalMcvSentido">
             
             <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
                  <div class="form-group" style="flex:2; margin-right:10px;">
@@ -568,6 +583,24 @@
             <div style="display:flex; gap:10px;">
                 <button class="btn btn-primary" style="flex:2;" onclick="window.salvarCargaVagaoModal()"><i class="ph ph-check"></i> Confirmar Carga do Vagão</button>
                 <button class="btn btn-secondary" style="flex:1;" onclick="window.fecharModal('modal-montar-carga-vagao')">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL POP-UP: DETALHES RETORNO BOUTIQUE (ESPELHO) -->
+    <div id="modal-detalhes-retorno-boutique" class="modal-overlay">
+        <div class="modal-content" style="max-width:550px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid var(--border); padding-bottom:8px; margin-bottom:12px;">
+                <h3 id="modalRetornoBoutiqueTitulo" style="margin:0; color:var(--primary); font-size:18px;">Retorno Boutique</h3>
+                <button class="btn btn-secondary btn-pequeno" onclick="window.fecharModal('modal-detalhes-retorno-boutique')"><i class="ph ph-x"></i></button>
+            </div>
+            <p style="font-size:13px; color:var(--secondary); margin-bottom:10px;">
+                Carga de volta calculada em Morretes (Sobras + Ajustes):
+            </p>
+            <div id="listaDetalhesRetornoBoutique" style="max-height:45vh; overflow-y:auto; border:1px solid var(--border); border-radius:8px; padding:10px; background:#ffffff; margin-bottom:15px;"></div>
+            <div style="display:flex; gap:10px;">
+                <button class="btn btn-primary" style="flex:2;" onclick="window.editarRetornoBoutiqueNaCarga()"><i class="ph ph-pencil-simple"></i> Editar no Hub Morretes</button>
+                <button class="btn btn-secondary" style="flex:1;" onclick="window.fecharModal('modal-detalhes-retorno-boutique')">Fechar</button>
             </div>
         </div>
     </div>
