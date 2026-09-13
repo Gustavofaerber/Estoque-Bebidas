@@ -23,6 +23,34 @@ try {
     console.log("Offline mode persistente já ativo.");
 }
 
+// ================= CSS E HTML DINÂMICOS (INJETADOS VIA JS) =================
+const toastStyle = document.createElement('style');
+toastStyle.innerHTML = `
+    .toast-container { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 10000; display: flex; flex-direction: column; gap: 10px; width: 90%; max-width: 400px; pointer-events: none; }
+    .toast-msg { background: #0f766e; color: #ffffff; padding: 14px 18px; border-radius: 12px; font-size: 15px; font-weight: 700; text-align: center; box-shadow: 0 8px 25px rgba(0,0,0,0.25); animation: slideUpFade 0.3s ease-out forwards; display: flex; align-items: center; justify-content: center; gap: 8px; pointer-events: auto; }
+    .toast-erro { background: #b91c1c; }
+    @keyframes slideUpFade { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeOutDown { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(30px); } }
+`;
+document.head.appendChild(toastStyle);
+
+if (!document.getElementById('modal-confirmacao')) {
+    const confModal = document.createElement('div');
+    confModal.id = 'modal-confirmacao';
+    confModal.className = 'modal-overlay';
+    confModal.innerHTML = `
+        <div class="modal-content" style="max-width: 400px; text-align: center;">
+            <div style="margin-bottom:15px; color:var(--primary);"><i class="ph ph-question" style="font-size: 48px;"></i></div>
+            <h3 style="margin-top:0; color:var(--text); font-size:18px;" id="lblConfirmacaoTexto">Tem certeza?</h3>
+            <div style="display:flex; gap:10px; margin-top:25px;">
+                <button class="btn btn-primary" style="flex:1;" onclick="window.executarConfirmacao()"><i class="ph ph-check"></i> Sim</button>
+                <button class="btn btn-secondary" style="flex:1;" onclick="window.fecharModal('modal-confirmacao')">Não</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(confModal);
+}
+
 // ================= SISTEMA DE NOTIFICAÇÕES (TOAST) E CONFIRMAÇÃO =================
 window.mostrarToast = function(mensagem, isErro = false) {
     let container = document.getElementById('toast-container');
@@ -70,7 +98,7 @@ function getCache(key, fallback = []) {
     }
 }
 
-// Catálogo com as bebidas oficiais (Backup Inicial)
+// Catálogo com as bebidas oficiais
 const catalogoInicial = [
     { id: 'C', nome: 'Coca Lata', unidadesPorFardo: 12, ordem: 1, precoVenda: 8, estoqueContainerUnidades: 1800, estoqueBagageiroUnidades: 35 },
     { id: 'Cp', nome: 'Coca Lata Pequena', unidadesPorFardo: 6, ordem: 2, precoVenda: 6, estoqueContainerUnidades: 600, estoqueBagageiroUnidades: 18 },
@@ -91,6 +119,7 @@ const catalogoInicial = [
     { id: 'Gelo', nome: 'Saco de Gelo', unidadesPorFardo: 1, ordem: 17, precoVenda: 0, estoqueContainerUnidades: 50, estoqueBagageiroUnidades: 10 }
 ];
 
+// Receitas padrão prontas
 const receitasIniciaisPadrao = [
     { id: 'rec_turistico_48', nome: 'Base Turístico (48 Lugares)', itens: { C: 24, Gg: 12, Zp: 6, Acp: 24, KL: 49 } },
     { id: 'rec_economico', nome: 'Base Econômico', itens: { C: 24, Gg: 12, Zp: 6, Acp: 24, KL: 49 } },
@@ -107,9 +136,6 @@ const frotaInicialPadrao = [
     { id: '01', numero: '01', nome: 'Econômico 1', tipo: 'economico', receitaId: 'rec_economico', bebidasPermitidas: ['C', 'Cp', 'Zp', 'Gg', 'Gp', 'Acp', 'KL'] },
     { id: '18', numero: '18', nome: 'Foz do Iguaçu', tipo: 'boutique', receitaId: 'rec_boutique_padrao', bebidasPermitidas: ['Cp', 'Zp', 'Gp', 'Fgp', 'Am', 'Agsp', 'Aggp', 'Chn', 'Chz', 'Su', 'Sp', 'KL', 'Esp', 'Gelo'] },
     { id: '20', numero: '20', nome: 'Curitiba', tipo: 'boutique', receitaId: 'rec_boutique_padrao', bebidasPermitidas: ['Cp', 'Zp', 'Gp', 'Fgp', 'Am', 'Agsp', 'Aggp', 'Chn', 'Chz', 'Su', 'Sp', 'KL', 'Esp', 'Gelo'] },
-    { id: 'Cam', numero: 'Cam', nome: 'Camarote', tipo: 'boutique', receitaId: 'rec_boutique_padrao', bebidasPermitidas: ['Cp', 'Zp', 'Gp', 'Fgp', 'Am', 'Agsp', 'Aggp', 'Chn', 'Chz', 'Su', 'Sp', 'KL', 'Esp', 'Gelo'] },
-    { id: 'Imp', numero: 'Imp', nome: 'Imperial', tipo: 'boutique', receitaId: 'rec_boutique_padrao', bebidasPermitidas: ['Cp', 'Zp', 'Gp', 'Fgp', 'Am', 'Agsp', 'Aggp', 'Chn', 'Chz', 'Su', 'Sp', 'KL', 'Esp', 'Gelo'] },
-    { id: 'Bar', numero: 'Bar', nome: 'Vagão Bar', tipo: 'boutique', receitaId: 'rec_boutique_padrao', bebidasPermitidas: ['Cp', 'Zp', 'Gp', 'Fgp', 'Am', 'Agsp', 'Aggp', 'Chn', 'Chz', 'Su', 'Sp', 'KL', 'Esp', 'Gelo'] },
     { id: '7000', numero: '7000', nome: 'Litorina 7000', tipo: 'litorina', receitaId: 'rec_boutique_padrao', bebidasPermitidas: ['Cp', 'Zp', 'Gp', 'Fgp', 'Am', 'Agsp', 'Aggp', 'Chn', 'Chz', 'Su', 'Sp', 'KL', 'Esp', 'Gelo'] },
     { id: '7001', numero: '7001', nome: 'Litorina 7001', tipo: 'litorina', receitaId: 'rec_boutique_padrao', bebidasPermitidas: ['Cp', 'Zp', 'Gp', 'Fgp', 'Am', 'Agsp', 'Aggp', 'Chn', 'Chz', 'Su', 'Sp', 'KL', 'Esp', 'Gelo'] }
 ];
@@ -260,14 +286,9 @@ function restaurarSessaoOuTela() {
 }
 
 // ================= SINCRONIZAÇÃO EM NUVEM E OFFLINE =================
-// Removidas TODAS as validações !snapshot.empty para que as listas
-// abram e funcionem perfeitamente mesmo que o banco de dados esteja zerado.
 function iniciarSincronizacaoNuvem() {
     onSnapshot(collection(db, "produtos"), (snapshot) => {
-        if (snapshot.empty) {
-            catalogoInicial.forEach(async p => await setDoc(doc(db, "produtos", p.id), p));
-            window.produtosDB = catalogoInicial;
-        } else {
+        if (!snapshot.empty) {
             window.produtosDB = snapshot.docs.map(d => {
                 const data = d.data();
                 if (data.ordem === undefined || data.ordem === null) {
@@ -276,8 +297,8 @@ function iniciarSincronizacaoNuvem() {
                 }
                 return data;
             });
+            localStorage.setItem('trem_cache_produtos', JSON.stringify(window.produtosDB));
         }
-        localStorage.setItem('trem_cache_produtos', JSON.stringify(window.produtosDB));
         window.atualizarDashboardKPIs();
         const telaAtiva = document.querySelector('.tela.ativa')?.id;
         if (telaAtiva === 'tela-cadastro-produtos') window.renderizarProdutosAdmin();
@@ -285,32 +306,33 @@ function iniciarSincronizacaoNuvem() {
     });
 
     onSnapshot(collection(db, "receitas_carga"), (snapshot) => {
-        window.receitasDB = snapshot.docs.map(d => d.data());
-        localStorage.setItem('trem_cache_receitas', JSON.stringify(window.receitasDB));
-        if (document.getElementById('tela-receitas')?.classList.contains('ativa')) window.renderizarReceitasAdmin();
+        if (!snapshot.empty) {
+            window.receitasDB = snapshot.docs.map(d => d.data());
+            localStorage.setItem('trem_cache_receitas', JSON.stringify(window.receitasDB));
+            if (document.getElementById('tela-receitas')?.classList.contains('ativa')) window.renderizarReceitasAdmin();
+        }
     });
 
     onSnapshot(collection(db, "usuarios"), (snapshot) => {
-        window.usuariosDB = snapshot.docs.map(d => d.data());
-        localStorage.setItem('trem_cache_usuarios', JSON.stringify(window.usuariosDB));
-        const telaAtiva = document.querySelector('.tela.ativa')?.id;
-        if (telaAtiva === 'tela-usuarios') window.renderizarUsuarios();
-        if (telaAtiva === 'tela-setup-contagem') window.abrirSetupContagem();
-        if (telaAtiva === 'tela-setup-carrinho') window.abrirSetupCarrinho();
+        if (!snapshot.empty) {
+            window.usuariosDB = snapshot.docs.map(d => d.data());
+            localStorage.setItem('trem_cache_usuarios', JSON.stringify(window.usuariosDB));
+            const telaAtiva = document.querySelector('.tela.ativa')?.id;
+            if (telaAtiva === 'tela-usuarios') window.renderizarUsuarios();
+            if (telaAtiva === 'tela-setup-contagem') window.abrirSetupContagem();
+            if (telaAtiva === 'tela-setup-carrinho') window.abrirSetupCarrinho();
+        }
     });
 
     onSnapshot(collection(db, "vagoes"), (snapshot) => {
-        if (snapshot.empty) {
-            frotaInicialPadrao.forEach(async v => await setDoc(doc(db, "vagoes", v.id), v));
-            window.vagoesDB = frotaInicialPadrao;
-        } else {
+        if (!snapshot.empty) {
             window.vagoesDB = snapshot.docs.map(d => d.data());
+            localStorage.setItem('trem_cache_vagoes', JSON.stringify(window.vagoesDB));
+            const telaAtiva = document.querySelector('.tela.ativa')?.id;
+            if (telaAtiva === 'tela-vagoes') window.renderizarVagoesAdmin();
+            if (telaAtiva === 'tela-setup-contagem') window.abrirSetupContagem();
+            if (telaAtiva === 'tela-operacao-viagem') window.carregarMonitorViagem();
         }
-        localStorage.setItem('trem_cache_vagoes', JSON.stringify(window.vagoesDB));
-        const telaAtiva = document.querySelector('.tela.ativa')?.id;
-        if (telaAtiva === 'tela-vagoes') window.renderizarVagoesAdmin();
-        if (telaAtiva === 'tela-setup-contagem') window.abrirSetupContagem();
-        if (telaAtiva === 'tela-operacao-viagem') window.carregarMonitorViagem();
     });
 
     onSnapshot(collection(db, "contagens"), (snapshot) => {
@@ -464,7 +486,7 @@ window.excluirReceita = async function(id) {
     });
 };
 
-// ================= FROTA DE VAGÕES (SEPARADA & SIMPLIFICADA) =================
+// ================= FROTA DE VAGÕES (SEPARADA E SIMPLIFICADA) =================
 window.renderizarVagoesAdmin = function() {
     const div = document.getElementById('listaVagoesAdmin');
     if (!div) return;
@@ -607,117 +629,7 @@ window.excluirVagao = async function(id) {
     });
 };
 
-// ================= GESTÃO DE USUÁRIOS E PRODUTOS =================
-window.renderizarUsuarios = function() {
-    const div = document.getElementById('listaUsuariosAdmin');
-    if (!div) return;
-    div.innerHTML = "";
-    [...window.usuariosDB].sort((a,b) => a.nome.localeCompare(b.nome)).forEach((u) => {
-        div.innerHTML += `
-            <div style="display:flex; justify-content:space-between; padding: 12px 0; border-bottom: 1px solid var(--border); align-items:center;">
-                <div style="font-size:15px; font-weight:600;"><i class="ph ph-user"></i> ${u.nome}</div>
-                <button class="btn btn-danger btn-pequeno" onclick="window.removerUsuario('${u.id}')"><i class="ph ph-trash"></i></button>
-            </div>
-        `;
-    });
-};
-
-window.adicionarUsuario = async function() {
-    const nome = document.getElementById('novoUsuarioNome').value.trim();
-    if (!nome) return;
-    const uid = Date.now().toString();
-    await setDoc(doc(db, "usuarios", uid), { id: uid, nome: window.escapeHTML(nome) });
-    document.getElementById('novoUsuarioNome').value = "";
-    window.mostrarToast("Apoio adicionado com sucesso!");
-};
-
-window.removerUsuario = async function(id) {
-    window.abrirConfirmacao("Remover este apoio?", async () => {
-        await deleteDoc(doc(db, "usuarios", id));
-        window.mostrarToast("Apoio removido!");
-    });
-};
-
-window.renderizarProdutosAdmin = function() {
-    ordenarPorRegra(window.produtosDB);
-    const div = document.getElementById('listaProdutosAdmin');
-    if (!div) return;
-    div.innerHTML = "";
-    window.produtosDB.forEach((p) => {
-        div.innerHTML += `
-            <div style="display:flex; justify-content:space-between; align-items:center; padding: 12px 0; border-bottom: 1px solid var(--border);">
-                <div>
-                    <span class="badge-ordem">#${p.ordem || '-'}</span>
-                    <strong style="font-size:16px;">${p.id}</strong> - ${p.nome} 
-                    <br><small style="color:var(--secondary); font-size:13px;">${p.unidadesPorFardo} un/fardo &bull; Preço Venda: <strong>R$ ${window.formatarMoeda(p.precoVenda)}</strong></small>
-                </div>
-                <div style="display:flex; gap:6px;">
-                    <button class="btn btn-secondary btn-pequeno" onclick="window.abrirModalProduto('${p.id}')"><i class="ph ph-pencil-simple"></i> Editar</button>
-                    <button class="btn btn-danger btn-pequeno" onclick="window.removerProduto('${p.id}')"><i class="ph ph-trash"></i></button>
-                </div>
-            </div>
-        `;
-    });
-};
-
-window.abrirModalProduto = function(id = null) {
-    if (id) {
-        const p = window.produtosDB.find(x => x.id === id);
-        if (!p) return;
-        document.getElementById('modalProdutoTitulo').innerHTML = '<i class="ph ph-pencil-simple"></i> Editar Produto';
-        document.getElementById('modalProdIdOriginal').value = p.id;
-        document.getElementById('modalProdSigla').value = p.id;
-        document.getElementById('modalProdSigla').disabled = true;
-        document.getElementById('modalProdNome').value = p.nome;
-        document.getElementById('modalProdUnFardo').value = p.unidadesPorFardo || 12;
-        document.getElementById('modalProdPreco').value = p.precoVenda || 0;
-        document.getElementById('modalProdOrdem').value = p.ordem !== undefined ? p.ordem : "";
-    } else {
-        document.getElementById('modalProdutoTitulo').innerHTML = '<i class="ph ph-plus-circle"></i> Novo Produto';
-        document.getElementById('modalProdIdOriginal').value = "";
-        document.getElementById('modalProdSigla').value = "";
-        document.getElementById('modalProdSigla').disabled = false;
-        document.getElementById('modalProdNome').value = "";
-        document.getElementById('modalProdUnFardo').value = "12";
-        document.getElementById('modalProdPreco').value = "";
-        document.getElementById('modalProdOrdem').value = window.produtosDB.length + 1;
-    }
-    window.abrirModal('modal-produto');
-    setTimeout(() => window.focarProximo(id ? 'modalProdNome' : 'modalProdOrdem'), 100);
-};
-
-window.salvarProdutoModal = async function() {
-    const idOriginal = document.getElementById('modalProdIdOriginal').value;
-    const sigla = document.getElementById('modalProdSigla').value.trim();
-    const nome = document.getElementById('modalProdNome').value.trim();
-    const unFardo = parseInt(document.getElementById('modalProdUnFardo').value) || 12;
-    const preco = parseFloat(document.getElementById('modalProdPreco').value) || 0;
-    const ordem = parseInt(document.getElementById('modalProdOrdem').value) || 99;
-
-    if (!sigla || !nome) { window.mostrarToast("Preencha Sigla e Nome!", true); return; }
-
-    const idFinal = idOriginal || sigla;
-    const dados = { id: idFinal, nome: window.escapeHTML(nome), unidadesPorFardo: unFardo, precoVenda: preco, ordem };
-
-    if (!idOriginal) {
-        dados.estoqueContainerUnidades = 0;
-        dados.estoqueBagageiroUnidades = 0;
-    }
-
-    await setDoc(doc(db, "produtos", idFinal), dados, { merge: true });
-    window.fecharModal('modal-produto');
-    window.mostrarToast("Produto salvo com sucesso!");
-};
-
-window.removerProduto = async function(id) {
-    window.abrirConfirmacao("Excluir este produto definitivamente?", async () => {
-        await deleteDoc(doc(db, "produtos", id));
-        window.mostrarToast("Produto excluído!");
-    });
-};
-
-
-// ================= CARGA POR VAGÃO (APENAS PLANEJAMENTO - NÃO DESCONTA DO ESTOQUE AQUI) =================
+// ================= CARGA POR VAGÃO (PLANEJAMENTO) =================
 window.renderizarVagoesParaCarga = function() {
     const div = document.getElementById('listaVagoesParaCarga');
     if (!div) return;
@@ -818,8 +730,15 @@ window.renderizarItensModalCargaVagao = function(cargaExistente) {
 
     const receitaId = document.getElementById('modalMcvReceitaSelect').value;
     const receitaObj = window.receitasDB.find(r => r.id === receitaId);
+    
+    const vagaoId = document.getElementById('modalMcvVagaoId').value;
+    const vagao = window.vagoesDB.find(v => v.id === vagaoId);
+    const permitidas = vagao?.bebidasPermitidas || [];
 
     window.produtosDB.filter(p => !p.nome.includes('(Venda)')).forEach(p => {
+        // Exibe apenas os permitidos para este vagão. Mostra tudo com 0 se não estiver na receita.
+        if (permitidas.length > 0 && !permitidas.includes(p.id)) return;
+
         let valTotal = 0;
         let valBaga = 0;
 
@@ -829,8 +748,6 @@ window.renderizarItensModalCargaVagao = function(cargaExistente) {
         } else if (receitaObj && receitaObj.itens && receitaObj.itens[p.id]) {
             valTotal = receitaObj.itens[p.id];
         }
-
-        if (receitaObj && valTotal === 0 && !cargaExistente) return;
 
         div.innerHTML += `
             <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px dashed var(--border);">
@@ -888,12 +805,11 @@ window.salvarCargaVagaoModal = async function() {
     await batch.commit();
 
     window.fecharModal('modal-montar-carga-vagao');
-    window.mostrarToast("Carga do Vagão salva para o apoio!");
+    window.mostrarToast("Espelho da Carga do Vagão salva para o apoio!");
     window.renderizarVagoesParaCarga();
 };
 
-
-// ================= CARGA DO DIA (MANIFESTO GERAL) - DESCONTA DO ESTOQUE =================
+// ================= CARGA DO DIA (MANIFESTO GERAL) - DESCONTA DO ESTOQUE EM FARDOS =================
 window.verificarStatusEdicaoCarga = function() {
     const dataSel = document.getElementById('dataCargaDia')?.value;
     const boxStatus = document.getElementById('statusCargaEdicao');
@@ -980,7 +896,6 @@ window.abrirCargaDoDia = function() {
     window.verificarStatusEdicaoCarga();
     ordenarPorRegra(window.produtosDB);
 
-    // Carga Geral agora preenche em FARDOS
     window.produtosDB.filter(p => !p.nome.includes('(Venda)')).forEach(p => {
         const unPorFardo = p.unidadesPorFardo || 1;
         const bagaDisponivel = formatarEstoqueFardos(p.estoqueBagageiroUnidades, unPorFardo);
@@ -1068,7 +983,6 @@ window.salvarCargaDoDia = async function() {
         const totEl = document.getElementById(`carga_total_${p.id}`);
         if (!totEl) continue;
 
-        // Na Carga Geral do Dia, os valores digitados são Fardos!
         const totalFardos = parseInt(totEl.value) || 0;
         const bagaFardos = parseInt(document.getElementById(`carga_baga_${p.id}`)?.value) || 0;
         const contFardos = parseInt(document.getElementById(`carga_cont_${p.id}`)?.value) || 0;
@@ -1082,6 +996,7 @@ window.salvarCargaDoDia = async function() {
             batch.update(doc(db, "produtos", p.id), { ordem: novaOrdem });
         }
 
+        // SALVA MESMO SE FOR 0, SE ELE EXISTIA NA CARGA ANTIGA, PARA PODER ESTORNAR
         if (totalFardos > 0 || (cargaAntiga && cargaAntiga.itens?.[p.id])) {
             itensSalvos[p.id] = { total: totalFardos, baga: bagaFardos, cont: contFardos, destino, ordem: novaOrdem };
 
@@ -1091,7 +1006,6 @@ window.salvarCargaDoDia = async function() {
             const difContFardos = contFardos - antigoContFardos;
             const difBagaFardos = bagaFardos - antigoBagaFardos;
 
-            // Multiplica o fardo pelas unidades do produto para abater do banco
             if (difContFardos !== 0 || difBagaFardos !== 0) {
                 const pRef = doc(db, "produtos", p.id);
                 batch.update(pRef, {
@@ -1175,6 +1089,9 @@ window.carregarManifestoPublico = function(forcarUltima = false) {
 
     let linhasHtml = "";
     itensOrdenados.forEach(item => {
+        // FILTRO VISUAL: Não mostra a bebida no manifesto se o total de fardos dela for 0
+        if (item.total <= 0) return;
+
         let formulaTexto = "";
         let strDestino = item.destino ? `<span class="manifesto-destino">(${item.destino})</span>` : '';
 
@@ -1488,7 +1405,116 @@ window.salvarAjusteRetornoBoutique = async function() {
     window.mostrarTela('tela-inicial');
 };
 
-// ================= CONTAGEM DE VAGÃO (APOIO COM MATEMÁTICA AUTOMÁTICA E RECEITAS) =================
+// ================= GESTÃO DE USUÁRIOS E PRODUTOS =================
+window.renderizarUsuarios = function() {
+    const div = document.getElementById('listaUsuariosAdmin');
+    if (!div) return;
+    div.innerHTML = "";
+    [...window.usuariosDB].sort((a,b) => a.nome.localeCompare(b.nome)).forEach((u) => {
+        div.innerHTML += `
+            <div style="display:flex; justify-content:space-between; padding: 12px 0; border-bottom: 1px solid var(--border); align-items:center;">
+                <div style="font-size:15px; font-weight:600;"><i class="ph ph-user"></i> ${u.nome}</div>
+                <button class="btn btn-danger btn-pequeno" onclick="window.removerUsuario('${u.id}')"><i class="ph ph-trash"></i></button>
+            </div>
+        `;
+    });
+};
+
+window.adicionarUsuario = async function() {
+    const nome = document.getElementById('novoUsuarioNome').value.trim();
+    if (!nome) return;
+    const uid = Date.now().toString();
+    await setDoc(doc(db, "usuarios", uid), { id: uid, nome: window.escapeHTML(nome) });
+    document.getElementById('novoUsuarioNome').value = "";
+    window.mostrarToast("Apoio adicionado com sucesso!");
+};
+
+window.removerUsuario = async function(id) {
+    window.abrirConfirmacao("Remover este apoio?", async () => {
+        await deleteDoc(doc(db, "usuarios", id));
+        window.mostrarToast("Apoio removido!");
+    });
+};
+
+window.renderizarProdutosAdmin = function() {
+    ordenarPorRegra(window.produtosDB);
+    const div = document.getElementById('listaProdutosAdmin');
+    if (!div) return;
+    div.innerHTML = "";
+    window.produtosDB.forEach((p) => {
+        div.innerHTML += `
+            <div style="display:flex; justify-content:space-between; align-items:center; padding: 12px 0; border-bottom: 1px solid var(--border);">
+                <div>
+                    <span class="badge-ordem">#${p.ordem || '-'}</span>
+                    <strong style="font-size:16px;">${p.id}</strong> - ${p.nome} 
+                    <br><small style="color:var(--secondary); font-size:13px;">${p.unidadesPorFardo} un/fardo &bull; Preço Venda: <strong>R$ ${window.formatarMoeda(p.precoVenda)}</strong></small>
+                </div>
+                <div style="display:flex; gap:6px;">
+                    <button class="btn btn-secondary btn-pequeno" onclick="window.abrirModalProduto('${p.id}')"><i class="ph ph-pencil-simple"></i> Editar</button>
+                    <button class="btn btn-danger btn-pequeno" onclick="window.removerProduto('${p.id}')"><i class="ph ph-trash"></i></button>
+                </div>
+            </div>
+        `;
+    });
+};
+
+window.abrirModalProduto = function(id = null) {
+    if (id) {
+        const p = window.produtosDB.find(x => x.id === id);
+        if (!p) return;
+        document.getElementById('modalProdutoTitulo').innerHTML = '<i class="ph ph-pencil-simple"></i> Editar Produto';
+        document.getElementById('modalProdIdOriginal').value = p.id;
+        document.getElementById('modalProdSigla').value = p.id;
+        document.getElementById('modalProdSigla').disabled = true;
+        document.getElementById('modalProdNome').value = p.nome;
+        document.getElementById('modalProdUnFardo').value = p.unidadesPorFardo || 12;
+        document.getElementById('modalProdPreco').value = p.precoVenda || 0;
+        document.getElementById('modalProdOrdem').value = p.ordem !== undefined ? p.ordem : "";
+    } else {
+        document.getElementById('modalProdutoTitulo').innerHTML = '<i class="ph ph-plus-circle"></i> Novo Produto';
+        document.getElementById('modalProdIdOriginal').value = "";
+        document.getElementById('modalProdSigla').value = "";
+        document.getElementById('modalProdSigla').disabled = false;
+        document.getElementById('modalProdNome').value = "";
+        document.getElementById('modalProdUnFardo').value = "12";
+        document.getElementById('modalProdPreco').value = "";
+        document.getElementById('modalProdOrdem').value = window.produtosDB.length + 1;
+    }
+    window.abrirModal('modal-produto');
+    setTimeout(() => window.focarProximo(id ? 'modalProdNome' : 'modalProdOrdem'), 100);
+};
+
+window.salvarProdutoModal = async function() {
+    const idOriginal = document.getElementById('modalProdIdOriginal').value;
+    const sigla = document.getElementById('modalProdSigla').value.trim();
+    const nome = document.getElementById('modalProdNome').value.trim();
+    const unFardo = parseInt(document.getElementById('modalProdUnFardo').value) || 12;
+    const preco = parseFloat(document.getElementById('modalProdPreco').value) || 0;
+    const ordem = parseInt(document.getElementById('modalProdOrdem').value) || 99;
+
+    if (!sigla || !nome) { window.mostrarToast("Preencha Sigla e Nome!", true); return; }
+
+    const idFinal = idOriginal || sigla;
+    const dados = { id: idFinal, nome: window.escapeHTML(nome), unidadesPorFardo: unFardo, precoVenda: preco, ordem };
+
+    if (!idOriginal) {
+        dados.estoqueContainerUnidades = 0;
+        dados.estoqueBagageiroUnidades = 0;
+    }
+
+    await setDoc(doc(db, "produtos", idFinal), dados, { merge: true });
+    window.fecharModal('modal-produto');
+    window.mostrarToast("Produto salvo com sucesso!");
+};
+
+window.removerProduto = async function(id) {
+    window.abrirConfirmacao("Excluir este produto definitivamente?", async () => {
+        await deleteDoc(doc(db, "produtos", id));
+        window.mostrarToast("Produto excluído!");
+    });
+};
+
+// ================= CONTAGEM DE VAGÃO (APOIO) =================
 window.abrirSetupContagem = function() {
     const selUser = document.getElementById('selectNomeApoio');
     if (selUser) {
@@ -1620,7 +1646,6 @@ window.gerarResumoContagem = function() {
         const elCarga = document.getElementById(`carga_${p.id}`);
         if (!elCarga) return;
 
-        // Recupera de forma segura a carga base original
         const attrOrig = elCarga.getAttribute('data-carga-original');
         const cargaOriginalNum = attrOrig !== null && attrOrig !== "" ? parseInt(attrOrig) : (parseInt(elCarga.value) || 0);
 
@@ -1677,7 +1702,7 @@ window.salvarContagemDefinitiva = async function() {
     for (let id in window.contagemTemp.itens) {
         const item = window.contagemTemp.itens[id];
         
-        // MATEMÁTICA DO APOIO - SOBRAS E EXTRAS DO BAGAGEIRO
+        // MATEMÁTICA DO APOIO - SOBRAS E EXTRAS
         const extraPego = Math.max(0, item.carga - item.cargaOriginal);
         const netBagageiro = item.saldo - extraPego;
 
@@ -1695,6 +1720,89 @@ window.salvarContagemDefinitiva = async function() {
     window.mostrarToast("Contagem salva e Bagageiro atualizado!");
     window.contagemTemp = {};
     window.mostrarTela('tela-inicial');
+};
+
+// ================= GESTÃO DE RASCUNHOS =================
+window.salvarDraftEstoque = function() {
+    const draft = {};
+    window.produtosDB.forEach(p => {
+        draft[p.id] = {
+            cFd: document.getElementById(`est_cont_fd_${p.id}`)?.value || "",
+            cUn: document.getElementById(`est_cont_un_${p.id}`)?.value || "",
+            bFd: document.getElementById(`est_baga_fd_${p.id}`)?.value || "",
+            bUn: document.getElementById(`est_baga_un_${p.id}`)?.value || ""
+        };
+    });
+    localStorage.setItem('trem_draft_estoque', JSON.stringify(draft));
+};
+
+window.limparDraftEstoque = function() {
+    window.abrirConfirmacao("Deseja restaurar os valores originais descartando o rascunho?", () => {
+        localStorage.removeItem('trem_draft_estoque');
+        window.abrirTelaEstoques();
+    });
+};
+
+window.salvarDraftCarga = function() {
+    const draft = {
+        data: document.getElementById('dataCargaDia')?.value || "",
+        obs: document.getElementById('obsEspeciaisCarga')?.value || "",
+        itens: {}
+    };
+    window.produtosDB.forEach(p => {
+        draft.itens[p.id] = {
+            total: document.getElementById(`carga_total_${p.id}`)?.value || "",
+            baga: document.getElementById(`carga_baga_${p.id}`)?.value || "",
+            dest: document.getElementById(`carga_dest_${p.id}`)?.value || "",
+            ordem: document.getElementById(`carga_ordem_${p.id}`)?.value || ""
+        };
+    });
+    localStorage.setItem('trem_draft_carga', JSON.stringify(draft));
+};
+
+window.limparDraftCarga = function() {
+    window.abrirConfirmacao("Deseja zerar os campos da carga do dia?", () => {
+        localStorage.removeItem('trem_draft_carga');
+        window.abrirCargaDoDia();
+    });
+};
+
+window.salvarDraftContagem = function() {
+    const draft = {
+        apoio: document.getElementById('selectNomeApoio')?.value || "",
+        data: document.getElementById('dataContagemApoio')?.value || "",
+        sentido: document.getElementById('selectSentidoApoio')?.value || "",
+        vagaoId: document.getElementById('selectVagaoApoio')?.value || "",
+        guia: document.getElementById('nomeGuiaApoio')?.value || "",
+        itens: {}
+    };
+    window.produtosDB.forEach(p => {
+        draft.itens[p.id] = {
+            carga: document.getElementById(`carga_${p.id}`)?.value || "",
+            saldo: document.getElementById(`saldo_${p.id}`)?.value || "",
+            trip: document.getElementById(`trip_${p.id}`)?.value || "",
+            ava: document.getElementById(`ava_${p.id}`)?.value || ""
+        };
+    });
+    localStorage.setItem('trem_draft_contagem', JSON.stringify(draft));
+};
+
+window.salvarDraftCarrinho = function() {
+    const draft = {
+        data: document.getElementById('dataCarrinho')?.value || "",
+        sentido: document.getElementById('sentidoCarrinho')?.value || "",
+        apoio: document.getElementById('selectApoioCarrinho')?.value || "",
+        troco: document.getElementById('carrinhoTroco')?.value || "",
+        itens: {},
+        extras: window.itensExtrasCarrinhoTemp || []
+    };
+    window.produtosDB.filter(p => p.nome.includes('(Venda)')).forEach(p => {
+        draft.itens[p.id] = {
+            saiu: document.getElementById(`venda_saiu_${p.id}`)?.value || "",
+            sobrou: document.getElementById(`venda_sobrou_${p.id}`)?.value || ""
+        };
+    });
+    localStorage.setItem('trem_draft_carrinho', JSON.stringify(draft));
 };
 
 // ================= CARRINHO DE VENDAS =================
@@ -2034,7 +2142,6 @@ function gerarLinhasTabelaAdmin(itensObjeto) {
     return html;
 }
 
-// ================= CHEFE EDITAR RELATÓRIO DO APOIO =================
 window.abrirModalEdicaoRelatorio = function(id) {
     const c = window.contagensDB.find(x => x.id === id);
     if (!c) return;
