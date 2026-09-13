@@ -23,17 +23,7 @@ try {
     console.log("Offline mode persistente já ativo.");
 }
 
-// ================= CSS DINÂMICO PARA NOTIFICAÇÕES (TOAST) =================
-const toastStyle = document.createElement('style');
-toastStyle.innerHTML = `
-    .toast-container { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 10000; display: flex; flex-direction: column; gap: 10px; width: 90%; max-width: 400px; pointer-events: none; }
-    .toast-msg { background: #0f766e; color: #ffffff; padding: 14px 18px; border-radius: 12px; font-size: 15px; font-weight: 700; text-align: center; box-shadow: 0 8px 25px rgba(0,0,0,0.25); animation: slideUpFade 0.3s ease-out forwards; display: flex; align-items: center; justify-content: center; gap: 8px; pointer-events: auto; }
-    .toast-erro { background: #b91c1c; }
-    @keyframes slideUpFade { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-    @keyframes fadeOutDown { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(30px); } }
-`;
-document.head.appendChild(toastStyle);
-
+// ================= SISTEMA DE NOTIFICAÇÕES (TOAST) E CONFIRMAÇÃO =================
 window.mostrarToast = function(mensagem, isErro = false) {
     let container = document.getElementById('toast-container');
     if (!container) {
@@ -42,14 +32,32 @@ window.mostrarToast = function(mensagem, isErro = false) {
         container.className = 'toast-container';
         document.body.appendChild(container);
     }
+    
     const toast = document.createElement('div');
     toast.className = 'toast-msg' + (isErro ? ' toast-erro' : '');
     toast.innerHTML = (isErro ? '<i class="ph ph-warning-circle" style="font-size:22px;"></i> ' : '<i class="ph ph-check-circle" style="font-size:22px;"></i> ') + mensagem;
+    
     container.appendChild(toast);
+    
     setTimeout(() => {
         toast.style.animation = 'fadeOutDown 0.3s ease-in forwards';
         setTimeout(() => toast.remove(), 300);
     }, 3500);
+};
+
+window.acaoConfirmacaoPendente = null;
+
+window.abrirConfirmacao = function(mensagem, callback) {
+    document.getElementById('lblConfirmacaoTexto').innerText = mensagem;
+    window.acaoConfirmacaoPendente = callback;
+    window.abrirModal('modal-confirmacao');
+};
+
+window.executarConfirmacao = function() {
+    if (typeof window.acaoConfirmacaoPendente === 'function') {
+        window.acaoConfirmacaoPendente();
+    }
+    window.fecharModal('modal-confirmacao');
 };
 
 // ================= RECUPERAÇÃO BLINDADA DO CACHE LOCAL =================
@@ -86,21 +94,9 @@ const catalogoInicial = [
 
 // Receitas padrão prontas
 const receitasIniciaisPadrao = [
-    {
-        id: 'rec_turistico_48',
-        nome: 'Base Turístico (48 Lugares)',
-        itens: { C: 24, Gg: 12, Zp: 6, Acp: 24, KL: 49 }
-    },
-    {
-        id: 'rec_economico',
-        nome: 'Base Econômico',
-        itens: { C: 24, Gg: 12, Zp: 6, Acp: 24, KL: 49 }
-    },
-    {
-        id: 'rec_boutique_padrao',
-        nome: 'Boutique Padrão (Sem Coca Grande / Água Copo)',
-        itens: { Cp: 12, Zp: 12, Gp: 12, Fgp: 6, Am: 12, Agsp: 12, Aggp: 12, Chn: 6, Chz: 6, Su: 6, Sp: 6, KL: 20, Esp: 6, Gelo: 2 }
-    }
+    { id: 'rec_turistico_48', nome: 'Base Turístico (48 Lugares)', itens: { C: 24, Gg: 12, Zp: 6, Acp: 24, KL: 49 } },
+    { id: 'rec_economico', nome: 'Base Econômico', itens: { C: 24, Gg: 12, Zp: 6, Acp: 24, KL: 49 } },
+    { id: 'rec_boutique_padrao', nome: 'Boutique Padrão (Sem Coca Grande / Água Copo)', itens: { Cp: 12, Zp: 12, Gp: 12, Fgp: 6, Am: 12, Agsp: 12, Aggp: 12, Chn: 6, Chz: 6, Su: 6, Sp: 6, KL: 20, Esp: 6, Gelo: 2 } }
 ];
 
 const frotaInicialPadrao = [
@@ -113,7 +109,8 @@ const frotaInicialPadrao = [
     { id: '01', numero: '01', nome: 'Econômico 1', tipo: 'economico', receitaId: 'rec_economico' },
     { id: '18', numero: '18', nome: 'Foz do Iguaçu', tipo: 'boutique', receitaId: 'rec_boutique_padrao' },
     { id: '20', numero: '20', nome: 'Curitiba', tipo: 'boutique', receitaId: 'rec_boutique_padrao' },
-    { id: '7000', numero: '7000', nome: 'Litorina Luxo', tipo: 'litorina', receitaId: 'rec_boutique_padrao' }
+    { id: '7000', numero: '7000', nome: 'Litorina 7000', tipo: 'litorina', receitaId: 'rec_boutique_padrao' },
+    { id: '7001', numero: '7001', nome: 'Litorina 7001', tipo: 'litorina', receitaId: 'rec_boutique_padrao' }
 ];
 
 window.produtosDB = getCache('trem_cache_produtos', catalogoInicial);
@@ -175,17 +172,6 @@ function ordenarPorRegra(lista) {
         return (a.nome || "").localeCompare(b.nome || "");
     });
 }
-
-// ================= MODAIS =================
-window.abrirModal = function(id) {
-    const el = document.getElementById(id);
-    if (el) el.style.display = 'flex';
-};
-
-window.fecharModal = function(id) {
-    const el = document.getElementById(id);
-    if (el) el.style.display = 'none';
-};
 
 // ================= ROTEADOR DE TELAS =================
 window.mostrarTela = function(id) {
@@ -454,10 +440,10 @@ window.salvarReceitaModal = async function() {
 };
 
 window.excluirReceita = async function(id) {
-    if (confirm("Deseja realmente excluir esta receita de carga?")) {
+    window.abrirConfirmacao("Deseja realmente excluir esta receita de carga?", async () => {
         await deleteDoc(doc(db, "receitas_carga", id));
         window.mostrarToast("Receita excluída!");
-    }
+    });
 };
 
 // ================= FROTA DE VAGÕES (SEPARADA & SIMPLIFICADA) =================
@@ -561,13 +547,13 @@ window.salvarVagaoModal = async function() {
 };
 
 window.excluirVagao = async function(id) {
-    if (confirm("Tem certeza que deseja excluir este vagão da frota?")) {
+    window.abrirConfirmacao("Tem certeza que deseja excluir este vagão da frota?", async () => {
         await deleteDoc(doc(db, "vagoes", id));
         window.mostrarToast("Vagão excluído!");
-    }
+    });
 };
 
-// ================= CARGA POR VAGÃO (SEPARADA & COM RECEITAS) =================
+// ================= CARGA POR VAGÃO (APENAS PLANEJAMENTO, NÃO MEXE EM ESTOQUE) =================
 window.renderizarVagoesParaCarga = function() {
     const div = document.getElementById('listaVagoesParaCarga');
     if (!div) return;
@@ -640,25 +626,25 @@ window.copiarCargaVagaoAnteriorModal = function() {
     cargasVagao.sort((a, b) => b.data.localeCompare(a.data));
     const cargaAnterior = cargasVagao[0];
     
-    if (!confirm(`Copiar carga deste vagão do dia ${cargaAnterior.data.split('-').reverse().join('/')}?`)) return;
+    window.abrirConfirmacao(`Copiar carga deste vagão do dia ${cargaAnterior.data.split('-').reverse().join('/')}?`, () => {
+        window.produtosDB.forEach(p => {
+            const elTot = document.getElementById(`mcv_tot_${p.id}`);
+            const elBag = document.getElementById(`mcv_bag_${p.id}`);
+            if (!elTot || !elBag) return;
 
-    window.produtosDB.forEach(p => {
-        const elTot = document.getElementById(`mcv_tot_${p.id}`);
-        const elBag = document.getElementById(`mcv_bag_${p.id}`);
-        if (!elTot || !elBag) return;
+            if (cargaAnterior.itens && cargaAnterior.itens[p.id]) {
+                elTot.value = cargaAnterior.itens[p.id].qtd || 0;
+                elBag.value = cargaAnterior.itens[p.id].baga || 0;
+            } else {
+                elTot.value = 0;
+                elBag.value = 0;
+            }
+        });
 
-        if (cargaAnterior.itens && cargaAnterior.itens[p.id]) {
-            elTot.value = cargaAnterior.itens[p.id].qtd || 0;
-            elBag.value = cargaAnterior.itens[p.id].baga || 0;
-        } else {
-            elTot.value = 0;
-            elBag.value = 0;
-        }
+        document.getElementById('modalMcvObs').value = cargaAnterior.obs || "";
+        document.getElementById('modalMcvReceitaSelect').value = "";
+        window.mostrarToast("Carga copiada! Edite se necessário e Salve.");
     });
-
-    document.getElementById('modalMcvObs').value = cargaAnterior.obs || "";
-    document.getElementById('modalMcvReceitaSelect').value = "";
-    window.mostrarToast("Carga copiada! Edite se necessário e Salve.");
 };
 
 function renderizarItensModalCargaVagao(cargaExistente) {
@@ -707,7 +693,6 @@ window.salvarCargaVagaoModal = async function() {
     const vagaoId = document.getElementById('modalMcvVagaoId').value;
     const data = document.getElementById('dataCargaPorVagao').value;
     const obs = document.getElementById('modalMcvObs').value.trim();
-    const cargaAntiga = window.cargasVagoesDB.find(c => c.data === data && c.vagaoId === vagaoId);
     
     let itensSalvos = {};
     const batch = writeBatch(db);
@@ -721,22 +706,9 @@ window.salvarCargaVagaoModal = async function() {
         const baga = parseInt(bagEl.value) || 0;
         const cont = Math.max(0, total - baga);
 
-        if (total > 0 || (cargaAntiga && cargaAntiga.itens?.[p.id])) {
+        if (total > 0) {
+            // A carga individual de vagão não mexe no estoque global! Apenas registra o planejado.
             itensSalvos[p.id] = { qtd: total, baga, cont };
-
-            const antigoCont = cargaAntiga?.itens?.[p.id]?.cont || 0;
-            const antigoBaga = cargaAntiga?.itens?.[p.id]?.baga || 0;
-
-            const difCont = cont - antigoCont;
-            const difBaga = baga - antigoBaga;
-
-            if (difCont !== 0 || difBaga !== 0) {
-                const pRef = doc(db, "produtos", p.id);
-                batch.update(pRef, {
-                    estoqueContainerUnidades: increment(-difCont),
-                    estoqueBagageiroUnidades: increment(-difBaga)
-                });
-            }
         }
     }
 
@@ -753,7 +725,7 @@ window.salvarCargaVagaoModal = async function() {
     await batch.commit();
 
     window.fecharModal('modal-montar-carga-vagao');
-    window.mostrarToast("Carga confirmada e estoques atualizados!");
+    window.mostrarToast("Carga confirmada! (Estoque inalterado)");
     window.renderizarVagoesParaCarga();
 };
 
@@ -824,33 +796,36 @@ window.carregarMonitorViagem = function() {
 };
 
 window.iniciarViagemIda = async function() {
-    if (!confirm("Iniciar oficialmente a Viagem de IDA?")) return;
-    const hj = new Date().toISOString().split('T')[0];
-    const estado = getEstadoViagemHoje(hj);
-    estado.etapa = 'ida';
-    estado.sentido = 'Ida';
-    await setDoc(doc(db, "viagens_status", hj), estado);
-    window.carregarMonitorViagem();
+    window.abrirConfirmacao("Iniciar oficialmente a Viagem de IDA?", async () => {
+        const hj = new Date().toISOString().split('T')[0];
+        const estado = getEstadoViagemHoje(hj);
+        estado.etapa = 'ida';
+        estado.sentido = 'Ida';
+        await setDoc(doc(db, "viagens_status", hj), estado);
+        window.carregarMonitorViagem();
+    });
 };
 
 window.prepararRetornoMorretes = async function() {
-    if (!confirm("O trem chegou em Morretes?")) return;
-    const hj = new Date().toISOString().split('T')[0];
-    const estado = getEstadoViagemHoje(hj);
-    estado.etapa = 'morretes';
-    estado.sentido = 'Volta';
-    await setDoc(doc(db, "viagens_status", hj), estado);
-    window.carregarMonitorViagem();
+    window.abrirConfirmacao("O trem chegou em Morretes?", async () => {
+        const hj = new Date().toISOString().split('T')[0];
+        const estado = getEstadoViagemHoje(hj);
+        estado.etapa = 'morretes';
+        estado.sentido = 'Volta';
+        await setDoc(doc(db, "viagens_status", hj), estado);
+        window.carregarMonitorViagem();
+    });
 };
 
 window.iniciarViagemVolta = async function() {
-    if (!confirm("Iniciar oficialmente a Viagem de VOLTA para Curitiba?")) return;
-    const hj = new Date().toISOString().split('T')[0];
-    const estado = getEstadoViagemHoje(hj);
-    estado.etapa = 'volta';
-    estado.sentido = 'Volta';
-    await setDoc(doc(db, "viagens_status", hj), estado);
-    window.carregarMonitorViagem();
+    window.abrirConfirmacao("Iniciar oficialmente a Viagem de VOLTA para Curitiba?", async () => {
+        const hj = new Date().toISOString().split('T')[0];
+        const estado = getEstadoViagemHoje(hj);
+        estado.etapa = 'volta';
+        estado.sentido = 'Volta';
+        await setDoc(doc(db, "viagens_status", hj), estado);
+        window.carregarMonitorViagem();
+    });
 };
 
 window.abrirModalVagaoOperacao = function(vagaoId) {
@@ -1033,25 +1008,14 @@ window.carregarManifestoPublico = function(forcarUltima = false) {
     const elData = document.getElementById('filtroDataManifesto');
 
     if (!window.cargasDiaDB || window.cargasDiaDB.length === 0) {
-        div.innerHTML = `
-            <div style="text-align:center; padding:35px 15px; color:var(--secondary);">
-                <i class="ph ph-circle-notch ph-spin" style="font-size:36px; display:block; margin-bottom:10px; color:var(--primary);"></i>
-                <p>Nenhuma carga registrada no momento.</p>
-            </div>
-        `;
+        div.innerHTML = `<div style="text-align:center; padding:35px 15px; color:var(--secondary);"><p>Nenhuma carga registrada no momento.</p></div>`;
         return;
     }
 
-    const cargasOrdenadas = [...window.cargasDiaDB].sort((a, b) => {
-        if (b.data !== a.data) return b.data.localeCompare(a.data);
-        return (b.timestamp || 0) - (a.timestamp || 0);
-    });
-
-    const ultimaCarga = cargasOrdenadas[0];
-
+    const cargasOrdenadas = [...window.cargasDiaDB].sort((a, b) => b.data.localeCompare(a.data) || (b.timestamp||0) - (a.timestamp||0));
     let dataSel = elData ? elData.value : "";
     if (forcarUltima || !dataSel) {
-        dataSel = ultimaCarga ? ultimaCarga.data : new Date().toISOString().split('T')[0];
+        dataSel = cargasOrdenadas[0] ? cargasOrdenadas[0].data : new Date().toISOString().split('T')[0];
         if (elData) elData.value = dataSel;
     }
 
@@ -1062,7 +1026,7 @@ window.carregarManifestoPublico = function(forcarUltima = false) {
             <div style="text-align:center; padding:30px 15px; color:var(--secondary);">
                 <i class="ph ph-calendar-blank" style="font-size:36px; display:block; margin-bottom:8px;"></i>
                 <p>Nenhuma escala registrada para <strong>${dataSel ? dataSel.split('-').reverse().join('/') : '--/--/----'}</strong>.</p>
-                ${ultimaCarga ? `<button class="btn btn-secondary btn-pequeno" style="margin-top:10px;" onclick="document.getElementById('filtroDataManifesto').value='${ultimaCarga.data}'; carregarManifestoPublico(false);"><i class="ph ph-arrow-counter-clockwise"></i> Ver Carga de ${ultimaCarga.data.split('-').reverse().join('/')}</button>` : ''}
+                ${cargasOrdenadas[0] ? `<button class="btn btn-secondary btn-pequeno" style="margin-top:10px;" onclick="document.getElementById('filtroDataManifesto').value='${cargasOrdenadas[0].data}'; carregarManifestoPublico(false);"><i class="ph ph-arrow-counter-clockwise"></i> Ver Carga de ${cargasOrdenadas[0].data.split('-').reverse().join('/')}</button>` : ''}
             </div>
         `;
         return;
@@ -1097,7 +1061,7 @@ window.carregarManifestoPublico = function(forcarUltima = false) {
         `;
     });
 
-    const isMaisRecente = ultimaCarga && ultimaCarga.data === carga.data;
+    const isMaisRecente = cargasOrdenadas[0] && cargasOrdenadas[0].data === carga.data;
 
     div.innerHTML = `
         <div class="manifesto-card">
@@ -1139,10 +1103,10 @@ window.salvarDraftEstoque = function() {
 };
 
 window.limparDraftEstoque = function() {
-    if (confirm("Deseja restaurar os valores originais do estoque descartando o rascunho atual?")) {
+    window.abrirConfirmacao("Deseja restaurar os valores originais do estoque descartando o rascunho atual?", () => {
         localStorage.removeItem('trem_draft_estoque');
         window.abrirTelaEstoques();
-    }
+    });
 };
 
 window.salvarDraftCarga = function() {
@@ -1163,10 +1127,10 @@ window.salvarDraftCarga = function() {
 };
 
 window.limparDraftCarga = function() {
-    if (confirm("Deseja zerar os campos da carga do dia?")) {
+    window.abrirConfirmacao("Deseja zerar os campos da carga do dia?", () => {
         localStorage.removeItem('trem_draft_carga');
         window.abrirCargaDoDia();
-    }
+    });
 };
 
 window.salvarDraftContagem = function() {
@@ -1218,43 +1182,42 @@ window.copiarCargaDiaAnterior = function() {
     
     const cargasOrdenadas = [...window.cargasDiaDB].sort((a, b) => b.data.localeCompare(a.data));
     const dataAtual = document.getElementById('dataCargaDia').value;
-    
     const cargaAnterior = cargasOrdenadas.find(c => c.data !== dataAtual) || cargasOrdenadas[0];
     
     if (!cargaAnterior) return window.mostrarToast("Nenhuma carga anterior encontrada.", true);
     
-    if (!confirm(`Deseja copiar a carga do dia ${cargaAnterior.data.split('-').reverse().join('/')}?`)) return;
-
-    window.produtosDB.forEach(p => {
-        if (cargaAnterior.itens && cargaAnterior.itens[p.id]) {
-            const item = cargaAnterior.itens[p.id];
-            const elTot = document.getElementById(`carga_total_${p.id}`);
-            const elBag = document.getElementById(`carga_baga_${p.id}`);
-            const elDest = document.getElementById(`carga_dest_${p.id}`);
-            const elOrd = document.getElementById(`carga_ordem_${p.id}`);
-            
-            if (elTot) elTot.value = item.total || 0;
-            if (elBag) elBag.value = item.baga || 0;
-            if (elDest) elDest.value = item.destino || "";
-            if (elOrd && item.ordem) elOrd.value = item.ordem;
-            
-            window.calcularFormulaLinha(p.id);
-        } else {
-            const elTot = document.getElementById(`carga_total_${p.id}`);
-            const elBag = document.getElementById(`carga_baga_${p.id}`);
-            const elDest = document.getElementById(`carga_dest_${p.id}`);
-            if (elTot) elTot.value = 0;
-            if (elBag) elBag.value = 0;
-            if (elDest) elDest.value = "";
-            window.calcularFormulaLinha(p.id);
-        }
+    window.abrirConfirmacao(`Deseja copiar a carga do dia ${cargaAnterior.data.split('-').reverse().join('/')}?`, () => {
+        window.produtosDB.forEach(p => {
+            if (cargaAnterior.itens && cargaAnterior.itens[p.id]) {
+                const item = cargaAnterior.itens[p.id];
+                const elTot = document.getElementById(`carga_total_${p.id}`);
+                const elBag = document.getElementById(`carga_baga_${p.id}`);
+                const elDest = document.getElementById(`carga_dest_${p.id}`);
+                const elOrd = document.getElementById(`carga_ordem_${p.id}`);
+                
+                if (elTot) elTot.value = item.total || 0;
+                if (elBag) elBag.value = item.baga || 0;
+                if (elDest) elDest.value = item.destino || "";
+                if (elOrd && item.ordem) elOrd.value = item.ordem;
+                
+                window.calcularFormulaLinha(p.id);
+            } else {
+                const elTot = document.getElementById(`carga_total_${p.id}`);
+                const elBag = document.getElementById(`carga_baga_${p.id}`);
+                const elDest = document.getElementById(`carga_dest_${p.id}`);
+                if (elTot) elTot.value = 0;
+                if (elBag) elBag.value = 0;
+                if (elDest) elDest.value = "";
+                window.calcularFormulaLinha(p.id);
+            }
+        });
+        
+        const elObs = document.getElementById('obsEspeciaisCarga');
+        if (elObs) elObs.value = cargaAnterior.obsEspeciais || "";
+        
+        window.salvarDraftCarga();
+        window.mostrarToast("Carga copiada! Salve para confirmar.");
     });
-    
-    const elObs = document.getElementById('obsEspeciaisCarga');
-    if (elObs) elObs.value = cargaAnterior.obsEspeciais || "";
-    
-    window.salvarDraftCarga();
-    window.mostrarToast("Carga geral copiada! Edite se necessário e clique em Salvar.");
 };
 
 function verificarStatusEdicaoCarga() {
@@ -1266,13 +1229,13 @@ function verificarStatusEdicaoCarga() {
     if (cargaExistente && cargaExistente.itens && Object.keys(cargaExistente.itens).length > 0) {
         boxStatus.innerHTML = `
             <div style="background:#fefce8; border:1.5px solid #fde68a; color:#92400e; padding:10px 14px; border-radius:8px; font-weight:700; font-size:14px; display:flex; align-items:center; gap:8px;">
-                <i class="ph ph-pencil-simple-line"></i> Editando Carga Existente de ${dataSel.split('-').reverse().join('/')}. As alterações ajustarão o estoque.
+                <i class="ph ph-pencil-simple-line"></i> Editando Carga de ${dataSel.split('-').reverse().join('/')}. A diferença ajustará os estoques.
             </div>
         `;
     } else {
         boxStatus.innerHTML = `
             <div style="background:#e0f2fe; border:1.5px solid #bae6fd; color:#0369a1; padding:10px 14px; border-radius:8px; font-weight:600; font-size:13px; display:flex; align-items:center; gap:8px;">
-                <i class="ph ph-plus-circle"></i> Criando Nova Carga para ${dataSel.split('-').reverse().join('/')}.
+                <i class="ph ph-plus-circle"></i> Criando Carga para ${dataSel.split('-').reverse().join('/')}. Ao salvar, subtrai do estoque.
             </div>
         `;
     }
@@ -1370,6 +1333,7 @@ window.calcularFormulaLinha = function(id) {
     document.getElementById(`carga_cont_${id}`).value = cont;
 };
 
+// SALVAR CARGA GERAL (MANIFESTO) -> DESCONTA DO ESTOQUE
 window.salvarCargaDoDia = async function() {
     const data = document.getElementById('dataCargaDia').value;
     const obsEspeciais = document.getElementById('obsEspeciaisCarga').value.trim();
@@ -1384,7 +1348,7 @@ window.salvarCargaDoDia = async function() {
         const cont = parseInt(document.getElementById(`carga_cont_${p.id}`)?.value) || 0;
         const destino = document.getElementById(`carga_dest_${p.id}`)?.value.trim() || "";
         const novaOrdem = parseInt(document.getElementById(`carga_ordem_${p.id}`)?.value) || p.ordem || 99;
-        
+
         if (p.ordem !== novaOrdem) {
             p.ordem = novaOrdem;
             batch.update(doc(db, "produtos", p.id), { ordem: novaOrdem });
@@ -1421,7 +1385,7 @@ window.salvarCargaDoDia = async function() {
     await batch.commit();
 
     localStorage.removeItem('trem_draft_carga');
-    window.mostrarToast("Carga do trem salva com sucesso!");
+    window.mostrarToast("Carga Geral salva e estoque atualizado!");
     window.mostrarTela('tela-admin');
 };
 
@@ -1560,7 +1524,7 @@ window.confirmarAjustesEstoqueComObs = async function() {
     window.abrirTelaEstoques();
 };
 
-// ================= CONTAGEM DE VAGÃO (APOIO COM MATEMÁTICA AUTOMÁTICA E RECEITAS) =================
+// ================= CONTAGEM DE VAGÃO (APOIO) =================
 window.abrirSetupContagem = function() {
     const selUser = document.getElementById('selectNomeApoio');
     if (selUser) {
@@ -1597,7 +1561,6 @@ window.iniciarContagemVagao = function() {
     const vagaoId = document.getElementById('selectVagaoApoio').value;
     const dataSel = document.getElementById('dataContagemApoio').value;
     const vagaoObj = window.vagoesDB.find(v => v.id === vagaoId);
-    const recObj = window.receitasDB.find(r => r.id === vagaoObj?.receitaId);
 
     window.contagemTemp.apoio = document.getElementById('selectNomeApoio').value;
     window.contagemTemp.guia = window.escapeHTML(guia);
@@ -1615,7 +1578,7 @@ window.iniciarContagemVagao = function() {
     
     const boxAviso = document.getElementById('avisoCargaCarregada');
     if (cargaDoChefe) {
-        boxAviso.innerHTML = `<span style="background:#dcfce7; color:#15803d; padding:6px 12px; border-radius:8px; font-size:12px; font-weight:700;"><i class="ph ph-check-circle"></i> Carga oficial do chefe carregada!</span>`;
+        boxAviso.innerHTML = `<span style="background:#dcfce7; color:#15803d; padding:6px 12px; border-radius:8px; font-size:12px; font-weight:700;"><i class="ph ph-check-circle"></i> Carga oficial do chefe sincronizada!</span>`;
     } else {
         boxAviso.innerHTML = `<span style="background:#fee2e2; color:#b91c1c; padding:6px 12px; border-radius:8px; font-size:12px; font-weight:700;"><i class="ph ph-warning"></i> Nenhuma carga lançada pelo chefe. Preencha manualmente.</span>`;
     }
@@ -1628,18 +1591,11 @@ window.iniciarContagemVagao = function() {
 
     ordenarPorRegra(window.produtosDB);
 
-    let produtosExibir = [];
-    if (recObj && recObj.itens) {
-        for (let sigla in recObj.itens) {
-            const prod = window.produtosDB.find(p => p.id === sigla);
-            if (prod) produtosExibir.push({ ...prod, cargaReceita: recObj.itens[sigla] });
-        }
-    } else {
-        produtosExibir = window.produtosDB.filter(p => !p.nome.includes('(Venda)'));
-    }
+    const permitidas = vagaoObj?.bebidasPermitidas || [];
+    const produtosFiltrados = window.produtosDB.filter(p => !p.nome.includes('(Venda)') && (permitidas.length === 0 || permitidas.includes(p.id)));
 
-    produtosExibir.forEach(p => {
-        let cargaBase = cargaDoChefe && cargaDoChefe.itens[p.id] ? cargaDoChefe.itens[p.id].qtd : (p.cargaReceita !== undefined ? p.cargaReceita : 0);
+    produtosFiltrados.forEach(p => {
+        let cargaBase = cargaDoChefe && cargaDoChefe.itens[p.id] ? cargaDoChefe.itens[p.id].qtd : 0;
 
         const valCarga = draft?.itens?.[p.id]?.carga !== undefined && draft?.itens?.[p.id]?.carga !== "" ? draft.itens[p.id].carga : cargaBase;
         const valSaldo = draft?.itens?.[p.id]?.saldo !== undefined && draft?.itens?.[p.id]?.saldo !== "" ? draft.itens[p.id].saldo : "";
@@ -1675,7 +1631,7 @@ window.iniciarContagemVagao = function() {
         `;
     });
 
-    produtosExibir.forEach(p => calcularConsumo(p.id));
+    produtosFiltrados.forEach(p => calcularConsumo(p.id));
     window.mostrarTela('tela-contagem-vagao');
 };
 
@@ -1724,7 +1680,6 @@ window.gerarResumoContagem = function() {
                     <td style="font-weight:bold; color:var(--primary);">${obj.saldo}</td>
                 </tr>
             `;
-
             if (p.id === 'KL' || p.id === 'Kl') totalLanches += obj.pax;
             else totalBebidas += obj.pax;
         }
@@ -1742,6 +1697,7 @@ window.gerarResumoContagem = function() {
     window.mostrarTela('tela-resumo-contagem');
 };
 
+// SALVAR CONTAGEM (APOIO) -> AJUSTA BAGAGEIRO COM (SOBRAS E EXTRAS)
 window.salvarContagemDefinitiva = async function() {
     window.contagemTemp.obs = window.escapeHTML(document.getElementById('obsFinalContagem').value);
     const contagemId = Date.now().toString();
@@ -1753,7 +1709,7 @@ window.salvarContagemDefinitiva = async function() {
     for (let id in window.contagemTemp.itens) {
         const item = window.contagemTemp.itens[id];
         
-        // MATEMÁTICA DO APOIO - SOBRAS E EXTRAS
+        // MATEMÁTICA DO APOIO
         const extraPego = Math.max(0, item.carga - item.cargaOriginal);
         const netBagageiro = item.saldo - extraPego;
 
