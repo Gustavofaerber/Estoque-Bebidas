@@ -198,7 +198,7 @@
                     <label>Data da Operação:</label>
                     <input type="date" id="dataCargaPorVagao" onclick="this.showPicker && this.showPicker()" onchange="renderizarVagoesParaCarga()">
                 </div>
-                <p style="font-size:13px; color:var(--secondary); margin-bottom:12px;">Selecione um vagão abaixo para aplicar uma receita e editar a carga:</p>
+                <p style="font-size:13px; color:var(--secondary); margin-bottom:12px;">Selecione um vagão abaixo para aplicar uma receita e editar a carga (Atenção: Salvar aqui não desconta do estoque):</p>
                 
                 <div id="listaVagoesParaCarga"></div>
             </div>
@@ -507,13 +507,9 @@
                 <button class="btn btn-danger btn-pequeno" onclick="mostrarTela('tela-setup-carrinho')">Cancelar</button>
             </div>
             <div class="card">
-                <p style="font-size:13px; color:var(--secondary); margin-bottom:15px;">
-                    Informe as quantidades de saída e retorno dos itens de venda:
-                </p>
                 <div id="listaItensCarrinho"></div>
                 
                 <hr class="divisor">
-                
                 <h4 style="color:var(--primary); margin-bottom:10px;"><i class="ph ph-plus-circle"></i> Vendeu mais alguma coisa?</h4>
                 <div style="display:flex; gap:8px; margin-bottom:10px;">
                     <select id="selectItemExtraCarrinho" style="flex:2;"></select>
@@ -521,14 +517,11 @@
                     <button class="btn btn-primary" style="width:auto;" onclick="adicionarItemExtraVenda()"><i class="ph ph-plus"></i></button>
                 </div>
                 <div id="listaExtrasAdicionados" style="margin-bottom:15px;"></div>
-
                 <hr class="divisor">
-
                 <div class="form-group">
                     <label>Troco Inicial Pego no Bagageiro (R$):</label>
                     <input type="number" id="carrinhoTroco" value="0" onfocus="this.select()" oninput="calcularVendas();">
                 </div>
-                
                 <div class="box-total-vendas">
                     <p style="margin: 0; font-size:14px; font-weight:600;">Valor Líquido de Vendas:</p>
                     <h2>R$ <span id="lblTotalVendasCarrinho">0,00</span></h2>
@@ -541,6 +534,18 @@
     </div>
 
     <!-- MODAIS POP-UPS -->
+    <!-- MODAL POP-UP: CONFIRMAÇÃO GENÉRICA (SUBSTITUI WINDOW.CONFIRM) -->
+    <div id="modal-confirmacao" class="modal-overlay">
+        <div class="modal-content" style="max-width: 400px; text-align: center;">
+            <div style="margin-bottom:15px; color:var(--primary);"><i class="ph ph-question" style="font-size: 48px;"></i></div>
+            <h3 style="margin-top:0; color:var(--text); font-size:18px;" id="lblConfirmacaoTexto">Tem certeza?</h3>
+            <div style="display:flex; gap:10px; margin-top:25px;">
+                <button class="btn btn-primary" style="flex:1;" onclick="executarConfirmacao()"><i class="ph ph-check"></i> Sim</button>
+                <button class="btn btn-secondary" style="flex:1;" onclick="fecharModal('modal-confirmacao')">Não</button>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL: CARGA DE UM VAGÃO (O CHEFE EDITA AQUI ANTES DE SALVAR) -->
     <div id="modal-montar-carga-vagao" class="modal-overlay">
         <div class="modal-content" style="max-width:550px;">
