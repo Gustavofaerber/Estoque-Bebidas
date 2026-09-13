@@ -23,7 +23,8 @@ try {
     console.log("Offline mode persistente já ativo.");
 }
 
-// ================= CSS E HTML DINÂMICOS (INJETADOS VIA JS PARA NÃO QUEBRAR SEU INDEX) =================
+// ================= CSS E HTML DINÂMICOS (INJETADOS VIA JS) =================
+// Cria as notificações Toast (Verde/Vermelho) sem precisar mexer no HTML
 const toastStyle = document.createElement('style');
 toastStyle.innerHTML = `
     .toast-container { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 10000; display: flex; flex-direction: column; gap: 10px; width: 90%; max-width: 400px; pointer-events: none; }
@@ -34,7 +35,7 @@ toastStyle.innerHTML = `
 `;
 document.head.appendChild(toastStyle);
 
-// Injeta o Modal de Confirmação no HTML se ele não existir
+// Injeta o Modal Customizado de Confirmação (Substitui o window.confirm travado)
 if (!document.getElementById('modal-confirmacao')) {
     const confModal = document.createElement('div');
     confModal.id = 'modal-confirmacao';
@@ -52,7 +53,7 @@ if (!document.getElementById('modal-confirmacao')) {
     document.body.appendChild(confModal);
 }
 
-// Substitui os Alerts
+// ================= SISTEMA DE NOTIFICAÇÕES (TOAST) E CONFIRMAÇÃO =================
 window.mostrarToast = function(mensagem, isErro = false) {
     let container = document.getElementById('toast-container');
     if (!container) {
@@ -71,8 +72,8 @@ window.mostrarToast = function(mensagem, isErro = false) {
     }, 3500);
 };
 
-// Substitui os Confirms
 window.acaoConfirmacaoPendente = null;
+
 window.abrirConfirmacao = function(mensagem, callback) {
     document.getElementById('lblConfirmacaoTexto').innerText = mensagem;
     window.acaoConfirmacaoPendente = callback;
@@ -86,15 +87,12 @@ window.executarConfirmacao = function() {
     window.fecharModal('modal-confirmacao');
 };
 
-
 // ================= RECUPERAÇÃO BLINDADA DO CACHE LOCAL =================
-// Garante que se o cache estiver corrompido, a tela nunca fique branca
 function getCache(key, fallback = []) {
     try {
         const val = localStorage.getItem(key);
         if (!val || val === "undefined" || val === "null") return fallback;
         const parsed = JSON.parse(val);
-        // Proteção extra: se esperamos um array e veio objeto quebrado, retorna fallback
         if (Array.isArray(fallback) && !Array.isArray(parsed)) return fallback;
         return parsed;
     } catch(e) {
@@ -102,7 +100,7 @@ function getCache(key, fallback = []) {
     }
 }
 
-// Catálogo com as bebidas oficiais (backup de segurança inicial)
+// Catálogo com as bebidas oficiais
 const catalogoInicial = [
     { id: 'C', nome: 'Coca Lata', unidadesPorFardo: 12, ordem: 1, precoVenda: 8, estoqueContainerUnidades: 1800, estoqueBagageiroUnidades: 35 },
     { id: 'Cp', nome: 'Coca Lata Pequena', unidadesPorFardo: 6, ordem: 2, precoVenda: 6, estoqueContainerUnidades: 600, estoqueBagageiroUnidades: 18 },
@@ -125,21 +123,9 @@ const catalogoInicial = [
 
 // Receitas padrão prontas
 const receitasIniciaisPadrao = [
-    {
-        id: 'rec_turistico_48',
-        nome: 'Base Turístico (48 Lugares)',
-        itens: { C: 24, Gg: 12, Zp: 6, Acp: 24, KL: 49 }
-    },
-    {
-        id: 'rec_economico',
-        nome: 'Base Econômico',
-        itens: { C: 24, Gg: 12, Zp: 6, Acp: 24, KL: 49 }
-    },
-    {
-        id: 'rec_boutique_padrao',
-        nome: 'Boutique Padrão (Sem Coca Grande / Água Copo)',
-        itens: { Cp: 12, Zp: 12, Gp: 12, Fgp: 6, Am: 12, Agsp: 12, Aggp: 12, Chn: 6, Chz: 6, Su: 6, Sp: 6, KL: 20, Esp: 6, Gelo: 2 }
-    }
+    { id: 'rec_turistico_48', nome: 'Base Turístico (48 Lugares)', itens: { C: 24, Gg: 12, Zp: 6, Acp: 24, KL: 49 } },
+    { id: 'rec_economico', nome: 'Base Econômico', itens: { C: 24, Gg: 12, Zp: 6, Acp: 24, KL: 49 } },
+    { id: 'rec_boutique_padrao', nome: 'Boutique Padrão (Sem Coca Grande / Água Copo)', itens: { Cp: 12, Zp: 12, Gp: 12, Fgp: 6, Am: 12, Agsp: 12, Aggp: 12, Chn: 6, Chz: 6, Su: 6, Sp: 6, KL: 20, Esp: 6, Gelo: 2 } }
 ];
 
 const frotaInicialPadrao = [
@@ -157,7 +143,7 @@ const frotaInicialPadrao = [
 ];
 
 window.produtosDB = getCache('trem_cache_produtos', catalogoInicial);
-window.usuariosDB = getCache('trem_cache_usuarios', [{ id: '1', nome: 'Gustavo' }]);
+window.usuariosDB = getCache('trem_cache_usuarios', []);
 window.vagoesDB = getCache('trem_cache_vagoes', frotaInicialPadrao);
 window.receitasDB = getCache('trem_cache_receitas', receitasIniciaisPadrao);
 window.contagensDB = getCache('trem_cache_contagens', []);
@@ -216,7 +202,7 @@ function ordenarPorRegra(lista) {
     });
 }
 
-// ================= MODAIS =================
+// ================= MODAIS ESPECÍFICOS =================
 window.abrirModal = function(id) {
     const el = document.getElementById(id);
     if (el) el.style.display = 'flex';
@@ -227,7 +213,7 @@ window.fecharModal = function(id) {
     if (el) el.style.display = 'none';
 };
 
-// ================= ROTEADOR DE TELAS =================
+// ================= ROTEADOR DE TELAS E INJEÇÃO =================
 window.mostrarTela = function(id) {
     document.querySelectorAll('.tela').forEach(t => t.classList.remove('ativa'));
     const tela = document.getElementById(id);
@@ -303,16 +289,21 @@ function restaurarSessaoOuTela() {
 
 // ================= SINCRONIZAÇÃO EM NUVEM E OFFLINE =================
 function iniciarSincronizacaoNuvem() {
-    // Mapeamento protegido. Mantemos o Array como padrão
+    // 1. PRODUTOS (Auto-popula apenas se estiver zerado no banco)
     onSnapshot(collection(db, "produtos"), (snapshot) => {
-        window.produtosDB = snapshot.docs.map(d => {
-            const data = d.data();
-            if (data.ordem === undefined || data.ordem === null) {
-                const idx = ORDEM_PADRAO_CHEFE.indexOf(data.id);
-                data.ordem = idx !== -1 ? idx + 1 : 99;
-            }
-            return data;
-        });
+        if (snapshot.empty) {
+            catalogoInicial.forEach(async p => await setDoc(doc(db, "produtos", p.id), p));
+            window.produtosDB = catalogoInicial;
+        } else {
+            window.produtosDB = snapshot.docs.map(d => {
+                const data = d.data();
+                if (data.ordem === undefined || data.ordem === null) {
+                    const idx = ORDEM_PADRAO_CHEFE.indexOf(data.id);
+                    data.ordem = idx !== -1 ? idx + 1 : 99;
+                }
+                return data;
+            });
+        }
         localStorage.setItem('trem_cache_produtos', JSON.stringify(window.produtosDB));
         window.atualizarDashboardKPIs();
         const telaAtiva = document.querySelector('.tela.ativa')?.id;
@@ -320,12 +311,19 @@ function iniciarSincronizacaoNuvem() {
         if (telaAtiva === 'tela-estoques') window.renderizarApenasTabelasResumoEstoques();
     });
 
+    // 2. RECEITAS DE CARGA
     onSnapshot(collection(db, "receitas_carga"), (snapshot) => {
-        window.receitasDB = snapshot.docs.map(d => d.data());
+        if (snapshot.empty) {
+            receitasIniciaisPadrao.forEach(async r => await setDoc(doc(db, "receitas_carga", r.id), r));
+            window.receitasDB = receitasIniciaisPadrao;
+        } else {
+            window.receitasDB = snapshot.docs.map(d => d.data());
+        }
         localStorage.setItem('trem_cache_receitas', JSON.stringify(window.receitasDB));
         if (document.getElementById('tela-receitas')?.classList.contains('ativa')) window.renderizarReceitasAdmin();
     });
 
+    // 3. USUÁRIOS (Apoios) - Mapeia direto, se estiver vazio vai ficar vazio.
     onSnapshot(collection(db, "usuarios"), (snapshot) => {
         window.usuariosDB = snapshot.docs.map(d => d.data());
         localStorage.setItem('trem_cache_usuarios', JSON.stringify(window.usuariosDB));
@@ -335,8 +333,14 @@ function iniciarSincronizacaoNuvem() {
         if (telaAtiva === 'tela-setup-carrinho') window.abrirSetupCarrinho();
     });
 
+    // 4. FROTA DE VAGÕES
     onSnapshot(collection(db, "vagoes"), (snapshot) => {
-        window.vagoesDB = snapshot.docs.map(d => d.data());
+        if (snapshot.empty) {
+            frotaInicialPadrao.forEach(async v => await setDoc(doc(db, "vagoes", v.id), v));
+            window.vagoesDB = frotaInicialPadrao;
+        } else {
+            window.vagoesDB = snapshot.docs.map(d => d.data());
+        }
         localStorage.setItem('trem_cache_vagoes', JSON.stringify(window.vagoesDB));
         const telaAtiva = document.querySelector('.tela.ativa')?.id;
         if (telaAtiva === 'tela-vagoes') window.renderizarVagoesAdmin();
@@ -344,6 +348,7 @@ function iniciarSincronizacaoNuvem() {
         if (telaAtiva === 'tela-operacao-viagem') window.carregarMonitorViagem();
     });
 
+    // 5. CONTAGENS DOS APOIOS
     onSnapshot(collection(db, "contagens"), (snapshot) => {
         window.contagensDB = snapshot.docs.map(d => d.data());
         localStorage.setItem('trem_cache_contagens', JSON.stringify(window.contagensDB));
@@ -351,25 +356,29 @@ function iniciarSincronizacaoNuvem() {
         if (document.getElementById('tela-operacao-viagem')?.classList.contains('ativa')) window.carregarMonitorViagem();
     });
 
+    // 6. CARGAS DO DIA (MANIFESTO GERAL)
     onSnapshot(collection(db, "cargas_dia"), (snapshot) => {
         window.cargasDiaDB = snapshot.docs.map(d => d.data());
         localStorage.setItem('trem_cache_cargas', JSON.stringify(window.cargasDiaDB));
         if (document.getElementById('tela-ver-carga')?.classList.contains('ativa')) window.carregarManifestoPublico(false);
-        if (document.getElementById('tela-carga-dia')?.classList.contains('ativa')) verificarStatusEdicaoCarga();
+        if (document.getElementById('tela-carga-dia')?.classList.contains('ativa')) window.verificarStatusEdicaoCarga();
     });
 
+    // 7. CARGAS POR VAGÃO (PLANEJAMENTO)
     onSnapshot(collection(db, "cargas_vagoes"), (snapshot) => {
         window.cargasVagoesDB = snapshot.docs.map(d => d.data());
         localStorage.setItem('trem_cache_cargas_vagoes', JSON.stringify(window.cargasVagoesDB));
         if (document.getElementById('tela-carga-vagao')?.classList.contains('ativa')) window.renderizarVagoesParaCarga();
     });
 
+    // 8. VENDAS (CARRINHO)
     onSnapshot(collection(db, "vendas_carrinho"), (snapshot) => {
         window.vendasCarrinhoDB = snapshot.docs.map(d => d.data());
         localStorage.setItem('trem_cache_vendas', JSON.stringify(window.vendasCarrinhoDB));
         if (document.getElementById('tela-relatorios')?.classList.contains('ativa')) window.renderizarRelatoriosAdmin();
     });
 
+    // 9. STATUS DA VIAGEM
     onSnapshot(collection(db, "viagens_status"), (snapshot) => {
         snapshot.docs.forEach(d => {
             window.viagensStatusDB[d.id] = d.data();
@@ -542,6 +551,7 @@ window.autoSugerirReceitaVagao = function() {
         const rBout = window.receitasDB.find(r => r.id === 'rec_boutique_padrao' || r.nome.toLowerCase().includes('boutique'));
         if (rBout) selRec.value = rBout.id;
     }
+    window.atualizarCheckboxesBebidasPadrao();
 };
 
 window.abrirModalVagao = function(id = null) {
@@ -589,6 +599,19 @@ window.abrirModalVagao = function(id = null) {
 
     window.abrirModal('modal-vagao');
     setTimeout(() => window.focarProximo('modalVagaoNumero'), 100);
+};
+
+window.atualizarCheckboxesBebidasPadrao = function() {
+    const tipo = document.getElementById('modalVagaoTipo').value;
+    const chks = document.querySelectorAll('#boxCheckboxesBebidasVagao input');
+    
+    if (tipo === 'turistico' || tipo === 'economico') {
+        const padraoTur = ['C', 'Cp', 'Zp', 'Gg', 'Gp', 'Acp', 'KL'];
+        chks.forEach(c => c.checked = padraoTur.includes(c.value));
+    } else {
+        const proibidasBoutique = ['C', 'Gg', 'Acp', 'Ac'];
+        chks.forEach(c => c.checked = !proibidasBoutique.includes(c.value));
+    }
 };
 
 window.salvarVagaoModal = async function() {
@@ -760,6 +783,7 @@ function renderizarItensModalCargaVagao(cargaExistente) {
     });
 }
 
+// Carga por Vagão é apenas planejamento. Não subtrai nem credita nada no DB global "produtos".
 window.salvarCargaVagaoModal = async function() {
     const vagaoId = document.getElementById('modalMcvVagaoId').value;
     const data = document.getElementById('dataCargaPorVagao').value;
@@ -800,6 +824,27 @@ window.salvarCargaVagaoModal = async function() {
 };
 
 // ================= CARGA DO DIA (MANIFESTO GERAL) - DESCONTA DO ESTOQUE =================
+window.verificarStatusEdicaoCarga = function() {
+    const dataSel = document.getElementById('dataCargaDia')?.value;
+    const boxStatus = document.getElementById('statusCargaEdicao');
+    if (!boxStatus || !dataSel) return;
+
+    const cargaExistente = window.cargasDiaDB.find(c => c.data === dataSel);
+    if (cargaExistente && cargaExistente.itens && Object.keys(cargaExistente.itens).length > 0) {
+        boxStatus.innerHTML = `
+            <div style="background:#fefce8; border:1.5px solid #fde68a; color:#92400e; padding:10px 14px; border-radius:8px; font-weight:700; font-size:14px; display:flex; align-items:center; gap:8px;">
+                <i class="ph ph-pencil-simple-line"></i> Editando Carga Geral de ${dataSel.split('-').reverse().join('/')}. A diferença ajustará os estoques.
+            </div>
+        `;
+    } else {
+        boxStatus.innerHTML = `
+            <div style="background:#e0f2fe; border:1.5px solid #bae6fd; color:#0369a1; padding:10px 14px; border-radius:8px; font-weight:600; font-size:13px; display:flex; align-items:center; gap:8px;">
+                <i class="ph ph-plus-circle"></i> Criando Carga para ${dataSel.split('-').reverse().join('/')}. Ao salvar, subtrai do estoque.
+            </div>
+        `;
+    }
+}
+
 window.trocarDataCargaDia = function() {
     localStorage.removeItem('trem_draft_carga');
     window.abrirCargaDoDia();
@@ -848,27 +893,6 @@ window.copiarCargaDiaAnterior = function() {
     });
 };
 
-function verificarStatusEdicaoCarga() {
-    const dataSel = document.getElementById('dataCargaDia')?.value;
-    const boxStatus = document.getElementById('statusCargaEdicao');
-    if (!boxStatus || !dataSel) return;
-
-    const cargaExistente = window.cargasDiaDB.find(c => c.data === dataSel);
-    if (cargaExistente && cargaExistente.itens && Object.keys(cargaExistente.itens).length > 0) {
-        boxStatus.innerHTML = `
-            <div style="background:#fefce8; border:1.5px solid #fde68a; color:#92400e; padding:10px 14px; border-radius:8px; font-weight:700; font-size:14px; display:flex; align-items:center; gap:8px;">
-                <i class="ph ph-pencil-simple-line"></i> Editando Carga Geral de ${dataSel.split('-').reverse().join('/')}. A diferença ajustará os estoques.
-            </div>
-        `;
-    } else {
-        boxStatus.innerHTML = `
-            <div style="background:#e0f2fe; border:1.5px solid #bae6fd; color:#0369a1; padding:10px 14px; border-radius:8px; font-weight:600; font-size:13px; display:flex; align-items:center; gap:8px;">
-                <i class="ph ph-plus-circle"></i> Criando Carga para ${dataSel.split('-').reverse().join('/')}. Ao salvar, subtrai do estoque.
-            </div>
-        `;
-    }
-}
-
 window.abrirCargaDoDia = function() {
     const div = document.getElementById('listaItensCargaDia');
     if (!div) return;
@@ -883,10 +907,10 @@ window.abrirCargaDoDia = function() {
     const draftStr = localStorage.getItem('trem_draft_carga');
     const draft = draftStr ? JSON.parse(draftStr) : null;
 
-    verificarStatusEdicaoCarga();
+    window.verificarStatusEdicaoCarga();
     ordenarPorRegra(window.produtosDB);
 
-    // Na Carga Geral (Manifesto) o Chefe lança em FARDOS
+    // Carga Geral agora preenche em FARDOS
     window.produtosDB.filter(p => !p.nome.includes('(Venda)')).forEach(p => {
         const unPorFardo = p.unidadesPorFardo || 1;
         const bagaDisponivel = formatarEstoqueFardos(p.estoqueBagageiroUnidades, unPorFardo);
@@ -974,7 +998,7 @@ window.salvarCargaDoDia = async function() {
         const totEl = document.getElementById(`carga_total_${p.id}`);
         if (!totEl) continue;
 
-        // Na carga geral os números digitados são FARDOS
+        // Na Carga Geral do Dia, os valores digitados são Fardos!
         const totalFardos = parseInt(totEl.value) || 0;
         const bagaFardos = parseInt(document.getElementById(`carga_baga_${p.id}`)?.value) || 0;
         const contFardos = parseInt(document.getElementById(`carga_cont_${p.id}`)?.value) || 0;
@@ -997,7 +1021,7 @@ window.salvarCargaDoDia = async function() {
             const difContFardos = contFardos - antigoContFardos;
             const difBagaFardos = bagaFardos - antigoBagaFardos;
 
-            // Multiplica os fardos pelo tamanho do fardo da bebida para abater UNIDADES no estoque
+            // Multiplica o fardo pelas unidades do produto para abater do banco
             if (difContFardos !== 0 || difBagaFardos !== 0) {
                 const pRef = doc(db, "produtos", p.id);
                 batch.update(pRef, {
@@ -1024,139 +1048,647 @@ window.salvarCargaDoDia = async function() {
     window.mostrarTela('tela-admin');
 };
 
-// ================= SITUAÇÃO DOS ESTOQUES =================
-window.renderizarApenasTabelasResumoEstoques = function() {
-    ordenarPorRegra(window.produtosDB);
+// ================= MONITOR DE OPERAÇÃO DE VIAGEM =================
+function getEstadoViagemHoje(dataHoje) {
+    if (!window.viagensStatusDB[dataHoje]) {
+        window.viagensStatusDB[dataHoje] = {
+            etapa: 'preparacao',
+            sentido: 'Ida',
+            reforcos: {}
+        };
+    }
+    return window.viagensStatusDB[dataHoje];
+}
 
-    const tbodyCont = document.getElementById('tabelaResumoContainer');
-    if (tbodyCont) {
-        tbodyCont.innerHTML = "";
-        window.produtosDB.forEach(p => {
-            tbodyCont.innerHTML += `
-                <tr>
-                    <td><strong>${p.id}</strong> - ${p.nome}</td>
-                    <td style="color:var(--primary); font-weight:bold;">${formatarEstoqueFardos(p.estoqueContainerUnidades, p.unidadesPorFardo)}</td>
-                </tr>
-            `;
-        });
+window.carregarMonitorViagem = function() {
+    const hj = new Date().toISOString().split('T')[0];
+    const estado = getEstadoViagemHoje(hj);
+
+    const elEtapa = document.getElementById('lblEtapaViagemTexto');
+    const elSentido = document.getElementById('badgeSentidoAtivo');
+    
+    if (estado.etapa === 'preparacao') {
+        elEtapa.innerText = "Em Preparação (Curitiba)";
+        elSentido.innerText = "Ida";
+    } else if (estado.etapa === 'ida') {
+        elEtapa.innerText = "Viagem de IDA em Andamento";
+        elSentido.innerText = "Ida";
+    } else if (estado.etapa === 'morretes') {
+        elEtapa.innerText = "Trem em Morretes (Preparando Retorno)";
+        elSentido.innerText = "Retorno";
+    } else if (estado.etapa === 'volta') {
+        elEtapa.innerText = "Viagem de VOLTA em Andamento";
+        elSentido.innerText = "Volta";
+    } else {
+        elEtapa.innerText = "Viagem Finalizada (Curitiba)";
+        elSentido.innerText = "Finalizado";
     }
 
-    const tbodyBaga = document.getElementById('tabelaResumoBagageiro');
-    if (tbodyBaga) {
-        tbodyBaga.innerHTML = "";
-        window.produtosDB.forEach(p => {
-            tbodyBaga.innerHTML += `
-                <tr>
-                    <td><strong>${p.id}</strong> - ${p.nome}</td>
-                    <td style="color:var(--bagageiro-color); font-weight:bold;">${formatarEstoqueFardos(p.estoqueBagageiroUnidades, p.unidadesPorFardo)}</td>
-                </tr>
-            `;
-        });
-    }
-};
+    const grid = document.getElementById('gridVagoesOperacao');
+    if (!grid) return;
+    grid.innerHTML = "";
 
-window.abrirTelaEstoques = function() {
-    window.renderizarApenasTabelasResumoEstoques();
+    const vagoesOrd = [...window.vagoesDB].sort((a, b) => (parseInt(a.numero)||0) - (parseInt(b.numero)||0));
 
-    const draftStr = localStorage.getItem('trem_draft_estoque');
-    const draft = draftStr ? JSON.parse(draftStr) : null;
+    vagoesOrd.forEach(v => {
+        const contagemFechada = window.contagensDB.find(c => c.data === hj && c.vagaoId === v.id && c.sentido === estado.sentido);
+        const estaAberto = (estado.etapa === 'ida' || estado.etapa === 'volta') && !contagemFechada;
+        const statusTexto = contagemFechada ? `✔ Fechado (${estado.sentido})` : (estaAberto ? `🟢 Aberto (${estado.sentido})` : `Aguardando`);
+        const classeCard = contagemFechada ? 'vagao-fechado' : (estaAberto ? 'vagao-aberto' : '');
+        const badgeStatus = contagemFechada ? 'status-fechado' : (estaAberto ? 'status-aberto' : '');
 
-    const divManual = document.getElementById('listaEstoqueGeral');
-    if (!divManual) return;
-    divManual.innerHTML = "";
-
-    window.produtosDB.forEach(p => {
-        const unFardo = p.unidadesPorFardo || 1;
-
-        const contFardosDb = Math.floor((p.estoqueContainerUnidades || 0) / unFardo);
-        const contUnidadesDb = (p.estoqueContainerUnidades || 0) % unFardo;
-        const bagaFardosDb = Math.floor((p.estoqueBagageiroUnidades || 0) / unFardo);
-        const bagaUnidadesDb = (p.estoqueBagageiroUnidades || 0) % unFardo;
-
-        const valCFd = draft?.[p.id]?.cFd !== undefined && draft?.[p.id]?.cFd !== "" ? draft[p.id].cFd : contFardosDb;
-        const valCUn = draft?.[p.id]?.cUn !== undefined && draft?.[p.id]?.cUn !== "" ? draft[p.id].cUn : contUnidadesDb;
-        const valBFd = draft?.[p.id]?.bFd !== undefined && draft?.[p.id]?.bFd !== "" ? draft[p.id].bFd : bagaFardosDb;
-        const valBUn = draft?.[p.id]?.bUn !== undefined && draft?.[p.id]?.bUn !== "" ? draft[p.id].bUn : bagaUnidadesDb;
-
-        divManual.innerHTML += `
-            <div class="item-contagem">
-                <div class="item-contagem-header">
-                    <span><span class="badge-ordem">#${p.ordem || '-'}</span> ${p.nome} (${p.id})</span>
-                    <small style="color:var(--secondary); font-size:13px; font-weight:700;">1 Fardo = ${unFardo} un</small>
+        grid.innerHTML += `
+            <div class="card-vagao-status ${classeCard}" onclick="window.abrirModalVagaoOperacao('${v.id}')">
+                <div>
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                        <strong style="font-size:16px;">Placa ${v.numero} - ${v.nome}</strong>
+                        <span class="badge-tag-status ${badgeStatus}">${statusTexto}</span>
+                    </div>
+                    <small style="color:var(--secondary); text-transform:uppercase; font-weight:700; font-size:12px;">[${v.tipo}]</small>
                 </div>
-                <div class="grid-inputs" style="grid-template-columns: 1fr 1fr; gap:12px;">
-                    <div class="box-ajuste-col box-ajuste-cont">
-                        <label style="color:var(--container-color);"><i class="ph ph-archive"></i> Contêiner:</label>
-                        <div class="input-unidade-group">
-                            <div>
-                                <span>[ Fardos ]</span>
-                                <input type="number" id="est_cont_fd_${p.id}" value="${valCFd}" min="0" oninput="window.salvarDraftEstoque()">
-                            </div>
-                            <div>
-                                <span>[ + Unidades ]</span>
-                                <input type="number" id="est_cont_un_${p.id}" value="${valCUn}" min="0" oninput="window.salvarDraftEstoque()">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="box-ajuste-col box-ajuste-baga">
-                        <label style="color:var(--bagageiro-color);"><i class="ph ph-bag"></i> Bagageiro:</label>
-                        <div class="input-unidade-group">
-                            <div>
-                                <span>[ Fardos ]</span>
-                                <input type="number" id="est_baga_fd_${p.id}" value="${valBFd}" min="0" oninput="window.salvarDraftEstoque()">
-                            </div>
-                            <div>
-                                <span>[ + Unidades ]</span>
-                                <input type="number" id="est_baga_un_${p.id}" value="${valBUn}" min="0" oninput="window.salvarDraftEstoque()">
-                            </div>
-                        </div>
-                    </div>
+                <div style="margin-top:10px; font-size:12px; color:var(--primary); font-weight:600;">
+                    ${estaAberto ? '<i class="ph ph-hand-pointing"></i> Abrir e adicionar reforço' : '<i class="ph ph-check"></i> Contagem concluída'}
                 </div>
             </div>
         `;
     });
 };
 
-window.abrirModalConfirmaEstoque = function() {
-    document.getElementById('modalObsAjusteEstoque').value = "";
-    window.abrirModal('modal-confirma-estoque');
+window.iniciarViagemIda = async function() {
+    window.abrirConfirmacao("Iniciar oficialmente a Viagem de IDA?", async () => {
+        const hj = new Date().toISOString().split('T')[0];
+        const estado = getEstadoViagemHoje(hj);
+        estado.etapa = 'ida';
+        estado.sentido = 'Ida';
+        await setDoc(doc(db, "viagens_status", hj), estado);
+        window.carregarMonitorViagem();
+    });
 };
 
-window.confirmarAjustesEstoqueComObs = async function() {
-    const obs = document.getElementById('modalObsAjusteEstoque').value.trim();
-    const batch = writeBatch(db);
+window.prepararRetornoMorretes = async function() {
+    window.abrirConfirmacao("O trem chegou em Morretes?", async () => {
+        const hj = new Date().toISOString().split('T')[0];
+        const estado = getEstadoViagemHoje(hj);
+        estado.etapa = 'morretes';
+        estado.sentido = 'Volta';
+        await setDoc(doc(db, "viagens_status", hj), estado);
+        window.carregarMonitorViagem();
+    });
+};
 
-    for (let p of window.produtosDB) {
-        const unFardo = p.unidadesPorFardo || 1;
-        
-        const cFd = parseInt(document.getElementById(`est_cont_fd_${p.id}`)?.value) || 0;
-        const cUn = parseInt(document.getElementById(`est_cont_un_${p.id}`)?.value) || 0;
-        const bFd = parseInt(document.getElementById(`est_baga_fd_${p.id}`)?.value) || 0;
-        const bUn = parseInt(document.getElementById(`est_baga_un_${p.id}`)?.value) || 0;
+window.iniciarViagemVolta = async function() {
+    window.abrirConfirmacao("Iniciar oficialmente a Viagem de VOLTA para Curitiba?", async () => {
+        const hj = new Date().toISOString().split('T')[0];
+        const estado = getEstadoViagemHoje(hj);
+        estado.etapa = 'volta';
+        estado.sentido = 'Volta';
+        await setDoc(doc(db, "viagens_status", hj), estado);
+        window.carregarMonitorViagem();
+    });
+};
 
-        const totalCont = (cFd * unFardo) + cUn;
-        const totalBaga = (bFd * unFardo) + bUn;
+window.abrirModalVagaoOperacao = function(vagaoId) {
+    const v = window.vagoesDB.find(x => x.id === vagaoId);
+    if (!v) return;
 
-        batch.update(doc(db, "produtos", p.id), {
-            estoqueContainerUnidades: totalCont,
-            estoqueBagageiroUnidades: totalBaga
+    window.vagaoOperacaoSelecionadoId = vagaoId;
+    const hj = new Date().toISOString().split('T')[0];
+    const estado = getEstadoViagemHoje(hj);
+
+    document.getElementById('modalOpVagaoNome').innerText = `Placa ${v.numero} - ${v.nome}`;
+
+    const contagemFechada = window.contagensDB.find(c => c.data === hj && c.vagaoId === v.id && c.sentido === estado.sentido);
+    const estaAberto = (estado.etapa === 'ida' || estado.etapa === 'volta') && !contagemFechada;
+
+    const elStatus = document.getElementById('modalOpVagaoStatus');
+    elStatus.innerText = contagemFechada ? `FECHADO` : (estaAberto ? `ABERTO` : `AGUARDANDO`);
+    elStatus.style.color = estaAberto ? 'var(--success)' : 'var(--secondary)';
+
+    const selReforco = document.getElementById('modalOpSelectBebidaReforco');
+    selReforco.innerHTML = "";
+    
+    const permitidas = v.bebidasPermitidas || [];
+    const prodsVagao = window.produtosDB.filter(p => !p.nome.includes('(Venda)') && (permitidas.length === 0 || permitidas.includes(p.id)));
+
+    prodsVagao.forEach(p => {
+        selReforco.innerHTML += `<option value="${p.id}">${p.id} - ${p.nome} (Bagageiro: ${p.estoqueBagageiroUnidades || 0} un)</option>`;
+    });
+
+    const divReforcos = document.getElementById('modalOpListaReforcosFeitos');
+    divReforcos.innerHTML = "";
+    const lista = estado.reforcos?.[vagaoId] || [];
+    if (lista.length === 0) {
+        divReforcos.innerHTML = '<span style="color:var(--secondary); font-style:italic;">Nenhum reforço pego.</span>';
+    } else {
+        lista.forEach(r => {
+            divReforcos.innerHTML += `<div style="color:var(--accent); font-weight:700;">+ ${r.qtd}x ${r.bebidaId} às ${r.hora}</div>`;
         });
     }
 
-    const logId = Date.now().toString();
-    batch.set(doc(db, "logs_ajuste_estoque", logId), {
-        id: logId,
-        timestamp: Date.now(),
-        data: new Date().toLocaleDateString('pt-BR'),
-        observacao: window.escapeHTML(obs) || "Ajuste manual geral"
+    window.abrirModal('modal-vagao-operacao');
+};
+
+window.adicionarReforcoVagao = async function() {
+    const vagaoId = window.vagaoOperacaoSelecionadoId;
+    const bebidaId = document.getElementById('modalOpSelectBebidaReforco').value;
+    const qtd = parseInt(document.getElementById('modalOpQtdReforco').value) || 1;
+
+    if (!bebidaId || qtd < 1) { window.mostrarToast("Selecione bebida e quantidade válida!", true); return; }
+
+    const hj = new Date().toISOString().split('T')[0];
+    const estado = getEstadoViagemHoje(hj);
+    if (!estado.reforcos[vagaoId]) estado.reforcos[vagaoId] = [];
+
+    const horaAtual = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    estado.reforcos[vagaoId].push({ bebidaId, qtd, hora: horaAtual });
+
+    const pRef = doc(db, "produtos", bebidaId);
+    await updateDoc(pRef, { estoqueBagageiroUnidades: increment(-qtd) });
+
+    await setDoc(doc(db, "viagens_status", hj), estado);
+    document.getElementById('modalOpQtdReforco').value = 1;
+    
+    window.mostrarToast(`Reforço de +${qtd} abatido do Bagageiro!`);
+    window.fecharModal('modal-vagao-operacao');
+};
+
+// ================= GESTÃO DE USUÁRIOS E PRODUTOS =================
+window.renderizarUsuarios = function() {
+    const div = document.getElementById('listaUsuariosAdmin');
+    if (!div) return;
+    div.innerHTML = "";
+    [...window.usuariosDB].sort((a,b) => a.nome.localeCompare(b.nome)).forEach((u) => {
+        div.innerHTML += `
+            <div style="display:flex; justify-content:space-between; padding: 12px 0; border-bottom: 1px solid var(--border); align-items:center;">
+                <div style="font-size:15px; font-weight:600;"><i class="ph ph-user"></i> ${u.nome}</div>
+                <button class="btn btn-danger btn-pequeno" onclick="window.removerUsuario('${u.id}')"><i class="ph ph-trash"></i></button>
+            </div>
+        `;
+    });
+};
+
+window.adicionarUsuario = async function() {
+    const nome = document.getElementById('novoUsuarioNome').value.trim();
+    if (!nome) return;
+    const uid = Date.now().toString();
+    await setDoc(doc(db, "usuarios", uid), { id: uid, nome: window.escapeHTML(nome) });
+    document.getElementById('novoUsuarioNome').value = "";
+    window.mostrarToast("Apoio adicionado com sucesso!");
+};
+
+window.removerUsuario = async function(id) {
+    window.abrirConfirmacao("Remover este apoio?", async () => {
+        await deleteDoc(doc(db, "usuarios", id));
+        window.mostrarToast("Apoio removido!");
+    });
+};
+
+window.renderizarProdutosAdmin = function() {
+    ordenarPorRegra(window.produtosDB);
+    const div = document.getElementById('listaProdutosAdmin');
+    if (!div) return;
+    div.innerHTML = "";
+    window.produtosDB.forEach((p) => {
+        div.innerHTML += `
+            <div style="display:flex; justify-content:space-between; align-items:center; padding: 12px 0; border-bottom: 1px solid var(--border);">
+                <div>
+                    <span class="badge-ordem">#${p.ordem || '-'}</span>
+                    <strong style="font-size:16px;">${p.id}</strong> - ${p.nome} 
+                    <br><small style="color:var(--secondary); font-size:13px;">${p.unidadesPorFardo} un/fardo &bull; Preço Venda: <strong>R$ ${window.formatarMoeda(p.precoVenda)}</strong></small>
+                </div>
+                <div style="display:flex; gap:6px;">
+                    <button class="btn btn-secondary btn-pequeno" onclick="window.abrirModalProduto('${p.id}')"><i class="ph ph-pencil-simple"></i> Editar</button>
+                    <button class="btn btn-danger btn-pequeno" onclick="window.removerProduto('${p.id}')"><i class="ph ph-trash"></i></button>
+                </div>
+            </div>
+        `;
+    });
+};
+
+window.abrirModalProduto = function(id = null) {
+    if (id) {
+        const p = window.produtosDB.find(x => x.id === id);
+        if (!p) return;
+        document.getElementById('modalProdutoTitulo').innerHTML = '<i class="ph ph-pencil-simple"></i> Editar Produto';
+        document.getElementById('modalProdIdOriginal').value = p.id;
+        document.getElementById('modalProdSigla').value = p.id;
+        document.getElementById('modalProdSigla').disabled = true;
+        document.getElementById('modalProdNome').value = p.nome;
+        document.getElementById('modalProdUnFardo').value = p.unidadesPorFardo || 12;
+        document.getElementById('modalProdPreco').value = p.precoVenda || 0;
+        document.getElementById('modalProdOrdem').value = p.ordem !== undefined ? p.ordem : "";
+    } else {
+        document.getElementById('modalProdutoTitulo').innerHTML = '<i class="ph ph-plus-circle"></i> Novo Produto';
+        document.getElementById('modalProdIdOriginal').value = "";
+        document.getElementById('modalProdSigla').value = "";
+        document.getElementById('modalProdSigla').disabled = false;
+        document.getElementById('modalProdNome').value = "";
+        document.getElementById('modalProdUnFardo').value = "12";
+        document.getElementById('modalProdPreco').value = "";
+        document.getElementById('modalProdOrdem').value = window.produtosDB.length + 1;
+    }
+    window.abrirModal('modal-produto');
+    setTimeout(() => window.focarProximo(id ? 'modalProdNome' : 'modalProdOrdem'), 100);
+};
+
+window.salvarProdutoModal = async function() {
+    const idOriginal = document.getElementById('modalProdIdOriginal').value;
+    const sigla = document.getElementById('modalProdSigla').value.trim();
+    const nome = document.getElementById('modalProdNome').value.trim();
+    const unFardo = parseInt(document.getElementById('modalProdUnFardo').value) || 12;
+    const preco = parseFloat(document.getElementById('modalProdPreco').value) || 0;
+    const ordem = parseInt(document.getElementById('modalProdOrdem').value) || 99;
+
+    if (!sigla || !nome) { window.mostrarToast("Preencha Sigla e Nome!", true); return; }
+
+    const idFinal = idOriginal || sigla;
+    const dados = { id: idFinal, nome: window.escapeHTML(nome), unidadesPorFardo: unFardo, precoVenda: preco, ordem };
+
+    if (!idOriginal) {
+        dados.estoqueContainerUnidades = 0;
+        dados.estoqueBagageiroUnidades = 0;
+    }
+
+    await setDoc(doc(db, "produtos", idFinal), dados, { merge: true });
+    window.fecharModal('modal-produto');
+    window.mostrarToast("Produto salvo com sucesso!");
+};
+
+window.removerProduto = async function(id) {
+    window.abrirConfirmacao("Excluir este produto definitivamente?", async () => {
+        await deleteDoc(doc(db, "produtos", id));
+        window.mostrarToast("Produto excluído!");
+    });
+};
+
+// ================= BOUTIQUES HUB (SOBRAS E RETORNO) =================
+window.carregarSelectBoutiqueHub = function() {
+    const sel = document.getElementById('selectVagaoBoutiqueHub');
+    if (!sel) return;
+    sel.innerHTML = "";
+
+    const vagoesBoutLito = window.vagoesDB.filter(v => v.tipo === 'boutique' || v.tipo === 'litorina')
+        .sort((a,b) => (parseInt(a.numero)||0) - (parseInt(b.numero)||0));
+
+    vagoesBoutLito.forEach(v => {
+        sel.innerHTML += `<option value="${v.id}">Placa ${v.numero} - ${v.nome} [${v.tipo.toUpperCase()}]</option>`;
+    });
+
+    const hj = new Date().toISOString().split('T')[0];
+    const dtEl = document.getElementById('dataBoutiqueHub');
+    if (dtEl && !dtEl.value) dtEl.value = hj;
+};
+
+window.carregarFormularioBoutiqueHub = function() {
+    const area = document.getElementById('areaFormBoutiqueHub');
+    if (!area) return;
+    area.innerHTML = "";
+
+    const etapa = document.getElementById('etapaBoutiqueHub').value;
+    const vagaoId = document.getElementById('selectVagaoBoutiqueHub').value;
+    const vagaoObj = window.vagoesDB.find(v => v.id === vagaoId);
+    
+    ordenarPorRegra(window.produtosDB);
+    const permitidas = vagaoObj?.bebidasPermitidas || [];
+    const prods = window.produtosDB.filter(p => !p.nome.includes('(Venda)') && (permitidas.length === 0 || permitidas.includes(p.id)));
+
+    if (etapa === 'morretes_sem_retorno' || etapa === 'curitiba_final') {
+        const titulo = etapa === 'morretes_sem_retorno' ? 'Baixar Sobras (Sem Retorno)' : 'Fechamento Final das Sobras';
+        let htmlItens = `<h4 style="color:var(--primary); margin-bottom:12px;">${titulo}</h4>`;
+
+        prods.forEach(p => {
+            htmlItens += `
+                <div class="item-contagem" style="padding:10px 14px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
+                    <strong>${p.id} - ${p.nome}</strong>
+                    <div style="display:flex; align-items:center; gap:6px;">
+                        <span style="font-size:12px; color:var(--secondary);">Sobrou:</span>
+                        <input type="number" id="boutique_sobra_${p.id}" placeholder="0" min="0" style="width:80px; text-align:center; padding:8px; font-weight:bold;">
+                    </div>
+                </div>
+            `;
+        });
+        htmlItens += `<button class="btn btn-success btn-lg" style="margin-top:15px;" onclick="window.salvarSobrasBoutiqueDirect()"><i class="ph ph-check-circle"></i> Creditar Sobras no Bagageiro</button>`;
+        area.innerHTML = htmlItens;
+
+    } else if (etapa === 'morretes_com_retorno') {
+        let htmlItens = `<h4 style="color:var(--primary); margin-bottom:12px;">Ajuste de Carga (Retorno)</h4>`;
+
+        prods.forEach(p => {
+            htmlItens += `
+                <div class="item-contagem">
+                    <div class="item-contagem-header"><span>${p.id} - ${p.nome}</span></div>
+                    <div class="grid-inputs" style="grid-template-columns: 1fr 1fr;">
+                        <div>
+                            <label>Sobrou da Ida:</label>
+                            <input type="number" id="boutique_ida_sobra_${p.id}" placeholder="0" min="0">
+                        </div>
+                        <div>
+                            <label>Ajuste (+ ou -):</label>
+                            <input type="number" id="boutique_ajuste_ret_${p.id}" placeholder="Ex: +6 ou -4">
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        htmlItens += `<button class="btn btn-primary btn-lg" style="margin-top:15px;" onclick="window.salvarAjusteRetornoBoutique()"><i class="ph ph-check-circle"></i> Confirmar Carga do Retorno</button>`;
+        area.innerHTML = htmlItens;
+    }
+};
+
+window.salvarSobrasBoutiqueDirect = async function() {
+    const batch = writeBatch(db);
+    let totalSobras = 0;
+
+    window.produtosDB.forEach(p => {
+        const qtd = parseInt(document.getElementById(`boutique_sobra_${p.id}`)?.value) || 0;
+        if (qtd > 0) {
+            totalSobras += qtd;
+            batch.update(doc(db, "produtos", p.id), { estoqueBagageiroUnidades: increment(qtd) });
+        }
     });
 
     await batch.commit();
+    window.mostrarToast(`${totalSobras} unidades creditadas no Bagageiro.`);
+    window.mostrarTela('tela-inicial');
+};
 
-    localStorage.removeItem('trem_draft_estoque');
-    window.fecharModal('modal-confirma-estoque');
-    window.mostrarToast("Estoques atualizados com sucesso!");
-    window.abrirTelaEstoques();
+window.salvarAjusteRetornoBoutique = async function() {
+    const batch = writeBatch(db);
+    
+    window.produtosDB.forEach(p => {
+        const ajuste = parseInt(document.getElementById(`boutique_ajuste_ret_${p.id}`)?.value) || 0;
+        if (ajuste !== 0) {
+            batch.update(doc(db, "produtos", p.id), { estoqueBagageiroUnidades: increment(-ajuste) });
+        }
+    });
+
+    await batch.commit();
+    window.mostrarToast("Carga de retorno configurada!");
+    window.mostrarTela('tela-inicial');
+};
+
+// ================= RELATÓRIOS DO CHEFE =================
+window.setModoRelatorio = function(modo) {
+    window.modoRelatorioAdmin = modo;
+    ['btnRelVagao', 'btnRelTur', 'btnRelBoutLito', 'btnRelVendas'].forEach(id => {
+        const el = document.getElementById(id);
+        if(el) el.classList.remove('ativo');
+    });
+    const mapIds = {
+        'todos': 'btnRelVagao',
+        'turisticos': 'btnRelTur',
+        'boutiques_litorinas': 'btnRelBoutLito',
+        'vendas': 'btnRelVendas'
+    };
+    const atvEl = document.getElementById(mapIds[modo]);
+    if(atvEl) atvEl.classList.add('ativo');
+    
+    window.renderizarRelatoriosAdmin();
+};
+
+window.setFiltroSentido = function(sentido) {
+    window.filtroSentidoRelatorio = sentido;
+    ['btnSentidoTodos', 'btnSentidoIda', 'btnSentidoVolta'].forEach(id => {
+        const el = document.getElementById(id);
+        if(el) el.classList.remove('ativo');
+    });
+    const mapIds = {
+        'todos': 'btnSentidoTodos',
+        'Ida': 'btnSentidoIda',
+        'Volta': 'btnSentidoVolta'
+    };
+    const atvEl = document.getElementById(mapIds[sentido]);
+    if(atvEl) atvEl.classList.add('ativo');
+
+    window.renderizarRelatoriosAdmin();
+};
+
+window.renderizarRelatoriosAdmin = function() {
+    const div = document.getElementById('listaRelatoriosAdmin');
+    if (!div) return;
+    div.innerHTML = "";
+
+    const elFiltro = document.getElementById('filtroDataRelatorio');
+    const dataFiltro = elFiltro.value || new Date().toISOString().split('T')[0];
+    elFiltro.value = dataFiltro;
+
+    if (window.modoRelatorioAdmin === 'vendas') {
+        let vendas = window.vendasCarrinhoDB.filter(v => v.data === dataFiltro);
+        if (window.filtroSentidoRelatorio !== 'todos') {
+            vendas = vendas.filter(v => {
+                if(!v.sentido) return false;
+                return v.sentido.trim().toLowerCase() === window.filtroSentidoRelatorio.toLowerCase();
+            });
+        }
+
+        if (vendas.length === 0) {
+            div.innerHTML = '<p style="text-align:center; color:var(--secondary); padding:20px;">Nenhuma venda com estes filtros.</p>';
+            return;
+        }
+
+        vendas.forEach(v => {
+            let extrasHtml = (v.extras || []).map(e => `<li>${e.qtd}x ${e.nome}</li>`).join('');
+            div.innerHTML += `
+                <div class="card" style="border-left:5px solid #0f766e; padding:14px; margin-bottom:12px;">
+                    <div style="display:flex; justify-content:space-between;">
+                        <strong style="font-size:16px;">Carrinho: Viagem de ${v.sentido}</strong>
+                        <span style="font-size:13px; color:var(--secondary);">${v.apoio}</span>
+                    </div>
+                    <p style="margin:6px 0; font-size:16px; color:var(--success); font-weight:bold;">Vendas: R$ ${v.totalVendasR$}</p>
+                    ${extrasHtml ? `<small><b>Extras:</b></small><ul style="font-size:12px; padding-left:18px;">${extrasHtml}</ul>` : ''}
+                </div>
+            `;
+        });
+        return;
+    }
+
+    let filtrados = window.contagensDB.filter(c => c.data === dataFiltro);
+
+    if (window.filtroSentidoRelatorio !== 'todos') {
+        filtrados = filtrados.filter(c => {
+            if(!c.sentido) return false;
+            return c.sentido.trim().toLowerCase() === window.filtroSentidoRelatorio.toLowerCase();
+        });
+    }
+
+    if (window.modoRelatorioAdmin === 'turisticos') {
+        filtrados = filtrados.filter(c => {
+            if(!c.vagaoTipo) return false;
+            const t = c.vagaoTipo.trim().toLowerCase();
+            return t === 'turistico' || t === 'economico';
+        });
+    } else if (window.modoRelatorioAdmin === 'boutiques_litorinas') {
+        filtrados = filtrados.filter(c => {
+            if(!c.vagaoTipo) return false;
+            const t = c.vagaoTipo.trim().toLowerCase();
+            return t === 'boutique' || t === 'litorina';
+        });
+    }
+
+    if (filtrados.length === 0) {
+        div.innerHTML = '<p style="text-align:center; color:var(--secondary); padding:20px;">Nenhum relatório encontrado para estes filtros.</p>';
+        return;
+    }
+
+    filtrados.sort((a, b) => {
+        const nA = parseInt(a.vagaoNumero) || 9999;
+        const nB = parseInt(b.vagaoNumero) || 9999;
+        if (nA !== nB) return nA - nB;
+        return (a.sentido || "").localeCompare(b.sentido || "");
+    });
+
+    filtrados.forEach(c => {
+        let linhas = gerarLinhasTabelaAdmin(c.itens);
+        let totalLanches = 0;
+        let totalBebidas = 0;
+        
+        for (let k in c.itens) {
+            const it = c.itens[k];
+            if (k === 'KL' || k === 'Kl') totalLanches += it.pax || 0;
+            else totalBebidas += it.pax || 0;
+        }
+
+        const compClasse = (totalLanches === totalBebidas) ? 'kpi-match' : 'kpi-divergent';
+
+        div.innerHTML += `
+            <div class="card" style="border-left:5px solid var(--primary); padding:14px; margin-bottom:14px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <div>
+                        <strong style="font-size:16px;">${c.vagao} (${c.sentido})</strong>
+                        <br><span style="font-size:12px; color:var(--secondary);">${c.apoio} | Guia: ${c.guia || '-'}</span>
+                    </div>
+                    <button class="btn btn-secondary btn-pequeno" onclick="window.abrirModalEdicaoRelatorio('${c.id}')"><i class="ph ph-pencil-simple"></i> Corrigir</button>
+                </div>
+
+                <div class="box-comparativo-status ${compClasse}" style="padding:6px 12px; font-size:12px; margin-bottom:8px;">
+                    <div style="display:flex; justify-content:space-around;">
+                        <span>Lanches: <strong>${totalLanches}</strong></span>
+                        <span>Bebidas: <strong>${totalBebidas}</strong></span>
+                    </div>
+                </div>
+
+                <div class="tabela-container">
+                    <table class="tabela-relatorio">
+                        <thead>
+                            <tr>
+                                <th style="width:34%;">Bebida</th>
+                                <th style="width:13%;">Carga</th>
+                                <th style="width:13%;">Pax</th>
+                                <th style="width:12%;">Trip</th>
+                                <th style="width:12%;">Ava</th>
+                                <th style="width:16%;">Sobra</th>
+                            </tr>
+                        </thead>
+                        <tbody>${linhas}</tbody>
+                    </table>
+                </div>
+                ${c.obs ? `<div style="margin-top:8px; color:var(--danger); font-size:12px;"><b>Obs:</b> ${c.obs}</div>` : ''}
+            </div>
+        `;
+    });
+};
+
+function gerarLinhasTabelaAdmin(itensObjeto) {
+    let arr = Object.values(itensObjeto).map(item => {
+        const prod = window.produtosDB.find(p => p.id === item.id) || { ordem: 9999 };
+        return { ...item, ordem: prod.ordem };
+    });
+
+    ordenarPorRegra(arr);
+
+    let html = "";
+    arr.forEach(obj => {
+        if (obj.carga > 0 || obj.saldo > 0 || obj.pax > 0 || obj.ava > 0) {
+            html += `
+                <tr>
+                    <td>${obj.nome}</td>
+                    <td>${obj.carga}</td>
+                    <td style="color:var(--success); font-weight:bold;">${obj.pax}</td>
+                    <td>${obj.trip > 0 ? obj.trip : '-'}</td>
+                    <td style="color:var(--danger);">${obj.ava > 0 ? obj.ava : '-'}</td>
+                    <td style="font-weight:bold; color:var(--primary);">${obj.saldo}</td>
+                </tr>
+            `;
+        }
+    });
+    return html;
+}
+
+window.abrirModalEdicaoRelatorio = function(id) {
+    const c = window.contagensDB.find(x => x.id === id);
+    if (!c) return;
+
+    document.getElementById('editRelatorioIdOriginal').value = c.id;
+    document.getElementById('subtituloModalEditaRelatorio').innerText = `${c.vagao} (${c.sentido}) \u2022 ${c.data.split('-').reverse().join('/')}`;
+    document.getElementById('obsEdicaoChefeRelatorio').value = c.obs || "";
+
+    const div = document.getElementById('listaItensEdicaoRelatorio');
+    div.innerHTML = "";
+
+    ordenarPorRegra(window.produtosDB);
+    for (let pId in c.itens) {
+        const item = c.itens[pId];
+        div.innerHTML += `
+            <div class="item-contagem" style="padding:10px; margin-bottom:8px;">
+                <strong style="font-size:14px;">${item.nome} (${pId})</strong>
+                <div class="grid-inputs" style="grid-template-columns: repeat(4, 1fr); margin-top:6px;">
+                    <div><label>Carga:</label><input type="number" id="edit_rel_carga_${pId}" value="${item.carga}"></div>
+                    <div><label>Sobra:</label><input type="number" id="edit_rel_saldo_${pId}" value="${item.saldo}"></div>
+                    <div><label>Trip:</label><input type="number" id="edit_rel_trip_${pId}" value="${item.trip}"></div>
+                    <div><label>Avaria:</label><input type="number" id="edit_rel_ava_${pId}" value="${item.ava}"></div>
+                </div>
+            </div>
+        `;
+    }
+
+    window.abrirModal('modal-editar-relatorio');
+};
+
+window.salvarEdicaoRelatorioPeloChefe = async function() {
+    const id = document.getElementById('editRelatorioIdOriginal').value;
+    const c = window.contagensDB.find(x => x.id === id);
+    if (!c) return;
+
+    const batch = writeBatch(db);
+    let novosItens = {};
+
+    for (let pId in c.itens) {
+        const carga = parseInt(document.getElementById(`edit_rel_carga_${pId}`)?.value) || 0;
+        const saldo = parseInt(document.getElementById(`edit_rel_saldo_${pId}`)?.value) || 0;
+        const trip = parseInt(document.getElementById(`edit_rel_trip_${pId}`)?.value) || 0;
+        const ava = parseInt(document.getElementById(`edit_rel_ava_${pId}`)?.value) || 0;
+        const pax = Math.max(0, carga - saldo - trip - ava);
+
+        const cargaOriginal = c.itens[pId].cargaOriginal !== undefined ? c.itens[pId].cargaOriginal : (c.itens[pId].carga || 0);
+
+        novosItens[pId] = {
+            id: pId,
+            nome: c.itens[pId].nome,
+            cargaOriginal,
+            carga, saldo, trip, ava, pax
+        };
+
+        const difCarga = carga - (c.itens[pId].carga || 0);
+        const difSaldo = saldo - (c.itens[pId].saldo || 0);
+        const netAjusteBagageiro = difSaldo - difCarga;
+
+        if (netAjusteBagageiro !== 0) {
+            batch.update(doc(db, "produtos", pId), {
+                estoqueBagageiroUnidades: increment(netAjusteBagageiro)
+            });
+        }
+    }
+
+    const obsChefe = document.getElementById('obsEdicaoChefeRelatorio').value.trim();
+    batch.update(doc(db, "contagens", id), {
+        itens: novosItens,
+        obs: window.escapeHTML(obsChefe)
+    });
+
+    await batch.commit();
+    window.fecharModal('modal-editar-relatorio');
+    window.mostrarToast("Relatório corrigido com sucesso!");
+    window.renderizarRelatoriosAdmin();
 };
 
 // ================= CONTAGEM DE VAGÃO (APOIO COM MATEMÁTICA AUTOMÁTICA E RECEITAS) =================
@@ -1291,7 +1823,7 @@ window.gerarResumoContagem = function() {
         const elCarga = document.getElementById(`carga_${p.id}`);
         if (!elCarga) return;
 
-        // Leitura segura do atributo
+        // Recupera de forma segura a carga base original
         const attrOrig = elCarga.getAttribute('data-carga-original');
         const cargaOriginalNum = attrOrig !== null && attrOrig !== "" ? parseInt(attrOrig) : (parseInt(elCarga.value) || 0);
 
@@ -1319,7 +1851,6 @@ window.gerarResumoContagem = function() {
                     <td style="font-weight:bold; color:var(--primary);">${obj.saldo}</td>
                 </tr>
             `;
-
             if (p.id === 'KL' || p.id === 'Kl') totalLanches += obj.pax;
             else totalBebidas += obj.pax;
         }
@@ -1348,7 +1879,7 @@ window.salvarContagemDefinitiva = async function() {
     for (let id in window.contagemTemp.itens) {
         const item = window.contagemTemp.itens[id];
         
-        // MATEMÁTICA DO APOIO - SOBRAS E EXTRAS DO BAGAGEIRO
+        // MATEMÁTICA DO APOIO - SOBRAS E EXTRAS
         const extraPego = Math.max(0, item.carga - item.cargaOriginal);
         const netBagageiro = item.saldo - extraPego;
 
@@ -1368,272 +1899,6 @@ window.salvarContagemDefinitiva = async function() {
     window.mostrarTela('tela-inicial');
 };
 
-// ================= RELATÓRIOS DO CHEFE COM FILTROS CORRIGIDOS =================
-window.setModoRelatorio = function(modo) {
-    window.modoRelatorioAdmin = modo;
-    ['btnRelVagao', 'btnRelTur', 'btnRelBoutLito', 'btnRelVendas'].forEach(id => {
-        const el = document.getElementById(id);
-        if(el) el.classList.remove('ativo');
-    });
-    const mapIds = {
-        'todos': 'btnRelVagao',
-        'turisticos': 'btnRelTur',
-        'boutiques_litorinas': 'btnRelBoutLito',
-        'vendas': 'btnRelVendas'
-    };
-    const atvEl = document.getElementById(mapIds[modo]);
-    if(atvEl) atvEl.classList.add('ativo');
-    
-    window.renderizarRelatoriosAdmin();
-};
-
-window.setFiltroSentido = function(sentido) {
-    window.filtroSentidoRelatorio = sentido;
-    ['btnSentidoTodos', 'btnSentidoIda', 'btnSentidoVolta'].forEach(id => {
-        const el = document.getElementById(id);
-        if(el) el.classList.remove('ativo');
-    });
-    const mapIds = {
-        'todos': 'btnSentidoTodos',
-        'Ida': 'btnSentidoIda',
-        'Volta': 'btnSentidoVolta'
-    };
-    const atvEl = document.getElementById(mapIds[sentido]);
-    if(atvEl) atvEl.classList.add('ativo');
-
-    window.renderizarRelatoriosAdmin();
-};
-
-window.renderizarRelatoriosAdmin = function() {
-    const div = document.getElementById('listaRelatoriosAdmin');
-    if (!div) return;
-    div.innerHTML = "";
-
-    const elFiltro = document.getElementById('filtroDataRelatorio');
-    const dataFiltro = elFiltro.value || new Date().toISOString().split('T')[0];
-    elFiltro.value = dataFiltro;
-
-    if (window.modoRelatorioAdmin === 'vendas') {
-        let vendas = window.vendasCarrinhoDB.filter(v => v.data === dataFiltro);
-        if (window.filtroSentidoRelatorio !== 'todos') {
-            vendas = vendas.filter(v => {
-                if(!v.sentido) return false;
-                return v.sentido.toLowerCase() === window.filtroSentidoRelatorio.toLowerCase();
-            });
-        }
-
-        if (vendas.length === 0) {
-            div.innerHTML = '<p style="text-align:center; color:var(--secondary); padding:20px;">Nenhuma venda com estes filtros.</p>';
-            return;
-        }
-
-        vendas.forEach(v => {
-            let extrasHtml = (v.extras || []).map(e => `<li>${e.qtd}x ${e.nome}</li>`).join('');
-            div.innerHTML += `
-                <div class="card" style="border-left:5px solid #0f766e; padding:14px; margin-bottom:12px;">
-                    <div style="display:flex; justify-content:space-between;">
-                        <strong style="font-size:16px;">Carrinho: Viagem de ${v.sentido}</strong>
-                        <span style="font-size:13px; color:var(--secondary);">${v.apoio}</span>
-                    </div>
-                    <p style="margin:6px 0; font-size:16px; color:var(--success); font-weight:bold;">Vendas: R$ ${v.totalVendasR$}</p>
-                    ${extrasHtml ? `<small><b>Extras:</b></small><ul style="font-size:12px; padding-left:18px;">${extrasHtml}</ul>` : ''}
-                </div>
-            `;
-        });
-        return;
-    }
-
-    let filtrados = window.contagensDB.filter(c => c.data === dataFiltro);
-
-    // CORREÇÃO DOS FILTROS (Ignorando letras maiúsculas e espaços)
-    if (window.filtroSentidoRelatorio !== 'todos') {
-        filtrados = filtrados.filter(c => {
-            if(!c.sentido) return false;
-            return c.sentido.trim().toLowerCase() === window.filtroSentidoRelatorio.toLowerCase();
-        });
-    }
-
-    if (window.modoRelatorioAdmin === 'turisticos') {
-        filtrados = filtrados.filter(c => {
-            if(!c.vagaoTipo) return false;
-            const t = c.vagaoTipo.trim().toLowerCase();
-            return t === 'turistico' || t === 'economico';
-        });
-    } else if (window.modoRelatorioAdmin === 'boutiques_litorinas') {
-        filtrados = filtrados.filter(c => {
-            if(!c.vagaoTipo) return false;
-            const t = c.vagaoTipo.trim().toLowerCase();
-            return t === 'boutique' || t === 'litorina';
-        });
-    }
-
-    if (filtrados.length === 0) {
-        div.innerHTML = '<p style="text-align:center; color:var(--secondary); padding:20px;">Nenhum relatório encontrado para estes filtros.</p>';
-        return;
-    }
-
-    filtrados.sort((a, b) => {
-        const nA = parseInt(a.vagaoNumero) || 9999;
-        const nB = parseInt(b.vagaoNumero) || 9999;
-        if (nA !== nB) return nA - nB;
-        return (a.sentido || "").localeCompare(b.sentido || "");
-    });
-
-    filtrados.forEach(c => {
-        let linhas = gerarLinhasTabelaAdmin(c.itens);
-        let totalLanches = 0;
-        let totalBebidas = 0;
-        
-        for (let k in c.itens) {
-            const it = c.itens[k];
-            if (k === 'KL' || k === 'Kl') totalLanches += it.pax || 0;
-            else totalBebidas += it.pax || 0;
-        }
-
-        const compClasse = (totalLanches === totalBebidas) ? 'kpi-match' : 'kpi-divergent';
-
-        div.innerHTML += `
-            <div class="card" style="border-left:5px solid var(--primary); padding:14px; margin-bottom:14px;">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                    <div>
-                        <strong style="font-size:16px;">${c.vagao} (${c.sentido})</strong>
-                        <br><span style="font-size:12px; color:var(--secondary);">${c.apoio} | Guia: ${c.guia || '-'}</span>
-                    </div>
-                    <button class="btn btn-secondary btn-pequeno" onclick="window.abrirModalEdicaoRelatorio('${c.id}')"><i class="ph ph-pencil-simple"></i> Corrigir</button>
-                </div>
-
-                <div class="box-comparativo-status ${compClasse}" style="padding:6px 12px; font-size:12px; margin-bottom:8px;">
-                    <div style="display:flex; justify-content:space-around;">
-                        <span>Lanches: <strong>${totalLanches}</strong></span>
-                        <span>Bebidas: <strong>${totalBebidas}</strong></span>
-                    </div>
-                </div>
-
-                <div class="tabela-container">
-                    <table class="tabela-relatorio">
-                        <thead>
-                            <tr>
-                                <th style="width:34%;">Bebida</th>
-                                <th style="width:13%;">Carga</th>
-                                <th style="width:13%;">Pax</th>
-                                <th style="width:12%;">Trip</th>
-                                <th style="width:12%;">Ava</th>
-                                <th style="width:16%;">Sobra</th>
-                            </tr>
-                        </thead>
-                        <tbody>${linhas}</tbody>
-                    </table>
-                </div>
-                ${c.obs ? `<div style="margin-top:8px; color:var(--danger); font-size:12px;"><b>Obs:</b> ${c.obs}</div>` : ''}
-            </div>
-        `;
-    });
-};
-
-function gerarLinhasTabelaAdmin(itensObjeto) {
-    let arr = Object.values(itensObjeto).map(item => {
-        const prod = window.produtosDB.find(p => p.id === item.id) || { ordem: 9999 };
-        return { ...item, ordem: prod.ordem };
-    });
-
-    ordenarPorRegra(arr);
-
-    let html = "";
-    arr.forEach(obj => {
-        if (obj.carga > 0 || obj.saldo > 0 || obj.pax > 0 || obj.ava > 0) {
-            html += `
-                <tr>
-                    <td>${obj.nome}</td>
-                    <td>${obj.carga}</td>
-                    <td style="color:var(--success); font-weight:bold;">${obj.pax}</td>
-                    <td>${obj.trip > 0 ? obj.trip : '-'}</td>
-                    <td style="color:var(--danger);">${obj.ava > 0 ? obj.ava : '-'}</td>
-                    <td style="font-weight:bold; color:var(--primary);">${obj.saldo}</td>
-                </tr>
-            `;
-        }
-    });
-    return html;
-}
-
-// ================= CHEFE EDITAR RELATÓRIO DO APOIO =================
-window.abrirModalEdicaoRelatorio = function(id) {
-    const c = window.contagensDB.find(x => x.id === id);
-    if (!c) return;
-
-    document.getElementById('editRelatorioIdOriginal').value = c.id;
-    document.getElementById('subtituloModalEditaRelatorio').innerText = `${c.vagao} (${c.sentido}) \u2022 ${c.data.split('-').reverse().join('/')}`;
-    document.getElementById('obsEdicaoChefeRelatorio').value = c.obs || "";
-
-    const div = document.getElementById('listaItensEdicaoRelatorio');
-    div.innerHTML = "";
-
-    ordenarPorRegra(window.produtosDB);
-    for (let pId in c.itens) {
-        const item = c.itens[pId];
-        div.innerHTML += `
-            <div class="item-contagem" style="padding:10px; margin-bottom:8px;">
-                <strong style="font-size:14px;">${item.nome} (${pId})</strong>
-                <div class="grid-inputs" style="grid-template-columns: repeat(4, 1fr); margin-top:6px;">
-                    <div><label>Carga:</label><input type="number" id="edit_rel_carga_${pId}" value="${item.carga}"></div>
-                    <div><label>Sobra:</label><input type="number" id="edit_rel_saldo_${pId}" value="${item.saldo}"></div>
-                    <div><label>Trip:</label><input type="number" id="edit_rel_trip_${pId}" value="${item.trip}"></div>
-                    <div><label>Avaria:</label><input type="number" id="edit_rel_ava_${pId}" value="${item.ava}"></div>
-                </div>
-            </div>
-        `;
-    }
-
-    window.abrirModal('modal-editar-relatorio');
-};
-
-window.salvarEdicaoRelatorioPeloChefe = async function() {
-    const id = document.getElementById('editRelatorioIdOriginal').value;
-    const c = window.contagensDB.find(x => x.id === id);
-    if (!c) return;
-
-    const batch = writeBatch(db);
-    let novosItens = {};
-
-    for (let pId in c.itens) {
-        const carga = parseInt(document.getElementById(`edit_rel_carga_${pId}`)?.value) || 0;
-        const saldo = parseInt(document.getElementById(`edit_rel_saldo_${pId}`)?.value) || 0;
-        const trip = parseInt(document.getElementById(`edit_rel_trip_${pId}`)?.value) || 0;
-        const ava = parseInt(document.getElementById(`edit_rel_ava_${pId}`)?.value) || 0;
-        const pax = Math.max(0, carga - saldo - trip - ava);
-
-        const cargaOriginal = c.itens[pId].cargaOriginal !== undefined ? c.itens[pId].cargaOriginal : (c.itens[pId].carga || 0);
-
-        novosItens[pId] = {
-            id: pId,
-            nome: c.itens[pId].nome,
-            cargaOriginal,
-            carga, saldo, trip, ava, pax
-        };
-
-        const difCarga = carga - (c.itens[pId].carga || 0);
-        const difSaldo = saldo - (c.itens[pId].saldo || 0);
-        const netAjusteBagageiro = difSaldo - difCarga;
-
-        if (netAjusteBagageiro !== 0) {
-            batch.update(doc(db, "produtos", pId), {
-                estoqueBagageiroUnidades: increment(netAjusteBagageiro)
-            });
-        }
-    }
-
-    const obsChefe = document.getElementById('obsEdicaoChefeRelatorio').value.trim();
-    batch.update(doc(db, "contagens", id), {
-        itens: novosItens,
-        obs: window.escapeHTML(obsChefe)
-    });
-
-    await batch.commit();
-    window.fecharModal('modal-editar-relatorio');
-    window.mostrarToast("Relatório corrigido com sucesso!");
-    window.renderizarRelatoriosAdmin();
-};
-
-// INICIALIZAÇÃO OBRIGATÓRIA E BLINDADA
+// ================= INICIALIZAÇÃO OBRIGATÓRIA =================
 iniciarSincronizacaoNuvem();
 restaurarSessaoOuTela();
