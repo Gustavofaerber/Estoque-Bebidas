@@ -328,6 +328,7 @@ function iniciarSincronizacaoNuvem() {
         if (telaAtiva === 'tela-usuarios') window.renderizarUsuarios();
         if (telaAtiva === 'tela-setup-contagem') window.abrirSetupContagem();
         if (telaAtiva === 'tela-setup-carrinho') window.abrirSetupCarrinho();
+        if (telaAtiva === 'tela-boutiques-hub') window.carregarSelectBoutiqueHub();
     });
 
     onSnapshot(collection(db, "vagoes"), (snapshot) => {
@@ -363,6 +364,9 @@ function iniciarSincronizacaoNuvem() {
         if (document.getElementById('tela-carga-vagao')?.classList.contains('ativa')) {
             window.renderizarVagoesParaCarga();
             window.renderizarPainelEstoqueTransito();
+        }
+        if (document.getElementById('tela-boutiques-hub')?.classList.contains('ativa')) {
+            window.carregarFormularioBoutiqueHub();
         }
     });
 
@@ -1894,9 +1898,17 @@ window.adicionarReforcoVagao = async function() {
 
 // ================= BOUTIQUES HUB (SOBRAS & RETORNO INTUITIVO) =================
 window.carregarSelectBoutiqueHub = function() {
+    const selApoio = document.getElementById('selectApoioBoutiqueHub');
+    if (selApoio) {
+        selApoio.innerHTML = '<option value="">-- Selecione o apoio --</option>';
+        [...window.usuariosDB].sort((a,b) => (a.nome || "").localeCompare(b.nome || "")).forEach(u => {
+            selApoio.innerHTML += `<option value="${u.nome}">${u.nome}</option>`;
+        });
+    }
+
     const sel = document.getElementById('selectVagaoBoutiqueHub');
     if (!sel) return;
-    sel.innerHTML = "";
+    sel.innerHTML = '<option value="">-- Selecione a Boutique/Litorina --</option>';
 
     const vagoesBoutLito = window.vagoesDB.filter(v => v.tipo === 'boutique' || v.tipo === 'litorina')
         .sort((a,b) => (parseInt(a.numero)||0) - (parseInt(b.numero)||0));
@@ -1909,7 +1921,8 @@ window.carregarSelectBoutiqueHub = function() {
     const dtEl = document.getElementById('dataBoutiqueHub');
     if (dtEl && !dtEl.value) dtEl.value = hj;
 
-    window.carregarFormularioBoutiqueHub();
+    const area = document.getElementById('areaFormBoutiqueHub');
+    if (area) area.innerHTML = "";
 };
 
 window.carregarFormularioBoutiqueHub = function() {
@@ -1919,6 +1932,8 @@ window.carregarFormularioBoutiqueHub = function() {
 
     const etapa = document.getElementById('etapaBoutiqueHub').value;
     const vagaoId = document.getElementById('selectVagaoBoutiqueHub').value;
+    if (!vagaoId) return; // Só abre se selecionar o vagão
+
     const dtEl = document.getElementById('dataBoutiqueHub');
     const dataSel = dtEl?.value || new Date().toISOString().split('T')[0];
     const vagaoObj = window.vagoesDB.find(v => v.id === vagaoId);
@@ -2036,10 +2051,19 @@ window.atualizarPreviaRetorno = function(id) {
 };
 
 window.salvarSobrasBoutiqueDirect = async function() {
+    const apoio = document.getElementById('selectApoioBoutiqueHub').value;
+    if (!apoio) return window.mostrarToast("Selecione o Apoio Responsável!", true);
+
     const vagaoId = document.getElementById('selectVagaoBoutiqueHub').value;
+    if (!vagaoId) return window.mostrarToast("Selecione a Boutique!", true);
+
     const data = document.getElementById('dataBoutiqueHub').value;
     const etapa = document.getElementById('etapaBoutiqueHub').value;
     const vagaoObj = window.vagoesDB.find(v => v.id === vagaoId);
+
+    const cargaKeyIda = `${data}_${vagaoId}_Ida`;
+    const cargaIda = window.cargasVagoesDB.find(c => (c.id === cargaKeyIda) || (c.data === data && c.vagaoId === vagaoId && (c.sentido === 'Ida' || !c.sentido)));
+    const itensCarregadosNaIda = cargaIda?.itens || {};
 
     const batch = writeBatch(db);
     let totalSobras = 0;
@@ -2051,7 +2075,19 @@ window.salvarSobrasBoutiqueDirect = async function() {
             totalSobras += qtd;
             p.estoqueBagageiroUnidades = (p.estoqueBagageiroUnidades || 0) + qtd;
             batch.update(doc(db, "produtos", p.id), { estoqueBagageiroUnidades: increment(qtd) });
-            itensRelatorio[p.id] = { id: p.id, nome: p.nome, sobra: qtd, saldo: qtd, carga: 0, pax: 0, trip: 0, ava: 0 };
+            
+            const cargaIdaVagao = itensCarregadosNaIda[p.id]?.qtd || 0;
+            itensRelatorio[p.id] = { 
+                id: p.id, 
+                nome: p.nome, 
+                sobra: qtd, 
+                saldo: qtd, 
+                cargaOriginal: cargaIdaVagao,
+                carga: cargaIdaVagao, 
+                pax: Math.max(0, cargaIdaVagao - qtd), 
+                trip: 0, 
+                ava: 0 
+            };
         }
     });
 
@@ -2071,7 +2107,7 @@ window.salvarSobrasBoutiqueDirect = async function() {
         tipoRegistro: 'sobras_boutique',
         etapa: etapa,
         sentido: etapa === 'curitiba_final' ? 'Volta' : 'Ida',
-        apoio: 'Chefe (Boutique)',
+        apoio: apoio,
         guia: 'Baixa de Sobras',
         itens: itensRelatorio,
         obs: etapa === 'morretes_sem_retorno' ? 'Baixa de Sobras em Morretes (Sem Retorno)' : 'Fechamento Final em Curitiba',
@@ -2092,9 +2128,18 @@ window.salvarSobrasBoutiqueDirect = async function() {
 };
 
 window.salvarAjusteRetornoBoutique = async function() {
+    const apoio = document.getElementById('selectApoioBoutiqueHub').value;
+    if (!apoio) return window.mostrarToast("Selecione o Apoio Responsável!", true);
+
     const vagaoId = document.getElementById('selectVagaoBoutiqueHub').value;
+    if (!vagaoId) return window.mostrarToast("Selecione a Boutique!", true);
+
     const data = document.getElementById('dataBoutiqueHub').value;
     const vagaoObj = window.vagoesDB.find(v => v.id === vagaoId);
+
+    const cargaKeyIda = `${data}_${vagaoId}_Ida`;
+    const cargaIda = window.cargasVagoesDB.find(c => (c.id === cargaKeyIda) || (c.data === data && c.vagaoId === vagaoId && (c.sentido === 'Ida' || !c.sentido)));
+    const itensCarregadosNaIda = cargaIda?.itens || {};
 
     const batch = writeBatch(db);
     let itensCargaRetorno = {};
@@ -2127,6 +2172,7 @@ window.salvarAjusteRetornoBoutique = async function() {
                 });
             }
 
+            const cargaIdaVagao = itensCarregadosNaIda[p.id]?.qtd || 0;
             itensRelatorio[p.id] = {
                 id: p.id,
                 nome: p.nome,
@@ -2134,9 +2180,11 @@ window.salvarAjusteRetornoBoutique = async function() {
                 ajusteQtd: ajusteQtd,
                 operador: op,
                 qtdFinal: qtdFinal,
-                carga: qtdFinal,
+                cargaOriginal: cargaIdaVagao,
+                carga: cargaIdaVagao,
                 saldo: sobra,
-                pax: 0, trip: 0, ava: 0
+                pax: Math.max(0, cargaIdaVagao - sobra),
+                trip: 0, ava: 0
             };
         }
     });
@@ -2165,7 +2213,7 @@ window.salvarAjusteRetornoBoutique = async function() {
         vagaoTipo: 'boutique',
         tipoRegistro: 'retorno_boutique',
         sentido: 'Volta',
-        apoio: 'Chefe (Morretes)',
+        apoio: apoio,
         guia: 'Ajuste de Retorno',
         itens: itensRelatorio,
         obs: `Carga da Volta gerada a partir das sobras de Morretes`,
@@ -2193,7 +2241,7 @@ window.salvarAjusteRetornoBoutique = async function() {
 window.abrirSetupContagem = function() {
     const selUser = document.getElementById('selectNomeApoio');
     if (selUser) {
-        selUser.innerHTML = "";
+        selUser.innerHTML = '<option value="">-- Selecione o apoio --</option>';
         [...window.usuariosDB].sort((a,b) => (a.nome || "").localeCompare(b.nome || "")).forEach(u => {
             selUser.innerHTML += `<option value="${u.nome}">${u.nome}</option>`;
         });
@@ -2201,8 +2249,12 @@ window.abrirSetupContagem = function() {
 
     const selVagao = document.getElementById('selectVagaoApoio');
     if (selVagao) {
-        selVagao.innerHTML = "";
-        const vagoesOrd = [...window.vagoesDB].sort((a, b) => (parseInt(a.numero)||0) - (parseInt(b.numero)||0));
+        selVagao.innerHTML = '<option value="">-- Selecione o vagão --</option>';
+        // Filtro para mostrar apenas os vagões do tipo turistico e economico
+        const vagoesOrd = [...window.vagoesDB]
+            .filter(v => v.tipo === 'turistico' || v.tipo === 'economico')
+            .sort((a, b) => (parseInt(a.numero)||0) - (parseInt(b.numero)||0));
+        
         vagoesOrd.forEach(v => {
             const labelTipo = v.tipo ? `[${v.tipo.toUpperCase()}]` : '';
             selVagao.innerHTML += `<option value="${v.id}">Placa ${v.numero} &bull; ${v.nome} ${labelTipo}</option>`;
@@ -2220,10 +2272,15 @@ window.abrirSetupContagem = function() {
 };
 
 window.iniciarContagemVagao = function() {
+    const apoioNome = document.getElementById('selectNomeApoio').value;
+    if (!apoioNome) { window.mostrarToast("Selecione o Apoio!", true); return; }
+
+    const vagaoId = document.getElementById('selectVagaoApoio').value;
+    if (!vagaoId) { window.mostrarToast("Selecione o Vagão!", true); return; }
+
     const guia = document.getElementById('nomeGuiaApoio').value.trim();
     if (!guia) { window.mostrarToast("Preencha o Nome do Guia!", true); return; }
 
-    const vagaoId = document.getElementById('selectVagaoApoio').value;
     const dataSel = document.getElementById('dataContagemApoio').value;
     const sentidoSel = document.getElementById('selectSentidoApoio').value;
     const vagaoObj = window.vagoesDB.find(v => v.id === vagaoId);
@@ -2236,7 +2293,7 @@ window.iniciarContagemVagao = function() {
         return;
     }
 
-    window.contagemTemp.apoio = document.getElementById('selectNomeApoio').value;
+    window.contagemTemp.apoio = apoioNome;
     window.contagemTemp.guia = window.escapeHTML(guia);
     window.contagemTemp.data = dataSel;
     window.contagemTemp.sentido = sentidoSel;
@@ -2442,7 +2499,7 @@ window.salvarContagemDefinitiva = async function() {
 window.abrirSetupCarrinho = function() {
     const sel = document.getElementById('selectApoioCarrinho');
     if (sel) {
-        sel.innerHTML = "";
+        sel.innerHTML = '<option value="">-- Selecione o apoio --</option>';
         [...window.usuariosDB].sort((a,b) => (a.nome || "").localeCompare(b.nome || "")).forEach(u => {
             sel.innerHTML += `<option value="${u.nome}">${u.nome}</option>`;
         });
@@ -2640,7 +2697,7 @@ window.salvarAcertoCarrinho = async function() {
     batch.set(doc(db, "vendas_carrinho", acertoId), docData);
     await batch.commit();
 
-    window.mostrarToast("Acerto do Carrinho concluído!");
+    window.mostrarToast("Acerto concluído e bebidas descontadas do Bagageiro!");
     window.mostrarTela('tela-inicial');
 };
 
