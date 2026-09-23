@@ -1120,11 +1120,10 @@ window.renderizarVagoesParaCarga = function() {
         if (isInativo) {
             badgeStatus = '<span style="color:#64748b; font-weight:700; font-size:12px;">✖ Vagão Vazio / Inativo</span>';
             corBorda = 'border-left: 6px solid #94a3b8;';
-        } else if (cargaExistente && cargaExistente.tipoRegistro === 'retorno_boutique') {
-            badgeStatus = '<span style="color:var(--accent); font-weight:700; font-size:12px;"><i class="ph ph-sparkle"></i> Ajuste Morretes Feito</span>';
-            corBorda = 'border-left: 6px solid var(--accent);';
         } else if (cargaExistente && cargaExistente.itens && Object.keys(cargaExistente.itens).length > 0) {
-            badgeStatus = '<span style="color:var(--success); font-weight:700; font-size:12px;">✔ Carga Lançada</span>';
+            const totalUn = Object.values(cargaExistente.itens).reduce((acc, it) => acc + (it.qtd || 0), 0);
+            const tagMorretes = cargaExistente.tipoRegistro === 'retorno_boutique' ? '<span style="background:#fef3c7; color:#b45309; padding:2px 6px; border-radius:4px; font-size:11px; font-weight:800; margin-left:4px;">Morretes</span>' : '';
+            badgeStatus = `<span style="color:var(--success); font-weight:700; font-size:12px;">✔ Carga Lançada (${totalUn} un)</span> ${tagMorretes}`;
             corBorda = 'border-left: 6px solid var(--success);';
         }
 
@@ -1920,22 +1919,55 @@ window.carregarFormularioBoutiqueHub = function() {
 
     const etapa = document.getElementById('etapaBoutiqueHub').value;
     const vagaoId = document.getElementById('selectVagaoBoutiqueHub').value;
+    const dtEl = document.getElementById('dataBoutiqueHub');
+    const dataSel = dtEl?.value || new Date().toISOString().split('T')[0];
     const vagaoObj = window.vagoesDB.find(v => v.id === vagaoId);
     
     ordenarPorRegra(window.produtosDB);
     const permitidas = vagaoObj?.bebidasPermitidas || [];
-    const prods = window.produtosDB.filter(p => !p.nome.includes('(Venda)') && (permitidas.length === 0 || permitidas.includes(p.id)));
+
+    // OBTÉM A CARGA EFETIVAMENTE LANÇADA NA IDA PARA ESTE VAGÃO
+    const cargaKeyIda = `${dataSel}_${vagaoId}_Ida`;
+    const cargaIda = window.cargasVagoesDB.find(c => (c.id === cargaKeyIda) || (c.data === dataSel && c.vagaoId === vagaoId && (c.sentido === 'Ida' || !c.sentido)));
+    const itensCarregadosNaIda = cargaIda?.itens || {};
+    const temCargaIdaRegistrada = Object.keys(itensCarregadosNaIda).some(k => (itensCarregadosNaIda[k]?.qtd || 0) > 0);
+
+    let prods = [];
+    let msgFiltroHtml = "";
+
+    if (temCargaIdaRegistrada) {
+        prods = window.produtosDB.filter(p => !p.nome.includes('(Venda)') && (itensCarregadosNaIda[p.id]?.qtd || 0) > 0);
+        msgFiltroHtml = `
+            <div class="aviso-filtro-bebidas">
+                <i class="ph ph-funnel"></i> Exibindo apenas as <strong>${prods.length} bebidas</strong> carregadas na Ida deste vagão.
+            </div>
+        `;
+    } else {
+        prods = window.produtosDB.filter(p => !p.nome.includes('(Venda)') && (permitidas.length === 0 || permitidas.includes(p.id)) && !['C', 'Gg', 'Acp', 'Ac'].includes(p.id));
+        msgFiltroHtml = `
+            <div class="aviso-filtro-bebidas-aviso">
+                <i class="ph ph-info"></i> Carga da Ida não registrada; exibindo todas as permitidas da Boutique.
+            </div>
+        `;
+    }
 
     if (etapa === 'morretes_sem_retorno' || etapa === 'curitiba_final') {
-        const titulo = etapa === 'morretes_sem_retorno' ? 'Baixar Sobras (Sem Retorno)' : 'Fechamento Final das Sobras';
-        let htmlItens = `<h4 style="color:var(--primary); margin-bottom:12px;">${titulo}</h4>`;
+        const titulo = etapa === 'morretes_sem_retorno' ? 'Baixar Sobras em Morretes (Sem Retorno)' : 'Fechamento Final das Sobras em Curitiba';
+        let htmlItens = `
+            <h4 style="color:var(--primary); margin-bottom:6px;">${titulo}</h4>
+            ${msgFiltroHtml}
+        `;
 
         prods.forEach(p => {
+            const qtdIda = itensCarregadosNaIda[p.id]?.qtd || 0;
             htmlItens += `
                 <div class="item-contagem" style="padding:10px 14px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
-                    <strong>${p.id} - ${p.nome}</strong>
+                    <div>
+                        <strong>${p.id} - ${p.nome}</strong><br>
+                        ${qtdIda > 0 ? `<small style="color:var(--secondary); font-size:11px;">Carregou Ida: ${qtdIda} un</small>` : ''}
+                    </div>
                     <div style="display:flex; align-items:center; gap:6px;">
-                        <span style="font-size:12px; color:var(--secondary);">Sobrou:</span>
+                        <span style="font-size:12px; color:var(--secondary); font-weight:bold;">Sobrou:</span>
                         <input type="number" id="boutique_sobra_${p.id}" placeholder="0" min="0" style="width:80px; text-align:center; padding:8px; font-weight:bold;">
                     </div>
                 </div>
@@ -1946,37 +1978,60 @@ window.carregarFormularioBoutiqueHub = function() {
 
     } else if (etapa === 'morretes_com_retorno') {
         let htmlItens = `
-            <h4 style="color:var(--primary); margin-bottom:8px;">Ajuste de Carga para o Retorno</h4>
+            <h4 style="color:var(--primary); margin-bottom:6px;">Ajuste de Carga para o Retorno (Volta)</h4>
+            ${msgFiltroHtml}
             <p style="font-size:12px; color:var(--secondary); margin-bottom:12px;">
-                Selecione se deseja <strong>Reforçar (+)</strong> com bebidas do bagageiro ou <strong>Devolver (-)</strong>:
+                Informe a sobra da ida e selecione <strong>+ (Reforçar do bagageiro)</strong> ou <strong>- (Devolver ao bagageiro)</strong>:
             </p>
         `;
 
         prods.forEach(p => {
+            const qtdIda = itensCarregadosNaIda[p.id]?.qtd || 0;
             htmlItens += `
                 <div class="item-contagem" style="padding:12px; margin-bottom:10px;">
-                    <div style="font-weight:700; color:var(--primary); margin-bottom:8px;">${p.id} - ${p.nome}</div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                        <strong style="color:var(--primary); font-size:15px;">${p.id} - ${p.nome}</strong>
+                        ${qtdIda > 0 ? `<span class="badge-carga-ida">Carga Ida: ${qtdIda} un</span>` : ''}
+                    </div>
                     <div style="display:grid; grid-template-columns: 1fr 1.3fr; gap:8px; align-items:center;">
                         <div>
                             <span style="font-size:11px; font-weight:700; color:var(--secondary);">Sobrou da Ida:</span>
-                            <input type="number" id="boutique_ida_sobra_${p.id}" placeholder="0" min="0" style="padding:8px; font-weight:bold; text-align:center;">
+                            <input type="number" id="boutique_ida_sobra_${p.id}" placeholder="0" min="0" oninput="window.atualizarPreviaRetorno('${p.id}')" style="padding:8px; font-weight:bold; text-align:center;">
                         </div>
                         <div>
                             <span style="font-size:11px; font-weight:700; color:var(--secondary);">Ajuste Bagageiro:</span>
                             <div class="controles-ajuste-retorno">
-                                <select id="boutique_operador_${p.id}" class="select-operador-retorno">
+                                <select id="boutique_operador_${p.id}" class="select-operador-retorno" onchange="window.atualizarPreviaRetorno('${p.id}')">
                                     <option value="+">+</option>
                                     <option value="-">-</option>
                                 </select>
-                                <input type="number" id="boutique_ajuste_qtd_${p.id}" placeholder="Qtd" min="0" style="padding:8px; font-weight:bold; text-align:center;">
+                                <input type="number" id="boutique_ajuste_qtd_${p.id}" placeholder="Qtd" min="0" oninput="window.atualizarPreviaRetorno('${p.id}')" style="padding:8px; font-weight:bold; text-align:center;">
                             </div>
                         </div>
+                    </div>
+                    <div id="previa_retorno_${p.id}" style="margin-top:6px; font-size:12px; font-weight:700; color:var(--primary); text-align:right;">
+                        = Carga da Volta: 0 un
                     </div>
                 </div>
             `;
         });
         htmlItens += `<button class="btn btn-primary btn-lg" style="margin-top:15px;" onclick="window.salvarAjusteRetornoBoutique()"><i class="ph ph-check-circle"></i> Confirmar Carga do Retorno</button>`;
         area.innerHTML = htmlItens;
+    }
+};
+
+window.atualizarPreviaRetorno = function(id) {
+    const sobra = parseInt(document.getElementById(`boutique_ida_sobra_${id}`)?.value) || 0;
+    const op = document.getElementById(`boutique_operador_${id}`)?.value || '+';
+    const aj = parseInt(document.getElementById(`boutique_ajuste_qtd_${id}`)?.value) || 0;
+
+    let res = sobra;
+    if (op === '+') res += aj;
+    else res = Math.max(0, res - aj);
+
+    const lbl = document.getElementById(`previa_retorno_${id}`);
+    if (lbl) {
+        lbl.innerText = `= Carga da Volta: ${res} un (${sobra} sobra ${op} ${aj})`;
     }
 };
 
@@ -1994,13 +2049,19 @@ window.salvarSobrasBoutiqueDirect = async function() {
         const qtd = parseInt(document.getElementById(`boutique_sobra_${p.id}`)?.value) || 0;
         if (qtd > 0) {
             totalSobras += qtd;
+            p.estoqueBagageiroUnidades = (p.estoqueBagageiroUnidades || 0) + qtd;
             batch.update(doc(db, "produtos", p.id), { estoqueBagageiroUnidades: increment(qtd) });
-            itensRelatorio[p.id] = { id: p.id, nome: p.nome, saldo: qtd, carga: 0, pax: 0, trip: 0, ava: 0 };
+            itensRelatorio[p.id] = { id: p.id, nome: p.nome, sobra: qtd, saldo: qtd, carga: 0, pax: 0, trip: 0, ava: 0 };
         }
     });
 
+    if (totalSobras === 0) {
+        window.mostrarToast("Informe as sobras para salvar!", true);
+        return;
+    }
+
     const docId = `sobras_${etapa}_${data}_${vagaoId}`;
-    batch.set(doc(db, "contagens", docId), {
+    const docData = {
         id: docId,
         data,
         vagaoId,
@@ -2008,17 +2069,25 @@ window.salvarSobrasBoutiqueDirect = async function() {
         vagaoNumero: vagaoObj?.numero || "S/N",
         vagaoTipo: 'boutique',
         tipoRegistro: 'sobras_boutique',
+        etapa: etapa,
         sentido: etapa === 'curitiba_final' ? 'Volta' : 'Ida',
         apoio: 'Chefe (Boutique)',
-        guia: 'Boutique/Sobras',
+        guia: 'Baixa de Sobras',
         itens: itensRelatorio,
-        obs: `Baixa de Sobras em ${etapa === 'curitiba_final' ? 'Curitiba' : 'Morretes'}`,
+        obs: etapa === 'morretes_sem_retorno' ? 'Baixa de Sobras em Morretes (Sem Retorno)' : 'Fechamento Final em Curitiba',
         timestamp: Date.now()
-    });
+    };
 
+    batch.set(doc(db, "contagens", docId), docData);
     await batch.commit();
 
-    window.mostrarToast(`${totalSobras} unidades creditadas no Bagageiro e lançadas no relatório!`);
+    window.contagensDB = window.contagensDB.filter(c => c.id !== docId);
+    window.contagensDB.push(docData);
+    localStorage.setItem('trem_cache_contagens', JSON.stringify(window.contagensDB));
+    localStorage.setItem('trem_cache_produtos', JSON.stringify(window.produtosDB));
+
+    window.mostrarToast(`${totalSobras} unidades creditadas no Bagageiro e registradas nos relatórios!`);
+    window.atualizarDashboardKPIs();
     window.mostrarTela('tela-inicial');
 };
 
@@ -2040,7 +2109,7 @@ window.salvarAjusteRetornoBoutique = async function() {
         if (op === '+') qtdFinal += ajusteQtd;
         else qtdFinal = Math.max(0, qtdFinal - ajusteQtd);
 
-        if (sobra > 0 || ajusteQtd > 0) {
+        if (sobra > 0 || ajusteQtd > 0 || qtdFinal > 0) {
             itensCargaRetorno[p.id] = {
                 qtd: qtdFinal,
                 sobra: sobra,
@@ -2052,6 +2121,7 @@ window.salvarAjusteRetornoBoutique = async function() {
 
             const netAjusteBagageiro = (op === '+') ? -ajusteQtd : ajusteQtd;
             if (netAjusteBagageiro !== 0) {
+                p.estoqueBagageiroUnidades = (p.estoqueBagageiroUnidades || 0) + netAjusteBagageiro;
                 batch.update(doc(db, "produtos", p.id), {
                     estoqueBagageiroUnidades: increment(netAjusteBagageiro)
                 });
@@ -2060,6 +2130,10 @@ window.salvarAjusteRetornoBoutique = async function() {
             itensRelatorio[p.id] = {
                 id: p.id,
                 nome: p.nome,
+                sobra: sobra,
+                ajusteQtd: ajusteQtd,
+                operador: op,
+                qtdFinal: qtdFinal,
                 carga: qtdFinal,
                 saldo: sobra,
                 pax: 0, trip: 0, ava: 0
@@ -2068,7 +2142,7 @@ window.salvarAjusteRetornoBoutique = async function() {
     });
 
     const cargaKey = `${data}_${vagaoId}_Volta`;
-    batch.set(doc(db, "cargas_vagoes", cargaKey), {
+    const docCargaVagao = {
         id: cargaKey,
         data,
         vagaoId,
@@ -2076,12 +2150,13 @@ window.salvarAjusteRetornoBoutique = async function() {
         inativo: false,
         tipoRegistro: 'retorno_boutique',
         itens: itensCargaRetorno,
-        obs: `Configurado em Morretes para o retorno`,
+        obs: `Carga de Retorno calculada em Morretes (Sobras + Ajuste)`,
         timestamp: Date.now()
-    });
+    };
+    batch.set(doc(db, "cargas_vagoes", cargaKey), docCargaVagao);
 
     const contagemKey = `retorno_${data}_${vagaoId}`;
-    batch.set(doc(db, "contagens", contagemKey), {
+    const docRelatorio = {
         id: contagemKey,
         data,
         vagaoId,
@@ -2091,15 +2166,26 @@ window.salvarAjusteRetornoBoutique = async function() {
         tipoRegistro: 'retorno_boutique',
         sentido: 'Volta',
         apoio: 'Chefe (Morretes)',
-        guia: 'Ajuste Retorno',
+        guia: 'Ajuste de Retorno',
         itens: itensRelatorio,
-        obs: `Ajuste de Carga de Retorno (Morretes)`,
+        obs: `Carga da Volta gerada a partir das sobras de Morretes`,
         timestamp: Date.now()
-    });
+    };
+    batch.set(doc(db, "contagens", contagemKey), docRelatorio);
 
     await batch.commit();
 
-    window.mostrarToast("Carga de Retorno salva no espelho e no relatório!");
+    window.cargasVagoesDB = window.cargasVagoesDB.filter(c => c.id !== cargaKey);
+    window.cargasVagoesDB.push(docCargaVagao);
+    localStorage.setItem('trem_cache_cargas_vagoes', JSON.stringify(window.cargasVagoesDB));
+
+    window.contagensDB = window.contagensDB.filter(c => c.id !== contagemKey);
+    window.contagensDB.push(docRelatorio);
+    localStorage.setItem('trem_cache_contagens', JSON.stringify(window.contagensDB));
+    localStorage.setItem('trem_cache_produtos', JSON.stringify(window.produtosDB));
+
+    window.mostrarToast("Carga de Retorno salva no espelho da volta e nos relatórios!");
+    window.atualizarDashboardKPIs();
     window.mostrarTela('tela-inicial');
 };
 
