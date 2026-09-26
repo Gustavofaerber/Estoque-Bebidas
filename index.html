@@ -82,7 +82,7 @@
 
                 <hr class="divisor">
                 <p style="font-size:13px; color:var(--secondary); margin-bottom:12px;">
-                    Clique em vagões <strong>Abertos</strong> para adicionar reforço do bagageiro:
+                    Clique em vagões <strong>Abertos</strong> para gerenciar reforços do bagageiro:
                 </p>
                 <div id="gridVagoesOperacao" class="grid-vagoes-cards"></div>
             </div>
@@ -186,11 +186,11 @@
                     <textarea id="obsEspeciaisCarga" rows="3" placeholder="Ex: *2 Agg Arruda&#10;Gelo = 9 (1 Litos, 2 Cam...)" oninput="window.salvarDraftCarga()"></textarea>
                 </div>
 
-                <button class="btn btn-primary btn-lg" onclick="window.salvarCargaDoDia()"><i class="ph ph-check-circle"></i> Salvar e Carregar Estoque em Trânsito</button>
+                <button class="btn btn-primary btn-lg" onclick="window.salvarCargaDoDia()"><i class="ph ph-check-circle"></i> Salvar e Carregar Nuvem de Trânsito</button>
             </div>
         </div>
 
-        <!-- TELA: CARGA POR VAGÃO (COM ABAS IDA / VOLTA & ATIVAÇÃO) -->
+        <!-- TELA: CARGA POR VAGÃO -->
         <div id="tela-carga-vagao" class="tela">
             <div class="header">
                 <h3><i class="ph ph-train-regional"></i> Carga por Vagão</h3>
@@ -216,7 +216,7 @@
                 <div id="painelResumoEstoqueTransito" class="card-transito-nuvem"></div>
 
                 <p style="font-size:13px; color:var(--secondary); margin-bottom:12px;">
-                    Marque os vagões vazios como <strong>Inativo</strong> para não alocar bebidas na volta:
+                    Marque os vagões vazios como <strong>Inativo</strong> para não alocar bebidas:
                 </p>
                 
                 <div id="listaVagoesParaCarga"></div>
@@ -356,7 +356,7 @@
                 <button class="btn btn-secondary btn-pequeno" onclick="window.mostrarTela('tela-inicial')">Voltar</button>
             </div>
             <div class="card">
-                <!-- NOVO CAMPO: SELEÇÃO DO APOIO RESPONSÁVEL -->
+                <!-- CAMPO: SELEÇÃO DO APOIO RESPONSÁVEL -->
                 <div class="form-group">
                     <label>Apoio Responsável:</label>
                     <select id="selectApoioBoutiqueHub"></select>
@@ -429,7 +429,7 @@
             <div class="card card-limpo">
                 <div id="avisoCargaCarregada" style="margin-bottom:12px;"></div>
                 <p style="font-size: 13px; color: var(--secondary); margin-bottom: 15px;">
-                    Cargas sincronizadas. Se pegou reforço, aumente a <strong>Carga</strong>. Informe a <strong>Sobra</strong> real:
+                    Cargas sincronizadas. Informe a <strong>Sobra</strong> real:
                 </p>
                 <div id="listaItensContagem"></div>
                 
@@ -480,10 +480,6 @@
                         </thead>
                         <tbody id="tabelaResumoCorpo"></tbody>
                     </table>
-                </div>
-
-                <div class="box-aviso-baga">
-                    <i class="ph ph-info"></i> Ajustes de reforços e devolução de sobras vão direto para o <strong>Bagageiro</strong>.
                 </div>
 
                 <div class="form-group" style="margin-top: 15px;">
@@ -623,14 +619,14 @@
             </div>
 
             <div class="box-destaque-reforco">
-                <h4 style="margin:0 0 6px 0; color:var(--primary); font-size:14px;"><i class="ph ph-arrows-left-right"></i> Reforço em Viagem (Faltou no Vagão):</h4>
-                <p style="font-size:12px; color:var(--secondary); margin-bottom:8px;">Pegue bebidas do Bagageiro durante o trajeto e adicione ao vagão:</p>
+                <h4 style="margin:0 0 6px 0; color:var(--primary); font-size:14px;"><i class="ph ph-arrows-left-right"></i> Reforço em Viagem:</h4>
+                <p style="font-size:12px; color:var(--secondary); margin-bottom:8px;">Transfira do Bagageiro para o Vagão:</p>
                 <div style="display:flex; gap:8px;">
                     <select id="modalOpSelectBebidaReforco" style="flex:2;"></select>
                     <input type="number" id="modalOpQtdReforco" placeholder="Qtd" min="1" value="1" style="flex:1;">
                     <button class="btn btn-primary" style="width:auto;" onclick="window.adicionarReforcoVagao()"><i class="ph ph-plus"></i></button>
                 </div>
-                <div id="modalOpListaReforcosFeitos" style="margin-top:8px; font-size:13px;"></div>
+                <div id="modalOpListaReforcosFeitos" style="margin-top:12px; font-size:13px; display:flex; flex-direction:column; gap:6px;"></div>
             </div>
         </div>
     </div>
@@ -721,8 +717,23 @@
                 <input type="text" id="obsEdicaoChefeRelatorio">
             </div>
             <div style="display:flex; gap:10px; margin-top:15px;">
-                <button class="btn btn-primary" style="flex:2;" onclick="window.salvarEdicaoRelatorioPeloChefe()"><i class="ph ph-check"></i> Salvar Correção</button>
+                <button class="btn btn-primary" style="flex:2;" onclick="window.salvarEdicaoRelatorioPeloChefe()"><i class="ph ph-check"></i> Salvar</button>
+                <button class="btn btn-danger" style="flex:1;" onclick="window.excluirRelatorioPeloChefe()"><i class="ph ph-trash"></i> Excluir</button>
                 <button class="btn btn-secondary" style="flex:1;" onclick="window.fecharModal('modal-editar-relatorio')">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL POP-UP: EDITAR VENDA DE ÁGUA E CERVEJA -->
+    <div id="modal-editar-venda" class="modal-overlay">
+        <div class="modal-content" style="max-width:450px;">
+            <h3 style="margin-top:0; color:var(--primary);"><i class="ph ph-shopping-cart"></i> Corrigir Vendas</h3>
+            <p id="subtituloModalEditaVenda" style="font-size:13px; color:var(--secondary); margin-bottom:12px;"></p>
+            <input type="hidden" id="editVendaIdOriginal">
+            <div id="listaItensEdicaoVenda" style="margin-bottom: 15px;"></div>
+            <div style="display:flex; gap:10px; margin-top:15px;">
+                <button class="btn btn-primary" style="flex:2;" onclick="window.salvarEdicaoVenda()"><i class="ph ph-check"></i> Salvar Ajuste</button>
+                <button class="btn btn-secondary" style="flex:1;" onclick="window.fecharModal('modal-editar-venda')">Cancelar</button>
             </div>
         </div>
     </div>
@@ -742,6 +753,6 @@
         </div>
     </div>
 
-    <script type="module" src="src/main.js"></script>
+    <script type="module" src="app.js"></script>
 </body>
 </html>
