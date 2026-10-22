@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Logística de Bebidas - Trem</title>
-    <meta name="theme-color" content="#062314">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logística de Bebidas - Operação Ferroviária</title>
+    <meta name="theme-color" content="#072a18">
     <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="style.css">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
@@ -12,33 +12,45 @@
 <body>
 
     <!-- CONTAINER DE NOTIFICAÇÕES TOAST -->
-    <div id="toast-container" class="toast-container"></div>
+    <div id="toast-container" class="toast-container" aria-live="polite"></div>
 
     <div class="app-container">
+
+        <!-- BARRA SUPERIOR DE STATUS E CONEXÃO -->
+        <div class="top-status-bar">
+            <div class="top-status-brand" onclick="window.mostrarTela('tela-inicial')" title="Ir para a Tela Inicial">
+                <i class="ph ph-train-regional" style="font-size:18px; color:#4ade80;"></i>
+                <span>Logística Ferroviária &bull; Controle de Bordo</span>
+            </div>
+            <div id="syncStatusPill" class="sync-pill">
+                <span class="sync-dot"></span>
+                <span id="syncStatusTexto">Nuvem Sincronizada</span>
+            </div>
+        </div>
 
         <!-- TELA INICIAL -->
         <div id="tela-inicial" class="tela ativa">
             <div class="card card-hero">
                 <div class="badge-status"><i class="ph ph-train-regional"></i> Operação Ferroviária</div>
-                <h2>Logística de Bebidas</h2>
-                <p class="subtitulo">Controle de Bordo, Estoques & Escala</p>
-                
-                <button class="btn btn-manifesto btn-lg" onclick="window.mostrarTela('tela-ver-carga')">
+                <h1 style="font-size: 1.65rem; color: var(--primary); margin-bottom: 4px;">Logística de Bebidas</h1>
+                <p class="subtitulo">Controle de Bordo, Estoques & Escala Operacional</p>
+
+                <button type="button" class="btn btn-manifesto btn-lg" onclick="window.mostrarTela('tela-ver-carga')">
                     <i class="ph ph-notepad"></i> Ver Carga do Trem
                 </button>
-                <button class="btn btn-operacao btn-lg" style="margin-top: 12px;" onclick="window.mostrarTela('tela-operacao-viagem')">
+                <button type="button" class="btn btn-operacao btn-lg" style="margin-top: 12px;" onclick="window.mostrarTela('tela-operacao-viagem')">
                     <i class="ph ph-compass"></i> Monitor da Viagem (Reforços)
                 </button>
-                <button class="btn btn-primary btn-lg" style="margin-top: 12px;" onclick="window.mostrarTela('tela-setup-contagem')">
+                <button type="button" class="btn btn-primary btn-lg" style="margin-top: 12px;" onclick="window.mostrarTela('tela-setup-contagem')">
                     <i class="ph ph-clipboard-text"></i> Contagem de Vagão (Apoio)
                 </button>
-                <button class="btn btn-boutique btn-lg" style="margin-top: 12px;" onclick="window.mostrarTela('tela-boutiques-hub')">
+                <button type="button" class="btn btn-boutique btn-lg" style="margin-top: 12px;" onclick="window.mostrarTela('tela-boutiques-hub')">
                     <i class="ph ph-sparkle"></i> Boutiques & Litorinas (Sobras)
                 </button>
-                <button class="btn btn-carrinho btn-lg" style="margin-top: 12px;" onclick="window.mostrarTela('tela-setup-carrinho')">
+                <button type="button" class="btn btn-carrinho btn-lg" style="margin-top: 12px;" onclick="window.mostrarTela('tela-setup-carrinho')">
                     <i class="ph ph-shopping-cart"></i> Venda (Carrinho)
                 </button>
-                <button class="btn btn-dark" style="margin-top: 25px;" onclick="window.irParaPainelChefe()">
+                <button type="button" class="btn btn-dark" style="margin-top: 24px;" onclick="window.irParaPainelChefe()">
                     <i class="ph ph-shield-check"></i> Painel do Chefe
                 </button>
             </div>
@@ -48,11 +60,11 @@
         <div id="tela-ver-carga" class="tela">
             <div class="header">
                 <h3><i class="ph ph-notepad"></i> Carga do Trem</h3>
-                <button class="btn btn-secondary btn-pequeno" onclick="window.mostrarTela('tela-inicial')">Voltar</button>
+                <button type="button" class="btn btn-secondary btn-pequeno" onclick="window.mostrarTela('tela-inicial')">Voltar</button>
             </div>
             <div class="card">
                 <div class="form-group">
-                    <label>Data da Viagem:</label>
+                    <label for="filtroDataManifesto">Data da Viagem:</label>
                     <input type="date" id="filtroDataManifesto" onclick="this.showPicker && this.showPicker()" onchange="window.carregarManifestoPublico()">
                 </div>
                 <div id="conteudoManifestoPublico"></div>
@@ -63,7 +75,7 @@
         <div id="tela-operacao-viagem" class="tela">
             <div class="header">
                 <h3><i class="ph ph-compass"></i> Monitor da Viagem</h3>
-                <button class="btn btn-secondary btn-pequeno" onclick="window.mostrarTela('tela-inicial')">Voltar</button>
+                <button type="button" class="btn btn-secondary btn-pequeno" onclick="window.mostrarTela('tela-inicial')">Voltar</button>
             </div>
             <div class="card">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
@@ -75,9 +87,9 @@
                 </div>
 
                 <div class="botoes-fluxo-viagem">
-                    <button class="btn btn-primary btn-pequeno" onclick="window.iniciarViagemIda()"><i class="ph ph-play"></i> Iniciar Ida</button>
-                    <button class="btn btn-boutique btn-pequeno" onclick="window.prepararRetornoMorretes()"><i class="ph ph-arrows-clockwise"></i> Em Morretes</button>
-                    <button class="btn btn-primary btn-pequeno" onclick="window.iniciarViagemVolta()"><i class="ph ph-play"></i> Iniciar Volta</button>
+                    <button type="button" class="btn btn-primary btn-pequeno" onclick="window.iniciarViagemIda()"><i class="ph ph-play"></i> Iniciar Ida</button>
+                    <button type="button" class="btn btn-boutique btn-pequeno" onclick="window.prepararRetornoMorretes()"><i class="ph ph-arrows-clockwise"></i> Em Morretes</button>
+                    <button type="button" class="btn btn-primary btn-pequeno" onclick="window.iniciarViagemVolta()"><i class="ph ph-play"></i> Iniciar Volta</button>
                 </div>
 
                 <hr class="divisor">
@@ -92,15 +104,17 @@
         <div id="tela-login" class="tela">
             <div class="header">
                 <h3><i class="ph ph-lock-key"></i> Acesso do Chefe</h3>
-                <button class="btn btn-danger btn-pequeno" onclick="window.mostrarTela('tela-inicial')">Voltar</button>
+                <button type="button" class="btn btn-danger btn-pequeno" onclick="window.mostrarTela('tela-inicial')">Voltar</button>
             </div>
             <div class="card">
-                <div id="msgLogin" class="msg-alerta msg-erro"></div>
-                <div class="form-group">
-                    <label>Senha de Segurança:</label>
-                    <input type="password" id="loginSenha" placeholder="Digite a senha" onkeydown="if(event.key==='Enter') window.fazerLogin()">
-                </div>
-                <button class="btn btn-primary" onclick="window.fazerLogin()"><i class="ph ph-sign-in"></i> Entrar no Painel</button>
+                <div id="msgLogin" class="msg-alerta msg-erro" role="alert"></div>
+                <form onsubmit="event.preventDefault(); window.fazerLogin();">
+                    <div class="form-group">
+                        <label for="loginSenha">Senha de Segurança:</label>
+                        <input type="password" id="loginSenha" name="password" autocomplete="current-password" inputmode="numeric" placeholder="Digite a senha de acesso">
+                    </div>
+                    <button type="submit" class="btn btn-primary"><i class="ph ph-sign-in"></i> Entrar no Painel</button>
+                </form>
             </div>
         </div>
 
@@ -108,35 +122,37 @@
         <div id="tela-admin" class="tela">
             <div class="header">
                 <div>
-                    <h3>Painel do Chefe</h3>
-                    <small id="dataOperacaoAdmin"></small>
+                    <h3><i class="ph ph-shield-check"></i> Painel do Chefe</h3>
+                    <small id="dataOperacaoAdmin" style="opacity:0.9; text-transform:capitalize;"></small>
                 </div>
-                <button class="btn btn-danger btn-pequeno" onclick="window.logout()"><i class="ph ph-sign-out"></i> Sair</button>
+                <button type="button" class="btn btn-danger btn-pequeno" onclick="window.logout()"><i class="ph ph-sign-out"></i> Sair</button>
             </div>
 
             <div class="kpi-grid">
                 <div class="kpi-card kpi-container" onclick="window.mostrarTela('tela-estoques')">
                     <span class="kpi-label"><i class="ph ph-archive"></i> Contêiner</span>
                     <span class="kpi-valor" id="kpiContainerTotal">0 un</span>
+                    <span class="kpi-sub" id="kpiContainerSub">Clique para gerenciar</span>
                 </div>
                 <div class="kpi-card kpi-bagageiro" onclick="window.mostrarTela('tela-estoques')">
                     <span class="kpi-label"><i class="ph ph-bag"></i> Bagageiro</span>
                     <span class="kpi-valor" id="kpiBagageiroTotal">0 un</span>
+                    <span class="kpi-sub" id="kpiBagageiroSub">Clique para gerenciar</span>
                 </div>
             </div>
 
             <div class="card">
-                <h4 style="margin-bottom: 15px; font-size:17px;"><i class="ph ph-squares-four"></i> Módulos</h4>
+                <h4 style="margin-bottom: 15px; font-size:17px; color:var(--primary);"><i class="ph ph-squares-four"></i> Módulos de Gestão</h4>
                 <div class="grid-menu-admin">
-                    <button class="btn btn-menu" onclick="window.mostrarTela('tela-carga-dia')"><i class="ph ph-truck"></i> Montar Carga Geral</button>
-                    <button class="btn btn-menu" onclick="window.mostrarTela('tela-carga-vagao')"><i class="ph ph-train-regional"></i> Carga por Vagão</button>
-                    <button class="btn btn-menu" onclick="window.mostrarTela('tela-receitas')"><i class="ph ph-receipt"></i> Receitas de Carga (Kits)</button>
-                    <button class="btn btn-menu" onclick="window.mostrarTela('tela-estoques')"><i class="ph ph-warehouse"></i> Situação dos Estoques</button>
-                    <button class="btn btn-menu" onclick="window.mostrarTela('tela-vagoes')"><i class="ph ph-list-dashes"></i> Frota de Vagões</button>
-                    <button class="btn btn-menu" onclick="window.mostrarTela('tela-relatorios')"><i class="ph ph-chart-bar"></i> Relatórios & Balanço</button>
-                    <button class="btn btn-menu" onclick="window.mostrarTela('tela-cadastro-produtos')"><i class="ph ph-package"></i> Produtos & Preços</button>
-                    <button class="btn btn-menu" onclick="window.mostrarTela('tela-usuarios')"><i class="ph ph-users"></i> Equipe de Apoios</button>
-                    <button class="btn btn-dark" style="grid-column: span 2;" onclick="window.mostrarTela('tela-inicial')"><i class="ph ph-arrow-left"></i> Voltar à Tela Inicial</button>
+                    <button type="button" class="btn btn-menu" onclick="window.mostrarTela('tela-carga-dia')"><i class="ph ph-truck"></i> Montar Carga Geral</button>
+                    <button type="button" class="btn btn-menu" onclick="window.mostrarTela('tela-carga-vagao')"><i class="ph ph-train-regional"></i> Carga por Vagão</button>
+                    <button type="button" class="btn btn-menu" onclick="window.mostrarTela('tela-estoques')"><i class="ph ph-warehouse"></i> Situação dos Estoques</button>
+                    <button type="button" class="btn btn-menu" onclick="window.mostrarTela('tela-relatorios')"><i class="ph ph-chart-bar"></i> Relatórios & Balanço</button>
+                    <button type="button" class="btn btn-menu" onclick="window.mostrarTela('tela-receitas')"><i class="ph ph-receipt"></i> Receitas de Carga (Kits)</button>
+                    <button type="button" class="btn btn-menu" onclick="window.mostrarTela('tela-vagoes')"><i class="ph ph-list-dashes"></i> Frota de Vagões</button>
+                    <button type="button" class="btn btn-menu" onclick="window.mostrarTela('tela-cadastro-produtos')"><i class="ph ph-package"></i> Produtos & Preços</button>
+                    <button type="button" class="btn btn-menu" onclick="window.mostrarTela('tela-usuarios')"><i class="ph ph-users"></i> Equipe de Apoios</button>
+                    <button type="button" class="btn btn-dark" style="grid-column: 1 / -1;" onclick="window.mostrarTela('tela-inicial')"><i class="ph ph-arrow-left"></i> Voltar à Tela Inicial</button>
                 </div>
             </div>
         </div>
@@ -145,12 +161,12 @@
         <div id="tela-receitas" class="tela">
             <div class="header">
                 <h3><i class="ph ph-receipt"></i> Receitas de Carga</h3>
-                <button class="btn btn-secondary btn-pequeno" onclick="window.mostrarTela('tela-admin')">Voltar</button>
+                <button type="button" class="btn btn-secondary btn-pequeno" onclick="window.mostrarTela('tela-admin')">Voltar</button>
             </div>
             <div class="card">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; gap:8px; flex-wrap:wrap;">
                     <span style="font-size:14px; color:var(--secondary); font-weight:600;">Kits pré-prontos para agilizar a carga</span>
-                    <button class="btn btn-primary btn-pequeno" onclick="window.abrirModalReceita()">
+                    <button type="button" class="btn btn-primary btn-pequeno" onclick="window.abrirModalReceita()">
                         <i class="ph ph-plus-circle"></i> Nova Receita
                     </button>
                 </div>
@@ -162,16 +178,16 @@
         <div id="tela-carga-dia" class="tela">
             <div class="header">
                 <h3><i class="ph ph-truck"></i> Montar Carga Geral</h3>
-                <button class="btn btn-secondary btn-pequeno" onclick="window.mostrarTela('tela-admin')">Voltar</button>
+                <button type="button" class="btn btn-secondary btn-pequeno" onclick="window.mostrarTela('tela-admin')">Voltar</button>
             </div>
             <div class="card">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                    <button class="btn btn-secondary btn-pequeno" onclick="window.copiarCargaDiaAnterior()"><i class="ph ph-copy"></i> Copiar Carga Anterior</button>
-                    <button class="btn btn-danger btn-pequeno" onclick="window.limparDraftCarga()"><i class="ph ph-trash"></i> Limpar Rascunho</button>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; gap:8px; flex-wrap:wrap;">
+                    <button type="button" class="btn btn-secondary btn-pequeno" onclick="window.copiarCargaDiaAnterior()"><i class="ph ph-copy"></i> Copiar Carga Anterior</button>
+                    <button type="button" class="btn btn-danger btn-pequeno" onclick="window.limparDraftCarga()"><i class="ph ph-trash"></i> Limpar Rascunho</button>
                 </div>
 
                 <div class="form-group">
-                    <label>Data da Operação:</label>
+                    <label for="dataCargaDia">Data da Operação:</label>
                     <input type="date" id="dataCargaDia" onclick="this.showPicker && this.showPicker()" onchange="window.trocarDataCargaDia()">
                 </div>
 
@@ -180,13 +196,13 @@
                 <div id="listaItensCargaDia"></div>
 
                 <div class="form-group" style="margin-top:20px;">
-                    <label style="color:var(--bagageiro-color); font-size:15px;">
+                    <label for="obsEspeciaisCarga" style="color:var(--bagageiro-color); font-size:15px;">
                         <i class="ph ph-star"></i> Observações Especiais / Extras:
                     </label>
                     <textarea id="obsEspeciaisCarga" rows="3" placeholder="Ex: *2 Agg Arruda&#10;Gelo = 9 (1 Litos, 2 Cam...)" oninput="window.salvarDraftCarga()"></textarea>
                 </div>
 
-                <button class="btn btn-primary btn-lg" onclick="window.salvarCargaDoDia()"><i class="ph ph-check-circle"></i> Salvar e Carregar Nuvem de Trânsito</button>
+                <button type="button" class="btn btn-primary btn-lg" onclick="window.salvarCargaDoDia()"><i class="ph ph-check-circle"></i> Salvar e Carregar Nuvem de Trânsito</button>
             </div>
         </div>
 
@@ -194,20 +210,20 @@
         <div id="tela-carga-vagao" class="tela">
             <div class="header">
                 <h3><i class="ph ph-train-regional"></i> Carga por Vagão</h3>
-                <button class="btn btn-secondary btn-pequeno" onclick="window.mostrarTela('tela-admin')">Voltar</button>
+                <button type="button" class="btn btn-secondary btn-pequeno" onclick="window.mostrarTela('tela-admin')">Voltar</button>
             </div>
             <div class="card">
                 <div class="form-group">
-                    <label>Data da Operação:</label>
+                    <label for="dataCargaPorVagao">Data da Operação:</label>
                     <input type="date" id="dataCargaPorVagao" onclick="this.showPicker && this.showPicker()" onchange="window.renderizarVagoesParaCarga()">
                 </div>
 
                 <!-- SELETOR DE SENTIDO IDA / VOLTA -->
                 <div class="seletor-sentido-carga">
-                    <button id="btnCargaSentidoIda" class="btn-aba-sentido ativo" onclick="window.trocarSentidoCargaVagao('Ida')">
+                    <button type="button" id="btnCargaSentidoIda" class="btn-aba-sentido ativo" onclick="window.trocarSentidoCargaVagao('Ida')">
                         <i class="ph ph-arrow-right"></i> Viagem de IDA
                     </button>
-                    <button id="btnCargaSentidoVolta" class="btn-aba-sentido" onclick="window.trocarSentidoCargaVagao('Volta')">
+                    <button type="button" id="btnCargaSentidoVolta" class="btn-aba-sentido" onclick="window.trocarSentidoCargaVagao('Volta')">
                         <i class="ph ph-arrow-left"></i> Viagem de VOLTA (Retorno)
                     </button>
                 </div>
@@ -218,7 +234,7 @@
                 <p style="font-size:13px; color:var(--secondary); margin-bottom:12px;">
                     Marque os vagões vazios como <strong>Inativo</strong> para não alocar bebidas:
                 </p>
-                
+
                 <div id="listaVagoesParaCarga"></div>
             </div>
         </div>
@@ -227,12 +243,12 @@
         <div id="tela-vagoes" class="tela">
             <div class="header">
                 <h3><i class="ph ph-list-dashes"></i> Frota de Vagões</h3>
-                <button class="btn btn-secondary btn-pequeno" onclick="window.mostrarTela('tela-admin')">Voltar</button>
+                <button type="button" class="btn btn-secondary btn-pequeno" onclick="window.mostrarTela('tela-admin')">Voltar</button>
             </div>
             <div class="card">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; gap:8px;">
                     <span style="font-size:14px; color:var(--secondary); font-weight:600;">Vagões Cadastrados</span>
-                    <button class="btn btn-primary btn-pequeno" onclick="window.abrirModalVagao()">
+                    <button type="button" class="btn btn-primary btn-pequeno" onclick="window.abrirModalVagao()">
                         <i class="ph ph-plus-circle"></i> Novo Vagão
                     </button>
                 </div>
@@ -240,44 +256,124 @@
             </div>
         </div>
 
-        <!-- TELA SITUAÇÃO DOS ESTOQUES -->
+        <!-- TELA SITUAÇÃO DOS ESTOQUES (NOVA INTERFACE PROFISSIONAL) -->
         <div id="tela-estoques" class="tela">
             <div class="header">
-                <h3><i class="ph ph-warehouse"></i> Situação dos Estoques</h3>
-                <button class="btn btn-secondary btn-pequeno" onclick="window.mostrarTela('tela-admin')">Voltar</button>
+                <h3><i class="ph ph-warehouse"></i> Gestão de Estoques</h3>
+                <button type="button" class="btn btn-secondary btn-pequeno" onclick="window.mostrarTela('tela-admin')">Voltar</button>
             </div>
 
-            <div class="resumo-estoques-grid">
+            <!-- FAIXA DE KPIs DE ESTOQUE -->
+            <div class="estoque-kpi-strip">
+                <div class="estoque-kpi-item cont">
+                    <small><i class="ph ph-archive"></i> Contêiner (Estação)</small>
+                    <strong id="estKpiContUn">0 un</strong>
+                    <span id="estKpiContFd">~ 0 fardos fechados</span>
+                </div>
+                <div class="estoque-kpi-item baga">
+                    <small><i class="ph ph-bag"></i> Bagageiro (Trem)</small>
+                    <strong id="estKpiBagaUn">0 un</strong>
+                    <span id="estKpiBagaFd">~ 0 fardos fechados</span>
+                </div>
+                <div class="estoque-kpi-item total">
+                    <small><i class="ph ph-stack"></i> Total Geral</small>
+                    <strong id="estKpiGeralUn">0 un</strong>
+                    <span id="estKpiGeralFd">0 bebidas no catálogo</span>
+                </div>
+            </div>
+
+            <!-- SELETOR DE MODO: EDITOR INTERATIVO VS TABELAS RESUMO -->
+            <div class="seletor-sentido-carga" style="margin-bottom: 14px;">
+                <button type="button" id="btnTabEstoqueEditor" class="btn-aba-sentido ativo" onclick="window.alternarVisaoEstoque('editor')">
+                    <i class="ph ph-sliders-horizontal"></i> Editor de Estoque (Ajuste Rápido)
+                </button>
+                <button type="button" id="btnTabEstoqueTabelas" class="btn-aba-sentido" onclick="window.alternarVisaoEstoque('tabelas')">
+                    <i class="ph ph-table"></i> Tabelas Resumo (Espelho)
+                </button>
+            </div>
+
+            <!-- VISÃO TABELAS RESUMO -->
+            <div id="secaoEstoqueTabelas" class="resumo-estoques-grid" style="display:none;">
                 <div class="card card-estoque-cont">
-                    <div class="card-estoque-header"><h4><i class="ph ph-archive"></i> Contêiner</h4></div>
-                    <div class="tabela-container">
+                    <div class="card-estoque-header">
+                        <h4><i class="ph ph-archive"></i> Saldo no Contêiner</h4>
+                    </div>
+                    <div class="tabela-container" tabindex="0" role="region" aria-label="Saldo de bebidas no Contêiner">
                         <table class="tabela-relatorio">
-                            <thead><tr><th>Bebida</th><th>Saldo</th></tr></thead>
+                            <thead><tr><th>Bebida</th><th>Saldo Atual</th></tr></thead>
                             <tbody id="tabelaResumoContainer"></tbody>
                         </table>
                     </div>
                 </div>
 
                 <div class="card card-estoque-baga">
-                    <div class="card-estoque-header"><h4><i class="ph ph-bag"></i> Bagageiro</h4></div>
-                    <div class="tabela-container">
+                    <div class="card-estoque-header">
+                        <h4><i class="ph ph-bag"></i> Saldo no Bagageiro</h4>
+                    </div>
+                    <div class="tabela-container" tabindex="0" role="region" aria-label="Saldo de bebidas no Bagageiro">
                         <table class="tabela-relatorio">
-                            <thead><tr><th>Bebida</th><th>Saldo</th></tr></thead>
+                            <thead><tr><th>Bebida</th><th>Saldo Atual</th></tr></thead>
                             <tbody id="tabelaResumoBagageiro"></tbody>
                         </table>
                     </div>
                 </div>
             </div>
 
-            <div class="card">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;">
-                    <h4 style="font-size:16px; margin:0;"><i class="ph ph-pencil-simple"></i> Ajuste Manual</h4>
-                    <button class="btn btn-danger btn-pequeno" onclick="window.limparDraftEstoque()"><i class="ph ph-arrow-counter-clockwise"></i> Descartar</button>
+            <!-- VISÃO EDITOR PROFISSIONAL DE ESTOQUE -->
+            <div id="secaoEstoqueEditor">
+                <div class="estoque-toolbar">
+                    <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">
+                        <div>
+                            <h4 style="font-size:16px; color:var(--primary); margin:0;"><i class="ph ph-pencil-simple-line"></i> Ajuste Manual & Transferência</h4>
+                            <small style="color:var(--secondary); font-size:12px;">Use os botões <b>− / +</b> ou digite fardos e avulsas. Salve um item individual ou todos juntos.</small>
+                        </div>
+                        <div style="display:flex; gap:8px;">
+                            <button type="button" class="btn btn-danger btn-pequeno" onclick="window.limparDraftEstoque()">
+                                <i class="ph ph-arrow-counter-clockwise"></i> Descartar
+                            </button>
+                            <button type="button" class="btn btn-primary btn-pequeno" onclick="window.abrirModalConfirmaEstoque()">
+                                <i class="ph ph-floppy-disk"></i> Salvar Tudo
+                            </button>
+                        </div>
+                    </div>
+
+                    <search class="estoque-search-row">
+                        <div class="estoque-search-wrap">
+                            <i class="ph ph-magnifying-glass"></i>
+                            <input type="search" id="inputBuscaEstoque" placeholder="Buscar bebida por nome ou sigla (ex: C, Guaraná, KL)..." oninput="window.filtrarCardsEstoqueUI()" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+                        </div>
+                    </search>
+
+                    <div class="filtros-relatorio">
+                        <button type="button" class="btn-aba ativo" id="btnFiltroEst_todos" onclick="window.setFiltroRapidoEstoque('todos')">Todas as Bebidas</button>
+                        <button type="button" class="btn-aba" id="btnFiltroEst_alterados" onclick="window.setFiltroRapidoEstoque('alterados')">Alteradas <span id="badgeCountAlteradosEstoque"></span></button>
+                        <button type="button" class="btn-aba" id="btnFiltroEst_baixo" onclick="window.setFiltroRapidoEstoque('baixo')">Estoque Baixo (&lt; 1 Fd)</button>
+                        <button type="button" class="btn-aba" id="btnFiltroEst_zerados" onclick="window.setFiltroRapidoEstoque('zerados')">Sem Saldo (0 un)</button>
+                    </div>
                 </div>
+
                 <div id="listaEstoqueGeral"></div>
-                <button class="btn btn-primary btn-lg" style="margin-top:15px;" onclick="window.abrirModalConfirmaEstoque()">
-                    <i class="ph ph-floppy-disk"></i> Salvar Todos os Ajustes
+
+                <button type="button" class="btn btn-primary btn-lg" style="margin-top:8px;" onclick="window.abrirModalConfirmaEstoque()">
+                    <i class="ph ph-floppy-disk"></i> Revisar e Salvar Todos os Ajustes
                 </button>
+
+                <!-- BARRA FLUTUANTE QUANDO HÁ ALTERAÇÕES PENDENTES -->
+                <div id="barraFlutuanteEstoque" class="floating-save-bar">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <i class="ph ph-warning-circle" style="font-size:22px; color:#fbbf24;"></i>
+                        <div>
+                            <strong id="lblQtdModificadosEstoque" style="display:block; font-size:14px;">0 bebidas alteradas</strong>
+                            <small style="color:#a7f3d0; font-size:11px;">Alterações prontas para gravação</small>
+                        </div>
+                    </div>
+                    <div style="display:flex; gap:8px;">
+                        <button type="button" class="btn btn-secondary btn-pequeno" onclick="window.limparDraftEstoque()">Descartar</button>
+                        <button type="button" class="btn btn-success btn-pequeno" onclick="window.abrirModalConfirmaEstoque()">
+                            <i class="ph ph-floppy-disk"></i> Salvar Agora
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -285,12 +381,12 @@
         <div id="tela-usuarios" class="tela">
             <div class="header">
                 <h3><i class="ph ph-users"></i> Equipe de Apoios</h3>
-                <button class="btn btn-secondary btn-pequeno" onclick="window.mostrarTela('tela-admin')">Voltar</button>
+                <button type="button" class="btn btn-secondary btn-pequeno" onclick="window.mostrarTela('tela-admin')">Voltar</button>
             </div>
             <div class="card">
                 <div style="display: flex; gap: 8px;">
                     <input type="text" id="novoUsuarioNome" placeholder="Nome do Apoio" style="flex: 2;" onkeydown="if(event.key==='Enter') window.adicionarUsuario()">
-                    <button class="btn btn-primary" style="width:auto;" onclick="window.adicionarUsuario()"><i class="ph ph-plus"></i></button>
+                    <button type="button" class="btn btn-primary" style="width:auto;" aria-label="Adicionar Apoio" onclick="window.adicionarUsuario()"><i class="ph ph-plus"></i></button>
                 </div>
                 <hr class="divisor">
                 <div id="listaUsuariosAdmin"></div>
@@ -301,12 +397,12 @@
         <div id="tela-cadastro-produtos" class="tela">
             <div class="header">
                 <h3><i class="ph ph-package"></i> Produtos, Fardos & Preços</h3>
-                <button class="btn btn-secondary btn-pequeno" onclick="window.mostrarTela('tela-admin')">Voltar</button>
+                <button type="button" class="btn btn-secondary btn-pequeno" onclick="window.mostrarTela('tela-admin')">Voltar</button>
             </div>
             <div class="card">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; gap:8px;">
                     <span style="font-size:14px; color:var(--secondary); font-weight:600;">Catálogo de Bordo</span>
-                    <button class="btn btn-primary btn-pequeno" onclick="window.abrirModalProduto()">
+                    <button type="button" class="btn btn-primary btn-pequeno" onclick="window.abrirModalProduto()">
                         <i class="ph ph-plus-circle"></i> Novo Produto
                     </button>
                 </div>
@@ -318,30 +414,33 @@
         <div id="tela-relatorios" class="tela">
             <div class="header">
                 <h3><i class="ph ph-chart-bar"></i> Relatórios Operacionais</h3>
-                <button class="btn btn-secondary btn-pequeno" onclick="window.mostrarTela('tela-admin')">Voltar</button>
+                <button type="button" class="btn btn-secondary btn-pequeno" onclick="window.mostrarTela('tela-admin')">Voltar</button>
             </div>
             <div class="card">
                 <div class="form-group">
-                    <label>Data de Consulta:</label>
+                    <label for="filtroDataRelatorio">Data de Consulta:</label>
                     <input type="date" id="filtroDataRelatorio" onclick="this.showPicker && this.showPicker()" onchange="window.renderizarRelatoriosAdmin()">
                 </div>
-                
+
+                <!-- BALANÇO CONSOLIDADO DO DIA -->
+                <div id="boxBalancoDiarioRelatorios"></div>
+
                 <div style="margin-bottom:10px;">
                     <span style="font-size:12px; font-weight:700; color:var(--secondary); text-transform:uppercase;">Categoria:</span>
                     <div class="filtros-relatorio" style="margin-top:4px;">
-                        <button class="btn-aba ativo" id="btnRelVagao" onclick="window.setModoRelatorio('todos')">Todos</button>
-                        <button class="btn-aba" id="btnRelTur" onclick="window.setModoRelatorio('turisticos')">Só Turísticos</button>
-                        <button class="btn-aba" id="btnRelBoutLito" onclick="window.setModoRelatorio('boutiques_litorinas')">Boutiques & Litorinas</button>
-                        <button class="btn-aba" id="btnRelVendas" onclick="window.setModoRelatorio('vendas')">Carrinhos</button>
+                        <button type="button" class="btn-aba ativo" id="btnRelVagao" onclick="window.setModoRelatorio('todos')">Todos</button>
+                        <button type="button" class="btn-aba" id="btnRelTur" onclick="window.setModoRelatorio('turisticos')">Só Turísticos</button>
+                        <button type="button" class="btn-aba" id="btnRelBoutLito" onclick="window.setModoRelatorio('boutiques_litorinas')">Boutiques & Litorinas</button>
+                        <button type="button" class="btn-aba" id="btnRelVendas" onclick="window.setModoRelatorio('vendas')">Carrinhos</button>
                     </div>
                 </div>
 
                 <div style="margin-bottom:15px;">
                     <span style="font-size:12px; font-weight:700; color:var(--secondary); text-transform:uppercase;">Sentido:</span>
                     <div class="filtros-relatorio" style="margin-top:4px;">
-                        <button class="btn-aba ativo" id="btnSentidoTodos" onclick="window.setFiltroSentido('todos')">Ida & Volta</button>
-                        <button class="btn-aba" id="btnSentidoIda" onclick="window.setFiltroSentido('Ida')">Ida</button>
-                        <button class="btn-aba" id="btnSentidoVolta" onclick="window.setFiltroSentido('Volta')">Volta</button>
+                        <button type="button" class="btn-aba ativo" id="btnSentidoTodos" onclick="window.setFiltroSentido('todos')">Ida & Volta</button>
+                        <button type="button" class="btn-aba" id="btnSentidoIda" onclick="window.setFiltroSentido('Ida')">Ida</button>
+                        <button type="button" class="btn-aba" id="btnSentidoVolta" onclick="window.setFiltroSentido('Volta')">Volta</button>
                     </div>
                 </div>
 
@@ -353,25 +452,24 @@
         <div id="tela-boutiques-hub" class="tela">
             <div class="header">
                 <h3><i class="ph ph-sparkle"></i> Boutiques & Litorinas</h3>
-                <button class="btn btn-secondary btn-pequeno" onclick="window.mostrarTela('tela-inicial')">Voltar</button>
+                <button type="button" class="btn btn-secondary btn-pequeno" onclick="window.mostrarTela('tela-inicial')">Voltar</button>
             </div>
             <div class="card">
-                <!-- CAMPO: SELEÇÃO DO APOIO RESPONSÁVEL -->
                 <div class="form-group">
-                    <label>Apoio Responsável:</label>
+                    <label for="selectApoioBoutiqueHub">Apoio Responsável:</label>
                     <select id="selectApoioBoutiqueHub"></select>
                 </div>
 
                 <div class="form-group">
-                    <label>Selecione a Boutique / Litorina:</label>
+                    <label for="selectVagaoBoutiqueHub">Selecione a Boutique / Litorina:</label>
                     <select id="selectVagaoBoutiqueHub" onchange="window.carregarFormularioBoutiqueHub()"></select>
                 </div>
                 <div class="form-group">
-                    <label>Data:</label>
+                    <label for="dataBoutiqueHub">Data:</label>
                     <input type="date" id="dataBoutiqueHub" onclick="this.showPicker && this.showPicker()" onchange="window.carregarFormularioBoutiqueHub()">
                 </div>
                 <div class="form-group">
-                    <label>Etapa da Viagem:</label>
+                    <label for="etapaBoutiqueHub">Etapa da Viagem:</label>
                     <select id="etapaBoutiqueHub" onchange="window.carregarFormularioBoutiqueHub()">
                         <option value="morretes_sem_retorno">Chegada Morretes: SEM Retorno (Baixar sobras)</option>
                         <option value="morretes_com_retorno">Chegada Morretes: COM Retorno (Ajuste de bebidas)</option>
@@ -387,34 +485,34 @@
         <!-- SETUP DE CONTAGEM (APOIO) -->
         <div id="tela-setup-contagem" class="tela">
             <div class="header">
-                <h3>Contagem de Vagão</h3>
-                <button class="btn btn-danger btn-pequeno" onclick="window.mostrarTela('tela-inicial')">Sair</button>
+                <h3><i class="ph ph-clipboard-text"></i> Contagem de Vagão</h3>
+                <button type="button" class="btn btn-danger btn-pequeno" onclick="window.mostrarTela('tela-inicial')">Sair</button>
             </div>
             <div class="card">
                 <div class="form-group">
-                    <label>Seu Nome (Apoio):</label>
+                    <label for="selectNomeApoio">Seu Nome (Apoio):</label>
                     <select id="selectNomeApoio"></select>
                 </div>
                 <div class="form-group">
-                    <label>Data:</label>
+                    <label for="dataContagemApoio">Data:</label>
                     <input type="date" id="dataContagemApoio" onclick="this.showPicker && this.showPicker()">
                 </div>
                 <div class="form-group">
-                    <label>Sentido:</label>
+                    <label for="selectSentidoApoio">Sentido:</label>
                     <select id="selectSentidoApoio">
                         <option value="Ida">Ida</option>
                         <option value="Volta">Volta</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>Selecione o Vagão:</label>
+                    <label for="selectVagaoApoio">Selecione o Vagão:</label>
                     <select id="selectVagaoApoio"></select>
                 </div>
                 <div class="form-group">
-                    <label>Nome do Guia:</label>
+                    <label for="nomeGuiaApoio">Nome do Guia:</label>
                     <input type="text" id="nomeGuiaApoio" placeholder="Ex: Joel" onkeydown="if(event.key==='Enter') window.iniciarContagemVagao()">
                 </div>
-                <button class="btn btn-primary btn-lg" onclick="window.iniciarContagemVagao()">
+                <button type="button" class="btn btn-primary btn-lg" onclick="window.iniciarContagemVagao()">
                     Iniciar Contagem <i class="ph ph-arrow-right"></i>
                 </button>
             </div>
@@ -424,16 +522,27 @@
         <div id="tela-contagem-vagao" class="tela">
             <div class="header">
                 <h3><span id="lblVagaoContagem"></span> (<span id="lblSentidoContagem"></span>)</h3>
-                <button class="btn btn-danger btn-pequeno" onclick="window.mostrarTela('tela-setup-contagem')">Cancelar</button>
+                <button type="button" class="btn btn-danger btn-pequeno" onclick="window.mostrarTela('tela-setup-contagem')">Cancelar</button>
             </div>
             <div class="card card-limpo">
-                <div id="avisoCargaCarregada" style="margin-bottom:12px;"></div>
-                <p style="font-size: 13px; color: var(--secondary); margin-bottom: 15px;">
-                    Cargas sincronizadas. Informe a <strong>Sobra</strong> real:
+                <div id="avisoCargaCarregada" style="margin-bottom:10px;"></div>
+
+                <!-- BARRA AO VIVO: LANCHES X BEBIDAS -->
+                <div id="liveBarContagemComparativo" class="contagem-live-bar kpi-match">
+                    <span><i class="ph ph-scales"></i> Conferência ao Vivo:</span>
+                    <div>
+                        <span>Lanches: <strong id="liveContagemLanches">0</strong></span>
+                        <span style="margin-inline: 6px; opacity: 0.6;">&times;</span>
+                        <span>Bebidas: <strong id="liveContagemBebidas">0</strong></span>
+                    </div>
+                </div>
+
+                <p style="font-size: 13px; color: var(--secondary); margin-bottom: 14px;">
+                    Informe a <strong>Sobra</strong> real de cada item abaixo:
                 </p>
                 <div id="listaItensContagem"></div>
-                
-                <button class="btn btn-primary btn-lg" onclick="window.gerarResumoContagem()">
+
+                <button type="button" class="btn btn-primary btn-lg" onclick="window.gerarResumoContagem()">
                     Conferir Resumo <i class="ph ph-check-circle"></i>
                 </button>
             </div>
@@ -443,7 +552,7 @@
         <div id="tela-resumo-contagem" class="tela">
             <div class="header">
                 <h3>Conferência Final</h3>
-                <button class="btn btn-danger btn-pequeno" onclick="window.mostrarTela('tela-contagem-vagao')">Corrigir</button>
+                <button type="button" class="btn btn-danger btn-pequeno" onclick="window.mostrarTela('tela-contagem-vagao')">Corrigir</button>
             </div>
             <div class="card">
                 <div class="info-resumo-topo">
@@ -451,22 +560,22 @@
                     <div><strong>Apoio:</strong> <span id="resumoApoio"></span> | <strong>Guia:</strong> <span id="resumoGuia"></span></div>
                     <div><strong>Data:</strong> <span id="resumoData"></span></div>
                 </div>
-                
+
                 <div id="boxStatusComparativoResumo" class="box-comparativo-status">
                     <div style="display:flex; justify-content:space-around; align-items:center;">
                         <div style="text-align:center;">
                             <span style="font-size:11px; font-weight:700; text-transform:uppercase;">Lanches (Pax)</span>
                             <h3 id="resumoTotalLanches" style="margin:2px 0;">0</h3>
                         </div>
-                        <div style="font-size:20px; font-weight:bold; opacity:0.6;">x</div>
+                        <div style="font-size:20px; font-weight:bold; opacity:0.6;">&times;</div>
                         <div style="text-align:center;">
                             <span style="font-size:11px; font-weight:700; text-transform:uppercase;">Bebidas (Pax)</span>
                             <h3 id="resumoTotalBebidas" style="margin:2px 0;">0</h3>
                         </div>
                     </div>
                 </div>
-                
-                <div class="tabela-container">
+
+                <div class="tabela-container" tabindex="0" role="region" aria-label="Resumo da contagem do vagão">
                     <table class="tabela-relatorio">
                         <thead>
                             <tr>
@@ -483,11 +592,11 @@
                 </div>
 
                 <div class="form-group" style="margin-top: 15px;">
-                    <label>Observações Extras:</label>
+                    <label for="obsFinalContagem">Observações Extras:</label>
                     <input type="text" id="obsFinalContagem" placeholder="Ex: 1 lata amassada" onkeydown="if(event.key==='Enter') window.salvarContagemDefinitiva()">
                 </div>
-                
-                <button id="btnSalvarContagemDefinitiva" class="btn btn-success btn-lg" onclick="window.salvarContagemDefinitiva()">
+
+                <button type="button" id="btnSalvarContagemDefinitiva" class="btn btn-success btn-lg" onclick="window.salvarContagemDefinitiva()">
                     <i class="ph ph-paper-plane-right"></i> Confirmar e Fechar Vagão
                 </button>
             </div>
@@ -497,25 +606,25 @@
         <div id="tela-setup-carrinho" class="tela">
             <div class="header">
                 <h3><i class="ph ph-shopping-cart"></i> Carrinho de Vendas</h3>
-                <button class="btn btn-danger btn-pequeno" onclick="window.mostrarTela('tela-inicial')">Voltar</button>
+                <button type="button" class="btn btn-danger btn-pequeno" onclick="window.mostrarTela('tela-inicial')">Voltar</button>
             </div>
             <div class="card">
                 <div class="form-group">
-                    <label>Apoio Responsável:</label>
+                    <label for="selectApoioCarrinho">Apoio Responsável:</label>
                     <select id="selectApoioCarrinho"></select>
                 </div>
                 <div class="form-group">
-                    <label>Data:</label>
+                    <label for="dataCarrinho">Data:</label>
                     <input type="date" id="dataCarrinho" onclick="this.showPicker && this.showPicker()">
                 </div>
                 <div class="form-group">
-                    <label>Sentido da Viagem:</label>
+                    <label for="sentidoCarrinho">Sentido da Viagem:</label>
                     <select id="sentidoCarrinho">
                         <option value="Ida">Ida</option>
                         <option value="Volta">Volta</option>
                     </select>
                 </div>
-                <button class="btn btn-carrinho btn-lg" onclick="window.iniciarAcertoCarrinho()">
+                <button type="button" class="btn btn-carrinho btn-lg" onclick="window.iniciarAcertoCarrinho()">
                     Iniciar Vendas / Acerto <i class="ph ph-arrow-right"></i>
                 </button>
             </div>
@@ -525,30 +634,30 @@
         <div id="tela-acerto-carrinho" class="tela">
             <div class="header">
                 <h3><i class="ph ph-shopping-cart"></i> Acerto (<span id="lblCarrinhoSentido"></span>)</h3>
-                <button class="btn btn-danger btn-pequeno" onclick="window.mostrarTela('tela-setup-carrinho')">Cancelar</button>
+                <button type="button" class="btn btn-danger btn-pequeno" onclick="window.mostrarTela('tela-setup-carrinho')">Cancelar</button>
             </div>
             <div class="card">
                 <div id="listaItensCarrinho"></div>
-                
+
                 <hr class="divisor">
                 <h4 style="color:var(--primary); margin-bottom:10px;"><i class="ph ph-plus-circle"></i> Vendeu mais alguma coisa?</h4>
                 <div style="display:flex; gap:8px; margin-bottom:10px;">
                     <select id="selectItemExtraCarrinho" style="flex:2;"></select>
-                    <input type="number" id="qtdItemExtraCarrinho" placeholder="Qtd" min="1" value="1" style="flex:1;">
-                    <button class="btn btn-primary" style="width:auto;" onclick="window.adicionarItemExtraVenda()"><i class="ph ph-plus"></i></button>
+                    <input type="number" id="qtdItemExtraCarrinho" placeholder="Qtd" min="1" value="1" inputmode="numeric" style="flex:1;">
+                    <button type="button" class="btn btn-primary" style="width:auto;" aria-label="Adicionar item extra" onclick="window.adicionarItemExtraVenda()"><i class="ph ph-plus"></i></button>
                 </div>
                 <div id="listaExtrasAdicionados" style="margin-bottom:15px;"></div>
                 <hr class="divisor">
                 <div class="form-group">
-                    <label>Troco Inicial Pego no Bagageiro (R$):</label>
-                    <input type="number" id="carrinhoTroco" value="0" onfocus="this.select()" oninput="window.calcularVendas();">
+                    <label for="carrinhoTroco">Troco Inicial Pego no Bagageiro (R$):</label>
+                    <input type="number" id="carrinhoTroco" value="0" inputmode="decimal" onfocus="this.select()" oninput="window.calcularVendas();">
                 </div>
                 <div class="box-total-vendas">
                     <p style="margin: 0; font-size:14px; font-weight:600;">Valor Líquido de Vendas:</p>
                     <h2>R$ <span id="lblTotalVendasCarrinho">0,00</span></h2>
                     <small>Dinheiro físico total a entregar: <strong id="lblTotalEntregar" style="color:var(--success); font-size:14px;">R$ 0,00</strong></small>
                 </div>
-                <button class="btn btn-success btn-lg" onclick="window.salvarAcertoCarrinho()"><i class="ph ph-check-circle"></i> Finalizar Acerto</button>
+                <button type="button" class="btn btn-success btn-lg" onclick="window.salvarAcertoCarrinho()"><i class="ph ph-check-circle"></i> Finalizar Acerto</button>
             </div>
         </div>
 
@@ -559,32 +668,32 @@
         <div class="modal-content" style="max-width:550px;">
             <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid var(--border); padding-bottom:8px; margin-bottom:12px;">
                 <h3 id="modalMcvTitulo" style="margin:0; color:var(--primary); font-size:18px;">Montar Carga</h3>
-                <button class="btn btn-secondary btn-pequeno" onclick="window.fecharModal('modal-montar-carga-vagao')"><i class="ph ph-x"></i></button>
+                <button type="button" class="btn btn-secondary btn-pequeno" aria-label="Fechar modal" onclick="window.fecharModal('modal-montar-carga-vagao')"><i class="ph ph-x"></i></button>
             </div>
-            
+
             <input type="hidden" id="modalMcvVagaoId">
             <input type="hidden" id="modalMcvSentido">
-            
-            <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-                 <div class="form-group" style="flex:2; margin-right:10px;">
-                     <label>Aplicar Receita (Opcional):</label>
-                     <select id="modalMcvReceitaSelect" onchange="window.aplicarReceitaNaCargaModal()"></select>
-                 </div>
-                 <div style="flex:1; display:flex; align-items:flex-end; padding-bottom:16px;">
-                     <button class="btn btn-secondary btn-pequeno" onclick="window.copiarCargaVagaoAnteriorModal()"><i class="ph ph-copy"></i> Repetir Última</button>
-                 </div>
+
+            <div style="display:flex; justify-content:space-between; margin-bottom:10px; gap:10px;">
+                <div class="form-group" style="flex:2; margin-bottom:0;">
+                    <label for="modalMcvReceitaSelect">Aplicar Receita (Opcional):</label>
+                    <select id="modalMcvReceitaSelect" onchange="window.aplicarReceitaNaCargaModal()"></select>
+                </div>
+                <div style="flex:1; display:flex; align-items:flex-end;">
+                    <button type="button" class="btn btn-secondary btn-pequeno" style="width:100%; min-block-size:46px;" onclick="window.copiarCargaVagaoAnteriorModal()"><i class="ph ph-copy"></i> Repetir Última</button>
+                </div>
             </div>
 
-            <div id="modalMcvListaItens" style="max-height: 40vh; overflow-y: auto; margin-bottom:15px; border:1px solid var(--border); border-radius:8px; padding:10px; background:#f8faf9;"></div>
+            <div id="modalMcvListaItens" style="max-height: 42vh; overflow-y: auto; margin-bottom:15px; border:1px solid var(--border); border-radius:8px; padding:10px; background:#f8faf9;"></div>
 
             <div class="form-group">
-                <label>Observação / Destino (Opcional):</label>
+                <label for="modalMcvObs">Observação / Destino (Opcional):</label>
                 <input type="text" id="modalMcvObs" placeholder="Ex: 2 lugares avariados">
             </div>
 
             <div style="display:flex; gap:10px;">
-                <button class="btn btn-primary" style="flex:2;" onclick="window.salvarCargaVagaoModal()"><i class="ph ph-check"></i> Confirmar Carga do Vagão</button>
-                <button class="btn btn-secondary" style="flex:1;" onclick="window.fecharModal('modal-montar-carga-vagao')">Cancelar</button>
+                <button type="button" class="btn btn-primary" style="flex:2;" onclick="window.salvarCargaVagaoModal()"><i class="ph ph-check"></i> Confirmar Carga do Vagão</button>
+                <button type="button" class="btn btn-secondary" style="flex:1;" onclick="window.fecharModal('modal-montar-carga-vagao')">Cancelar</button>
             </div>
         </div>
     </div>
@@ -594,15 +703,15 @@
         <div class="modal-content" style="max-width:550px;">
             <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid var(--border); padding-bottom:8px; margin-bottom:12px;">
                 <h3 id="modalRetornoBoutiqueTitulo" style="margin:0; color:var(--primary); font-size:18px;">Retorno Boutique</h3>
-                <button class="btn btn-secondary btn-pequeno" onclick="window.fecharModal('modal-detalhes-retorno-boutique')"><i class="ph ph-x"></i></button>
+                <button type="button" class="btn btn-secondary btn-pequeno" aria-label="Fechar modal" onclick="window.fecharModal('modal-detalhes-retorno-boutique')"><i class="ph ph-x"></i></button>
             </div>
             <p style="font-size:13px; color:var(--secondary); margin-bottom:10px;">
                 Carga de volta calculada em Morretes (Sobras + Ajustes):
             </p>
             <div id="listaDetalhesRetornoBoutique" style="max-height:45vh; overflow-y:auto; border:1px solid var(--border); border-radius:8px; padding:10px; background:#ffffff; margin-bottom:15px;"></div>
             <div style="display:flex; gap:10px;">
-                <button class="btn btn-primary" style="flex:2;" onclick="window.editarRetornoBoutiqueNaCarga()"><i class="ph ph-pencil-simple"></i> Editar no Hub Morretes</button>
-                <button class="btn btn-secondary" style="flex:1;" onclick="window.fecharModal('modal-detalhes-retorno-boutique')">Fechar</button>
+                <button type="button" class="btn btn-primary" style="flex:2;" onclick="window.editarRetornoBoutiqueNaCarga()"><i class="ph ph-pencil-simple"></i> Editar no Hub Morretes</button>
+                <button type="button" class="btn btn-secondary" style="flex:1;" onclick="window.fecharModal('modal-detalhes-retorno-boutique')">Fechar</button>
             </div>
         </div>
     </div>
@@ -615,7 +724,7 @@
                     <h3 id="modalOpVagaoNome" style="margin:0; color:var(--primary); font-size:18px;"></h3>
                     <span id="modalOpVagaoStatus" style="font-size:12px; font-weight:700;"></span>
                 </div>
-                <button class="btn btn-secondary btn-pequeno" onclick="window.fecharModal('modal-vagao-operacao')"><i class="ph ph-x"></i></button>
+                <button type="button" class="btn btn-secondary btn-pequeno" aria-label="Fechar modal" onclick="window.fecharModal('modal-vagao-operacao')"><i class="ph ph-x"></i></button>
             </div>
 
             <div class="box-destaque-reforco">
@@ -623,8 +732,8 @@
                 <p style="font-size:12px; color:var(--secondary); margin-bottom:8px;">Transfira do Bagageiro para o Vagão:</p>
                 <div style="display:flex; gap:8px;">
                     <select id="modalOpSelectBebidaReforco" style="flex:2;"></select>
-                    <input type="number" id="modalOpQtdReforco" placeholder="Qtd" min="1" value="1" style="flex:1;">
-                    <button class="btn btn-primary" style="width:auto;" onclick="window.adicionarReforcoVagao()"><i class="ph ph-plus"></i></button>
+                    <input type="number" id="modalOpQtdReforco" placeholder="Qtd" min="1" value="1" inputmode="numeric" style="flex:1;">
+                    <button type="button" class="btn btn-primary" style="width:auto;" aria-label="Adicionar reforço" onclick="window.adicionarReforcoVagao()"><i class="ph ph-plus"></i></button>
                 </div>
                 <div id="modalOpListaReforcosFeitos" style="margin-top:12px; font-size:13px; display:flex; flex-direction:column; gap:6px;"></div>
             </div>
@@ -636,14 +745,14 @@
         <div class="modal-content" style="max-width:560px;">
             <h3 id="modalReceitaTitulo" style="margin-top:0; color:var(--primary);"><i class="ph ph-receipt"></i> Modelo de Carga (Receita)</h3>
             <input type="hidden" id="modalReceitaIdOriginal">
-            <div class="form-group">
-                <label>Nome da Receita:</label>
+            <div class="form-group" style="margin-top:12px;">
+                <label for="modalReceitaNome">Nome da Receita:</label>
                 <input type="text" id="modalReceitaNome" placeholder="Ex: Base Turístico 48 Lugares">
             </div>
             <div id="modalReceitaListaProdutos" style="max-height:260px; overflow-y:auto; border:1.5px solid var(--border); border-radius:8px; padding:10px; background:#ffffff; margin-bottom:15px;"></div>
             <div style="display:flex; gap:10px;">
-                <button class="btn btn-primary" style="flex:2;" onclick="window.salvarReceitaModal()"><i class="ph ph-check"></i> Salvar Receita</button>
-                <button class="btn btn-secondary" style="flex:1;" onclick="window.fecharModal('modal-receita')">Cancelar</button>
+                <button type="button" class="btn btn-primary" style="flex:2;" onclick="window.salvarReceitaModal()"><i class="ph ph-check"></i> Salvar Receita</button>
+                <button type="button" class="btn btn-secondary" style="flex:1;" onclick="window.fecharModal('modal-receita')">Cancelar</button>
             </div>
         </div>
     </div>
@@ -653,12 +762,12 @@
         <div class="modal-content">
             <h3 id="modalVagaoTitulo" style="margin-top:0; color:var(--primary);"><i class="ph ph-train"></i> Vagão</h3>
             <input type="hidden" id="modalVagaoIdOriginal">
-            <div class="grid-inputs" style="grid-template-columns: 1fr 2fr; margin-bottom:15px;">
-                <div><label>Placa / Nº:</label><input type="text" id="modalVagaoNumero"></div>
-                <div><label>Nome do Vagão:</label><input type="text" id="modalVagaoNome"></div>
+            <div class="grid-inputs" style="grid-template-columns: 1fr 2fr; margin-bottom:15px; margin-top:12px;">
+                <div><label for="modalVagaoNumero">Placa / Nº:</label><input type="text" id="modalVagaoNumero"></div>
+                <div><label for="modalVagaoNome">Nome do Vagão:</label><input type="text" id="modalVagaoNome"></div>
             </div>
             <div class="form-group">
-                <label>Categoria:</label>
+                <label for="modalVagaoTipo">Categoria:</label>
                 <select id="modalVagaoTipo" onchange="window.autoSugerirReceitaVagao()">
                     <option value="turistico">Turístico</option>
                     <option value="economico">Econômico</option>
@@ -667,7 +776,7 @@
                 </select>
             </div>
             <div class="form-group">
-                <label style="color:var(--primary); font-weight:700;"><i class="ph ph-receipt"></i> Receita de Carga Padrão:</label>
+                <label for="modalVagaoReceitaPadrao" style="color:var(--primary); font-weight:700;"><i class="ph ph-receipt"></i> Receita de Carga Padrão:</label>
                 <select id="modalVagaoReceitaPadrao"></select>
             </div>
             <div class="form-group" style="margin-top:15px;">
@@ -675,8 +784,8 @@
                 <div id="boxCheckboxesBebidasVagao" class="box-checklist-bebidas"></div>
             </div>
             <div style="display:flex; gap:10px; margin-top:20px;">
-                <button class="btn btn-primary" style="flex:2;" onclick="window.salvarVagaoModal()"><i class="ph ph-check"></i> Salvar Vagão</button>
-                <button class="btn btn-secondary" style="flex:1;" onclick="window.fecharModal('modal-vagao')">Cancelar</button>
+                <button type="button" class="btn btn-primary" style="flex:2;" onclick="window.salvarVagaoModal()"><i class="ph ph-check"></i> Salvar Vagão</button>
+                <button type="button" class="btn btn-secondary" style="flex:1;" onclick="window.fecharModal('modal-vagao')">Cancelar</button>
             </div>
         </div>
     </div>
@@ -686,21 +795,21 @@
         <div class="modal-content">
             <h3 id="modalProdutoTitulo" style="margin-top:0; color:var(--primary);"><i class="ph ph-package"></i> Produto</h3>
             <input type="hidden" id="modalProdIdOriginal">
-            <div class="grid-inputs" style="grid-template-columns: 1fr 2fr; margin-bottom:15px;">
-                <div><label>Ordem:</label><input type="number" id="modalProdOrdem" min="1"></div>
-                <div><label>Sigla:</label><input type="text" id="modalProdSigla"></div>
+            <div class="grid-inputs" style="grid-template-columns: 1fr 2fr; margin-bottom:15px; margin-top:12px;">
+                <div><label for="modalProdOrdem">Ordem:</label><input type="number" id="modalProdOrdem" min="1" inputmode="numeric"></div>
+                <div><label for="modalProdSigla">Sigla:</label><input type="text" id="modalProdSigla" autocorrect="off" autocapitalize="off" spellcheck="false"></div>
             </div>
             <div class="form-group">
-                <label>Nome Completo:</label>
+                <label for="modalProdNome">Nome Completo:</label>
                 <input type="text" id="modalProdNome">
             </div>
             <div class="grid-inputs" style="grid-template-columns: 1fr 1fr; margin-bottom:15px;">
-                <div><label>Unidades/Fardo:</label><input type="number" id="modalProdUnFardo" value="12"></div>
-                <div><label>Preço Venda (R$):</label><input type="number" step="0.50" id="modalProdPreco"></div>
+                <div><label for="modalProdUnFardo">Unidades/Fardo:</label><input type="number" id="modalProdUnFardo" value="12" inputmode="numeric"></div>
+                <div><label for="modalProdPreco">Preço Venda (R$):</label><input type="number" step="0.50" id="modalProdPreco" inputmode="decimal"></div>
             </div>
             <div style="display:flex; gap:10px; margin-top:20px;">
-                <button class="btn btn-primary" style="flex:2;" onclick="window.salvarProdutoModal()"><i class="ph ph-check"></i> Salvar Produto</button>
-                <button class="btn btn-secondary" style="flex:1;" onclick="window.fecharModal('modal-produto')">Cancelar</button>
+                <button type="button" class="btn btn-primary" style="flex:2;" onclick="window.salvarProdutoModal()"><i class="ph ph-check"></i> Salvar Produto</button>
+                <button type="button" class="btn btn-secondary" style="flex:1;" onclick="window.fecharModal('modal-produto')">Cancelar</button>
             </div>
         </div>
     </div>
@@ -713,42 +822,43 @@
             <input type="hidden" id="editRelatorioIdOriginal">
             <div id="listaItensEdicaoRelatorio" style="max-height: 50vh; overflow-y: auto;"></div>
             <div class="form-group" style="margin-top:12px;">
-                <label>Observação do Chefe:</label>
+                <label for="obsEdicaoChefeRelatorio">Observação do Chefe:</label>
                 <input type="text" id="obsEdicaoChefeRelatorio">
             </div>
             <div style="display:flex; gap:10px; margin-top:15px;">
-                <button class="btn btn-primary" style="flex:2;" onclick="window.salvarEdicaoRelatorioPeloChefe()"><i class="ph ph-check"></i> Salvar</button>
-                <button class="btn btn-danger" style="flex:1;" onclick="window.excluirRelatorioPeloChefe()"><i class="ph ph-trash"></i> Excluir</button>
-                <button class="btn btn-secondary" style="flex:1;" onclick="window.fecharModal('modal-editar-relatorio')">Cancelar</button>
+                <button type="button" class="btn btn-primary" style="flex:2;" onclick="window.salvarEdicaoRelatorioPeloChefe()"><i class="ph ph-check"></i> Salvar</button>
+                <button type="button" class="btn btn-danger" style="flex:1;" onclick="window.excluirRelatorioPeloChefe()"><i class="ph ph-trash"></i> Excluir</button>
+                <button type="button" class="btn btn-secondary" style="flex:1;" onclick="window.fecharModal('modal-editar-relatorio')">Cancelar</button>
             </div>
         </div>
     </div>
 
-    <!-- MODAL POP-UP: EDITAR VENDA DE ÁGUA E CERVEJA -->
+    <!-- MODAL POP-UP: EDITAR VENDA DE CARRINHO -->
     <div id="modal-editar-venda" class="modal-overlay">
         <div class="modal-content" style="max-width:450px;">
             <h3 style="margin-top:0; color:var(--primary);"><i class="ph ph-shopping-cart"></i> Corrigir Vendas</h3>
             <p id="subtituloModalEditaVenda" style="font-size:13px; color:var(--secondary); margin-bottom:12px;"></p>
             <input type="hidden" id="editVendaIdOriginal">
-            <div id="listaItensEdicaoVenda" style="margin-bottom: 15px;"></div>
+            <div id="listaItensEdicaoVenda" style="margin-bottom: 15px; max-height: 50vh; overflow-y: auto;"></div>
             <div style="display:flex; gap:10px; margin-top:15px;">
-                <button class="btn btn-primary" style="flex:2;" onclick="window.salvarEdicaoVenda()"><i class="ph ph-check"></i> Salvar Ajuste</button>
-                <button class="btn btn-secondary" style="flex:1;" onclick="window.fecharModal('modal-editar-venda')">Cancelar</button>
+                <button type="button" class="btn btn-primary" style="flex:2;" onclick="window.salvarEdicaoVenda()"><i class="ph ph-check"></i> Salvar Ajuste</button>
+                <button type="button" class="btn btn-secondary" style="flex:1;" onclick="window.fecharModal('modal-editar-venda')">Cancelar</button>
             </div>
         </div>
     </div>
 
-    <!-- MODAL POP-UP: CONFIRMAÇÃO ESTOQUE -->
+    <!-- MODAL POP-UP: CONFIRMAÇÃO ESTOQUE (COM RESUMO DE DIFERENÇAS) -->
     <div id="modal-confirma-estoque" class="modal-overlay">
         <div class="modal-content">
-            <h3 style="margin-top:0; color:var(--primary);"><i class="ph ph-warning-circle"></i> Confirmar Ajustes de Estoque</h3>
+            <h3 style="margin-top:0; margin-bottom:12px; color:var(--primary);"><i class="ph ph-floppy-disk"></i> Confirmar Ajustes de Estoque</h3>
+            <div id="resumoAlteracoesEstoqueModal"></div>
             <div class="form-group">
-                <label>Motivo da Alteração Manual (Opcional):</label>
-                <textarea id="modalObsAjusteEstoque" rows="3"></textarea>
+                <label for="modalObsAjusteEstoque">Motivo da Alteração Manual (Opcional):</label>
+                <textarea id="modalObsAjusteEstoque" rows="2" placeholder="Ex: Conferência física semanal / Reposição de fornecedor"></textarea>
             </div>
             <div style="display:flex; gap:10px; margin-top:20px;">
-                <button class="btn btn-primary" style="flex:2;" onclick="window.confirmarAjustesEstoqueComObs()"><i class="ph ph-check"></i> Salvar Tudo</button>
-                <button class="btn btn-secondary" style="flex:1;" onclick="window.fecharModal('modal-confirma-estoque')">Cancelar</button>
+                <button type="button" id="btnConfirmarSalvarEstoqueModal" class="btn btn-primary" style="flex:2;" onclick="window.confirmarAjustesEstoqueComObs()"><i class="ph ph-check"></i> Salvar Tudo</button>
+                <button type="button" class="btn btn-secondary" style="flex:1;" onclick="window.fecharModal('modal-confirma-estoque')">Cancelar</button>
             </div>
         </div>
     </div>

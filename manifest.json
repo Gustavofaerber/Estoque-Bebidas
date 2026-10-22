@@ -1,0 +1,11 @@
+{
+  "name": "Logística de Bebidas - Operação Ferroviária",
+  "short_name": "Bebidas Trem",
+  "description": "Sistema Profissional de Controle de Bordo, Estoques, Escala e Relatórios Ferroviários",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#062314",
+  "theme_color": "#062314",
+  "lang": "pt-BR",
+  "orientation": "portrait-primary"
+}

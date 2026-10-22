@@ -1,0 +1,146 @@
+/* ==========================================================================
+   BASE & LAYOUT SHELL
+   ========================================================================== */
+@layer base {
+    html {
+        box-sizing: border-box;
+        font-size: 16px;
+        -webkit-text-size-adjust: 100%;
+        scroll-behavior: smooth;
+    }
+
+    body, h1, h2, h3, h4, h5, h6, p, ul, ol, figure, blockquote, dl, dd, fieldset {
+        margin: 0;
+        padding: 0;
+    }
+
+    body, div, section, article, header, footer, main, nav, aside, form, fieldset,
+    input, select, textarea, button, table, thead, tbody, tr, th, td, label, span, small, strong {
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: var(--font);
+        background: var(--bg-gradient);
+        background-color: var(--bg);
+        color: var(--text);
+        min-block-size: 100dvh;
+        padding-block: 12px 60px;
+        padding-inline: 10px;
+        -webkit-font-smoothing: antialiased;
+        line-height: 1.45;
+    }
+
+    .app-container {
+        max-inline-size: 980px;
+        margin-inline: auto;
+    }
+
+    /* Barra Superior de Status / Sincronização */
+    .top-status-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: rgba(7, 42, 24, 0.92);
+        color: #ecfdf5;
+        padding-block: 8px;
+        padding-inline: 14px;
+        border-radius: var(--radius-md);
+        margin-block-end: 12px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        box-shadow: var(--shadow-sm);
+        backdrop-filter: blur(8px);
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .top-status-brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+        color: #ffffff;
+        font-weight: 700;
+        letter-spacing: 0.2px;
+    }
+
+    .sync-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding-block: 3px;
+        padding-inline: 10px;
+        border-radius: 999px;
+        font-size: 0.74rem;
+        font-weight: 700;
+        background: rgba(22, 163, 74, 0.25);
+        border: 1px solid rgba(134, 239, 172, 0.4);
+        color: #bbf7d0;
+    }
+
+    .sync-pill.offline {
+        background: rgba(217, 119, 6, 0.3);
+        border-color: rgba(253, 230, 138, 0.5);
+        color: #fef08a;
+    }
+
+    .sync-dot {
+        inline-size: 8px;
+        block-size: 8px;
+        border-radius: 50%;
+        background: #4ade80;
+        box-shadow: 0 0 6px #4ade80;
+    }
+
+    .sync-pill.offline .sync-dot {
+        background: #fbbf24;
+        box-shadow: 0 0 6px #fbbf24;
+    }
+
+    /* Transição de Telas */
+    .tela {
+        display: none;
+        animation: fadeIn 0.2s ease-out;
+    }
+
+    .tela.ativa {
+        display: block;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(4px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Header de Tela */
+    .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+        color: #ffffff;
+        padding-block: 16px;
+        padding-inline: 20px;
+        border-radius: var(--radius-lg);
+        margin-block-end: 16px;
+        box-shadow: 0 6px 18px rgba(7, 42, 24, 0.22);
+    }
+
+    .header h3 {
+        font-size: 1.18rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: #ffffff;
+        margin: 0;
+        font-weight: 700;
+    }
+
+    .divisor {
+        border: 0;
+        border-block-start: 1px dashed var(--border);
+        margin-block: 18px;
+    }
+}
