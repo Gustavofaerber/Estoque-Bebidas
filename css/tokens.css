@@ -1,0 +1,67 @@
+/* ==========================================================================
+   DESIGN TOKENS - SISTEMA DE LOGÍSTICA FERROVIÁRIA
+   ========================================================================== */
+@layer tokens {
+    :root {
+        /* Cores Principais (Identidade Ferroviária Serra Verde) */
+        --primary: #072a18;
+        --primary-light: #0f4c2c;
+        --primary-hover: #135d37;
+        --primary-subtle: #e6f4ec;
+
+        /* Contêiner (Estoque Estação) */
+        --container-color: #0b5936;
+        --container-bg: #e6f6ee;
+        --container-border: #8fd4b2;
+
+        /* Bagageiro (Estoque de Bordo) */
+        --bagageiro-color: #923a0e;
+        --bagageiro-bg: #fdf0e6;
+        --bagageiro-border: #f5bc91;
+
+        /* Nuvem de Trânsito */
+        --transito-color: #0369a1;
+        --transito-bg: #e0f2fe;
+        --transito-border: #7dd3fc;
+
+        /* Semânticas & Destaques */
+        --boutique-color: #7e22ce;
+        --boutique-hover: #6b21a8;
+        --carrinho-color: #0d6e66;
+        --carrinho-hover: #0a5650;
+        --accent: #b45309;
+        --accent-bg: #fffbeb;
+        --accent-border: #fde68a;
+        --danger: #b91c1c;
+        --danger-bg: #fef2f2;
+        --danger-border: #fecaca;
+        --success: #15803d;
+        --success-bg: #dcfce7;
+        --success-border: #86efac;
+
+        /* Superfícies e Neutros */
+        --bg: #d9e4de;
+        --bg-gradient: linear-gradient(160deg, #d5e2db 0%, #c8d8cf 100%);
+        --card: #f9fbfa;
+        --card-elevated: #ffffff;
+        --surface-muted: #f1f5f3;
+        --text: #0f172a;
+        --secondary: #475569;
+        --muted: #64748b;
+        --border: #b8ccc1;
+        --border-dark: #8da99a;
+
+        /* Tipografia & Espaçamento */
+        --font: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+        --font-mono: 'JetBrains Mono', 'Cascadia Code', Consolas, monospace;
+
+        /* Raios e Sombras */
+        --radius-sm: 8px;
+        --radius-md: 12px;
+        --radius-lg: 16px;
+        --radius-xl: 20px;
+        --shadow-sm: 0 2px 6px rgba(7, 42, 24, 0.06);
+        --shadow-md: 0 6px 20px rgba(7, 42, 24, 0.08);
+        --shadow-lg: 0 14px 34px rgba(7, 42, 24, 0.16);
+    }
+}
